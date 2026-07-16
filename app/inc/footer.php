@@ -1,0 +1,1 @@
+</main><footer>OPNsense Central Lite · Self-hosted</footer></body></html>

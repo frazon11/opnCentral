@@ -1,6 +1,6 @@
 services:
   opncentral:
-    image: ghcr.io/${GHCR_OWNER}/${GHCR_IMAGE}:${IMAGE_TAG}
+    image: ghcr.io/frazon11/opncentral:latest
     container_name: OpnCentral
     restart: unless-stopped
 
@@ -8,16 +8,16 @@ services:
       - "${WEB_PORT}:80"
 
     environment:
-      TZ: ${TZ}
-      APP_NAME: ${APP_NAME}
-      APP_KEY: ${APP_KEY}
-      ADMIN_USER: ${ADMIN_USER}
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
-      SESSION_SECURE: ${SESSION_SECURE}
+      TZ: Europe/Brussels
+      APP_NAME: OpnCentral
+      APP_KEY: DEIN_64_STELLIGER_HEX_SCHLUESSEL
+      ADMIN_USER: admin
+      ADMIN_PASSWORD: DEIN_PASSWORT
+      SESSION_SECURE: "false"
 
     volumes:
-      - ${BASE_PATH}/data:/var/www/data
-      - ${BASE_PATH}/backups:/var/www/backups
+      - /volume1/docker/opncentral/data:/var/www/data
+      - /volume1/docker/opncentral/backups:/var/www/backups
 
     healthcheck:
       test:

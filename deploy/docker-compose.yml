@@ -1,22 +1,28 @@
 services:
   opncentral:
-    image: ghcr.io/${GHCR_OWNER}/${GHCR_IMAGE}:${IMAGE_TAG}
+    image: ghcr.io/frazon11/opncentral:latest
     container_name: OpnCentral
     restart: unless-stopped
+
     ports:
-      - "${WEB_PORT}:80"
+      - "8788:80"
+
     environment:
-      TZ: ${TZ}
-      APP_NAME: ${APP_NAME}
+      TZ: ${TZ:-Europe/Brussels}
+      APP_NAME: ${APP_NAME:-OpnCentral}
       APP_KEY: ${APP_KEY}
-      ADMIN_USER: ${ADMIN_USER}
+      ADMIN_USER: ${ADMIN_USER:-admin}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD}
-      SESSION_SECURE: ${SESSION_SECURE}
+      SESSION_SECURE: ${SESSION_SECURE:-false}
+
     volumes:
-      - ${BASE_PATH}/data:/var/www/data
-      - ${BASE_PATH}/backups:/var/www/backups
+      - /volume1/docker/opncentral/data:/var/www/data
+      - /volume1/docker/opncentral/backups:/var/www/backups
+
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1/health.php || exit 1"]
+      test:
+        - CMD-SHELL
+        - curl -fsS http://127.0.0.1/health.php || exit 1
       interval: 30s
       timeout: 10s
       retries: 5

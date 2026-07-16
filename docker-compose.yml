@@ -1,22 +1,28 @@
 services:
-  opnsense-central:
-    build: .
-    container_name: OPNsense-Central
+  opncentral:
+    image: ghcr.io/${GHCR_OWNER}/${GHCR_IMAGE}:${IMAGE_TAG}
+    container_name: OpnCentral
     restart: unless-stopped
+
     ports:
-      - "${WEB_PORT:-8788}:80"
+      - "${WEB_PORT}:80"
+
     environment:
-      TZ: ${TZ:-Europe/Brussels}
-      APP_NAME: ${APP_NAME:-OPNsense Central Lite}
+      TZ: ${TZ}
+      APP_NAME: ${APP_NAME}
       APP_KEY: ${APP_KEY}
-      ADMIN_USER: ${ADMIN_USER:-admin}
+      ADMIN_USER: ${ADMIN_USER}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD}
-      SESSION_SECURE: ${SESSION_SECURE:-false}
+      SESSION_SECURE: ${SESSION_SECURE}
+
     volumes:
-      - ${BASE_PATH:-/volume1/docker/opnsense-central}/data:/var/www/data
-      - ${BASE_PATH:-/volume1/docker/opnsense-central}/backups:/var/www/backups
+      - ${BASE_PATH}/data:/var/www/data
+      - ${BASE_PATH}/backups:/var/www/backups
+
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1/health.php || exit 1"]
+      test:
+        - CMD-SHELL
+        - curl -fsS http://127.0.0.1/health.php || exit 1
       interval: 30s
       timeout: 10s
       retries: 5

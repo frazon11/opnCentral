@@ -17,35 +17,66 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         $action = (string) ($_POST['action'] ?? '');
 
+        /*
+         * Configuration backup
+         */
         if ($action === 'backup') {
-            if (!is_dir(BACKUP_DIR)) {
-                mkdir(BACKUP_DIR, 0770, true);
+            if (
+                !is_dir(BACKUP_DIR)
+                && !mkdir(BACKUP_DIR, 0770, true)
+                && !is_dir(BACKUP_DIR)
+            ) {
+                throw new RuntimeException(
+                    'Cannot create the backup directory.'
+                );
             }
 
-            $safe = preg_replace(
+            $safeName = preg_replace(
                 '/[^A-Za-z0-9._-]+/',
                 '_',
-                $f['name']
+                (string) $f['name']
             );
 
             $filename =
                 BACKUP_DIR . '/' .
-                $safe . '-' .
+                $safeName . '-' .
                 gmdate('Ymd-His') .
                 '.xml';
 
-            file_put_contents(
+            /*
+             * "this" downloads the currently active configuration.
+             */
+            $backupData = opn_download(
+                $f,
+                'core/backup/download/this'
+            );
+
+            if ($backupData === '') {
+                throw new RuntimeException(
+                    'OPNsense returned an empty configuration backup.'
+                );
+            }
+
+            $written = file_put_contents(
                 $filename,
-                opn_download(
-                    $f,
-                    'core/backup/download'
-                ),
+                $backupData,
                 LOCK_EX
             );
 
+            if ($written === false) {
+                throw new RuntimeException(
+                    'The configuration backup could not be saved.'
+                );
+            }
+
             $msg = 'Backup saved: ' . basename($filename);
-        } elseif ($action === 'firmware_check') {
-            $fw = opn_request(
+        }
+
+        /*
+         * Force a new firmware update check
+         */
+        elseif ($action === 'firmware_check') {
+            opn_request(
                 $f,
                 'core/firmware/status',
                 'POST',
@@ -54,7 +85,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             );
 
             $msg = 'Firmware update check completed.';
-        } elseif ($action === 'reboot') {
+        }
+
+        /*
+         * Install available regular firmware updates
+         */
+        elseif ($action === 'firmware_update') {
+            /*
+             * First refresh the firmware information.
+             */
+            opn_request(
+                $f,
+                'core/firmware/status',
+                'POST',
+                [],
+                90
+            );
+
+            /*
+             * Start the firmware update.
+             * OPNsense continues the update asynchronously.
+             */
+            $updateResult = opn_request(
+                $f,
+                'core/firmware/update',
+                'POST',
+                [],
+                30
+            );
+
+            $updateMessage =
+                $updateResult['status_msg']
+                ?? $updateResult['message']
+                ?? $updateResult['status']
+                ?? 'Firmware update command accepted.';
+
+            $msg =
+                'Firmware update started: ' .
+                (string) $updateMessage .
+                ' The firewall may reboot and temporarily become unavailable.';
+        }
+
+        /*
+         * Reboot firewall
+         */
+        elseif ($action === 'reboot') {
             opn_request(
                 $f,
                 'core/system/reboot',
@@ -62,8 +137,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 []
             );
 
-            $msg = 'Reboot submitted.';
-        } elseif ($action === 'delete') {
+            $msg = 'Reboot command submitted.';
+        }
+
+        /*
+         * Remove firewall from OpnCentral
+         */
+        elseif ($action === 'delete') {
             $stmt = db()->prepare(
                 'DELETE FROM firewalls WHERE id = ?'
             );
@@ -78,12 +158,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$st = null;
-$fw = null;
-$sv = null;
+/*
+ * Load current information
+ */
+$systemStatus = null;
+$firmwareStatus = null;
+$services = null;
+$upgradeStatus = null;
 
+/*
+ * System status
+ */
 try {
-    $st = opn_request(
+    $systemStatus = opn_request(
         $f,
         'core/system/status'
     );
@@ -91,29 +178,45 @@ try {
     $err = $err ?: $exception->getMessage();
 }
 
+/*
+ * Cached firmware status
+ */
 try {
-    /*
-     * Read the currently cached firmware status.
-     * A new check can be triggered with the button below.
-     */
-    $fw = opn_request(
+    $firmwareStatus = opn_request(
         $f,
         'core/firmware/status'
     );
 } catch (Throwable $exception) {
-    $fw = [
-        'status_msg' => $exception->getMessage(),
+    $firmwareStatus = [
+        'error' => $exception->getMessage(),
     ];
 }
 
+/*
+ * Firmware update progress
+ */
 try {
-    $sv = opn_request(
+    $upgradeStatus = opn_request(
+        $f,
+        'core/firmware/upgradestatus'
+    );
+} catch (Throwable $exception) {
+    $upgradeStatus = [
+        'error' => $exception->getMessage(),
+    ];
+}
+
+/*
+ * Service status
+ */
+try {
+    $services = opn_request(
         $f,
         'core/service/search'
     );
 } catch (Throwable $exception) {
-    $sv = [
-        'status_msg' => $exception->getMessage(),
+    $services = [
+        'error' => $exception->getMessage(),
     ];
 }
 
@@ -123,34 +226,30 @@ require __DIR__ . '/inc/header.php';
 
 <div class="page-title">
     <div>
-        <h1><?= h($f['name']) ?></h1>
-        <p><?= h($f['base_url']) ?></p>
+        <h1><?= h((string) $f['name']) ?></h1>
+        <p><?= h((string) $f['base_url']) ?></p>
     </div>
 
     <a
         class="button secondary"
         target="_blank"
         rel="noopener"
-        href="<?= h($f['base_url']) ?>"
+        href="<?= h((string) $f['base_url']) ?>"
     >
         Open WebGUI
     </a>
 </div>
 
 <?php if ($msg): ?>
-
     <div class="alert goodbox">
         <?= h($msg) ?>
     </div>
-
 <?php endif; ?>
 
 <?php if ($err): ?>
-
     <div class="alert error">
         <?= h($err) ?>
     </div>
-
 <?php endif; ?>
 
 <div class="detail-grid">
@@ -160,7 +259,7 @@ require __DIR__ . '/inc/header.php';
 
         <pre><?= h(
             json_encode(
-                $st,
+                $systemStatus,
                 JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
             ) ?: 'Unavailable'
         ) ?></pre>
@@ -171,7 +270,18 @@ require __DIR__ . '/inc/header.php';
 
         <pre><?= h(
             json_encode(
-                $fw,
+                $firmwareStatus,
+                JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
+            ) ?: 'Unavailable'
+        ) ?></pre>
+    </section>
+
+    <section class="card">
+        <h2>Update status</h2>
+
+        <pre><?= h(
+            json_encode(
+                $upgradeStatus,
                 JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
             ) ?: 'Unavailable'
         ) ?></pre>
@@ -182,7 +292,7 @@ require __DIR__ . '/inc/header.php';
 
         <pre><?= h(
             json_encode(
-                $sv,
+                $services,
                 JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
             ) ?: 'Unavailable'
         ) ?></pre>
@@ -204,7 +314,19 @@ require __DIR__ . '/inc/header.php';
         name="action"
         value="firmware_check"
     >
-        Check for firmware updates
+        Check for updates
+    </button>
+
+    <button
+        class="warning"
+        name="action"
+        value="firmware_update"
+        onclick="return confirm(
+            'Install available firmware updates now? ' +
+            'The firewall may reboot and temporarily become unavailable.'
+        )"
+    >
+        Update now
     </button>
 
     <button
@@ -218,7 +340,9 @@ require __DIR__ . '/inc/header.php';
         class="warning"
         name="action"
         value="reboot"
-        onclick="return confirm('Really reboot?')"
+        onclick="return confirm(
+            'Really reboot this firewall?'
+        )"
     >
         Reboot firewall
     </button>
@@ -227,7 +351,9 @@ require __DIR__ . '/inc/header.php';
         class="danger"
         name="action"
         value="delete"
-        onclick="return confirm('Delete entry?')"
+        onclick="return confirm(
+            'Delete this firewall from OpnCentral?'
+        )"
     >
         Delete entry
     </button>

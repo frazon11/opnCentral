@@ -55,10 +55,7 @@ require __DIR__ . '/inc/header.php';
                      */
                     $fw = opn_request(
                         $f,
-                        'core/firmware/status',
-                        'POST',
-                        [],
-                        90
+                        'core/firmware/status'
                     );
                 } catch (Throwable $x) {
                     $fw = [

@@ -88,3 +88,9 @@ Persistent data:
 ```
 
 Do not change `APP_KEY` after saving API credentials.
+
+__________________________________________________________________________________________
+
+if you like my ideas and /or projects, feel free to support me:
+
+paypal.me/FrazoN11

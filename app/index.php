@@ -5,7 +5,7 @@ require_once __DIR__ . '/inc/opnsense.php';
 
 require_login();
 
-$fs = db()
+$firewalls = db()
     ->query('SELECT * FROM firewalls ORDER BY name')
     ->fetchAll();
 
@@ -24,7 +24,7 @@ require __DIR__ . '/inc/header.php';
     </a>
 </div>
 
-<?php if (!$fs): ?>
+<?php if (!$firewalls): ?>
 
     <div class="empty">
         No firewalls configured.
@@ -34,36 +34,37 @@ require __DIR__ . '/inc/header.php';
 
     <div class="grid">
 
-        <?php foreach ($fs as $f): ?>
+        <?php foreach ($firewalls as $firewall): ?>
 
             <?php
 
-            $st = null;
-            $fw = null;
-            $err = null;
+            $systemStatus = null;
+            $firmwareStatus = null;
+            $error = null;
 
             try {
-                $st = opn_request(
-                    $f,
+                $systemStatus = opn_request(
+                    $firewall,
                     'core/system/status'
                 );
 
                 try {
                     /*
-                     * POST forces OPNsense to perform a new firmware
-                     * update check instead of returning only cached data.
+                     * Only read the cached firmware status here.
+                     * Do not trigger a full firmware check on every
+                     * dashboard page load.
                      */
-                    $fw = opn_request(
-                        $f,
+                    $firmwareStatus = opn_request(
+                        $firewall,
                         'core/firmware/status'
                     );
-                } catch (Throwable $x) {
-                    $fw = [
-                        'status_msg' => $x->getMessage(),
+                } catch (Throwable $exception) {
+                    $firmwareStatus = [
+                        'status_msg' => $exception->getMessage(),
                     ];
                 }
-            } catch (Throwable $x) {
-                $err = $x->getMessage();
+            } catch (Throwable $exception) {
+                $error = $exception->getMessage();
             }
 
             ?>
@@ -73,28 +74,28 @@ require __DIR__ . '/inc/header.php';
                 <div class="card-head">
 
                     <div>
-                        <h2><?= h($f['name']) ?></h2>
+                        <h2><?= h((string) $firewall['name']) ?></h2>
 
                         <a
                             class="muted"
                             target="_blank"
                             rel="noopener"
-                            href="<?= h($f['base_url']) ?>"
+                            href="<?= h((string) $firewall['base_url']) ?>"
                         >
-                            <?= h($f['base_url']) ?>
+                            <?= h((string) $firewall['base_url']) ?>
                         </a>
                     </div>
 
-                    <span class="badge <?= $err ? 'bad' : 'good' ?>">
-                        <?= $err ? 'Offline' : 'Online' ?>
+                    <span class="badge <?= $error ? 'bad' : 'good' ?>">
+                        <?= $error ? 'Offline' : 'Online' ?>
                     </span>
 
                 </div>
 
-                <?php if ($err): ?>
+                <?php if ($error): ?>
 
                     <div class="alert error">
-                        <?= h($err) ?>
+                        <?= h($error) ?>
                     </div>
 
                 <?php else: ?>
@@ -105,8 +106,8 @@ require __DIR__ . '/inc/header.php';
                         <dd>
                             <?= h(
                                 (string) (
-                                    $st['status']
-                                    ?? $st['result']
+                                    $systemStatus['status']
+                                    ?? $systemStatus['result']
                                     ?? 'reachable'
                                 )
                             ) ?>
@@ -117,8 +118,8 @@ require __DIR__ . '/inc/header.php';
                         <dd>
                             <?= h(
                                 (string) (
-                                    $fw['product_version']
-                                    ?? $fw['status_msg']
+                                    $firmwareStatus['product_version']
+                                    ?? $firmwareStatus['status_msg']
                                     ?? 'API reachable'
                                 )
                             ) ?>
@@ -131,14 +132,14 @@ require __DIR__ . '/inc/header.php';
 
                     <a
                         class="button secondary"
-                        href="/firewall_view.php?id=<?= (int) $f['id'] ?>"
+                        href="/firewall_view.php?id=<?= (int) $firewall['id'] ?>"
                     >
                         Details
                     </a>
 
                     <a
                         class="button secondary"
-                        href="/firewall_edit.php?id=<?= (int) $f['id'] ?>"
+                        href="/firewall_edit.php?id=<?= (int) $firewall['id'] ?>"
                     >
                         Edit
                     </a>

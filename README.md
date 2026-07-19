@@ -15,33 +15,6 @@ Lightweight, self-hosted central management interface for multiple OPNsense fire
 - Multi-platform Docker image for AMD64 and ARM64
 - Synology DSM / Container Manager compatible
 
-## GitHub project setup
-
-1. Create a GitHub repository named `OpnCentral`.
-2. Upload the complete project.
-3. Push to `main`.
-4. GitHub Actions builds and publishes:
-
-```text
-ghcr.io/YOUR_GITHUB_USERNAME/opncentral:edge
-```
-
-Create release version 1.0.0:
-
-```bash
-git tag v1.0.0
-git push origin v1.0.0
-```
-
-This publishes:
-
-```text
-ghcr.io/YOUR_GITHUB_USERNAME/opncentral:1.0.0
-ghcr.io/YOUR_GITHUB_USERNAME/opncentral:1.0
-ghcr.io/YOUR_GITHUB_USERNAME/opncentral:1
-ghcr.io/YOUR_GITHUB_USERNAME/opncentral:latest
-```
-
 ## Synology deployment
 
 Copy only these files from `deploy/` to:
@@ -55,7 +28,7 @@ Copy only these files from `deploy/` to:
 Edit `.env`:
 
 ```dotenv
-GHCR_OWNER=YOUR_GITHUB_USERNAME
+GHCR_OWNER=frazon11
 ADMIN_PASSWORD=YOUR_SECURE_PASSWORD
 APP_KEY=YOUR_64_CHARACTER_HEX_KEY
 ```

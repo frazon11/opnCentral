@@ -33,7 +33,7 @@ start_session_secure();
                 margin-top: 2px;
             "
         >
-            v0.1.9
+            v0.1.9.1
         </div>
     </div>
 

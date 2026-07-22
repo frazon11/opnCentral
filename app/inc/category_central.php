@@ -136,18 +136,19 @@ function central_category_target_status(
 
 function central_category_normalize_color(string $color): string
 {
-    $color = trim($color);
+    $color = strtoupper(
+        preg_replace('/[^0-9A-Fa-f]/', '', trim($color)) ?? ''
+    );
+
     if ($color === '') {
-        return '';
+        $color = 'F0AD4E';
     }
 
-    if ($color[0] !== '#') {
-        $color = '#' . $color;
+    if (!preg_match('/^[0-9A-F]{6}$/', $color)) {
+        throw new RuntimeException(
+            'Color must contain exactly six hexadecimal digits, for example F0AD4E.'
+        );
     }
 
-    if (!preg_match('/^#[0-9A-Fa-f]{6}$/', $color)) {
-        throw new RuntimeException('Color must be a six-digit hexadecimal value, for example #f0ad4e.');
-    }
-
-    return strtolower($color);
+    return $color;
 }

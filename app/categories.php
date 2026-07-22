@@ -145,7 +145,7 @@ require __DIR__ . '/inc/header.php';
 
 <label for="color">Color</label>
 <input id="color" name="color" type="text" value="<?= h((string)($_POST['color'] ?? '#f0ad4e')) ?>" placeholder="#f0ad4e">
-<div class="help">Optional six-digit hexadecimal color.</div>
+<div class="help">Choose a color. opnCentral removes the # before sending it to OPNsense.</div>
 
 <label for="mode">If the category already exists</label>
 <?php $selectedMode = (string)($_POST['mode'] ?? 'create'); ?>

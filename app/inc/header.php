@@ -21,7 +21,7 @@ start_session_secure();
 <header>
     <div class="brand">
         <div><?= h(app_name()) ?></div>
-        <div class="opncentral-version" style="font-size:11px;line-height:1.2;opacity:.65;margin-top:2px;">v0.3.4</div>
+        <div class="opncentral-version" style="font-size:11px;line-height:1.2;opacity:.65;margin-top:2px;">v0.3.5</div>
     </div>
 
     <?php if (logged_in()): ?>

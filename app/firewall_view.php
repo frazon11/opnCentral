@@ -1,10 +1,13 @@
 <?php
+
 require_once __DIR__ . '/inc/config.php';
 require_once __DIR__ . '/inc/opnsense.php';
+
 require_login();
 
 $id = (int) ($_GET['id'] ?? 0);
 $firewall = firewall_by_id($id);
+
 $message = '';
 $error = '';
 
@@ -15,26 +18,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $action = (string) ($_POST['action'] ?? '');
 
         if ($action === 'backup') {
-            if (!is_dir(BACKUP_DIR) && !mkdir(BACKUP_DIR, 0770, true) && !is_dir(BACKUP_DIR)) {
+            if (
+                !is_dir(BACKUP_DIR)
+                && !mkdir(BACKUP_DIR, 0770, true)
+                && !is_dir(BACKUP_DIR)
+            ) {
                 throw new RuntimeException('Cannot create the backup directory.');
             }
 
-            $safeName = preg_replace('/[^A-Za-z0-9._-]+/', '_', (string) $firewall['name']);
-            $filename = BACKUP_DIR . '/' . $safeName . '-' . gmdate('Ymd-His') . '.xml';
+            $safeName = preg_replace(
+                '/[^A-Za-z0-9._-]+/',
+                '_',
+                (string) $firewall['name']
+            );
 
-            $backupData = opn_download($firewall, 'core/backup/download/this');
+            $filename =
+                BACKUP_DIR . '/' .
+                $safeName . '-' .
+                gmdate('Ymd-His') .
+                '.xml';
+
+            $backupData = opn_download(
+                $firewall,
+                'core/backup/download/this'
+            );
 
             if ($backupData === '') {
-                throw new RuntimeException('OPNsense returned an empty configuration backup.');
+                throw new RuntimeException(
+                    'OPNsense returned an empty configuration backup.'
+                );
             }
 
             if (file_put_contents($filename, $backupData, LOCK_EX) === false) {
-                throw new RuntimeException('The configuration backup could not be saved.');
+                throw new RuntimeException(
+                    'The configuration backup could not be saved.'
+                );
             }
 
             $message = 'Backup saved: ' . basename($filename);
         } elseif ($action === 'firmware_check') {
-            $firmwareStatus = opn_request(
+            opn_request(
                 $firewall,
                 'core/firmware/status',
                 'POST',
@@ -71,11 +94,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 (string) $updateMessage .
                 ' The firewall may reboot and temporarily become unavailable.';
         } elseif ($action === 'reboot') {
-            opn_request($firewall, 'core/system/reboot', 'POST', []);
+            opn_request(
+                $firewall,
+                'core/system/reboot',
+                'POST',
+                []
+            );
+
             $message = 'Reboot command submitted.';
         } elseif ($action === 'delete') {
-            $statement = db()->prepare('DELETE FROM firewalls WHERE id = ?');
+            $statement = db()->prepare(
+                'DELETE FROM firewalls WHERE id = ?'
+            );
+
             $statement->execute([$id]);
+
             header('Location: /');
             exit;
         }
@@ -84,28 +117,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$systemStatus = null;
-
-if (!isset($firmwareStatus)) {
-    $firmwareStatus = [
-        'status' => 'Use "Check for updates" to retrieve current firmware information.'
-    ];
-}
-
-try {
-    $systemStatus = opn_request(
-        $firewall,
-        'core/system/status',
-        'GET',
-        [],
-        8
-    );
-} catch (Throwable $exception) {
-    $error = $error ?: $exception->getMessage();
-}
-
 require __DIR__ . '/inc/header.php';
+
 ?>
+
+<style>
+.live-card pre{min-height:110px}
+.live-status{font-size:.9rem;opacity:.72;margin-bottom:8px}
+.live-status.loading::before{content:"● ";animation:pulse 1s infinite}
+.live-status.good{color:#35a853}
+.live-status.bad{color:#d74747}
+@keyframes pulse{0%,100%{opacity:.25}50%{opacity:1}}
+</style>
 
 <div class="page-title">
     <div>
@@ -113,7 +136,12 @@ require __DIR__ . '/inc/header.php';
         <p><?= h((string) $firewall['base_url']) ?></p>
     </div>
 
-    <a class="button secondary" target="_blank" rel="noopener" href="<?= h((string) $firewall['base_url']) ?>">
+    <a
+        class="button secondary"
+        target="_blank"
+        rel="noopener"
+        href="<?= h((string) $firewall['base_url']) ?>"
+    >
         Open WebGUI
     </a>
 </div>
@@ -127,32 +155,53 @@ require __DIR__ . '/inc/header.php';
 <?php endif; ?>
 
 <div class="detail-grid">
-    <section class="card">
+    <section class="card live-card">
         <h2>System</h2>
-        <pre><?= h(json_encode($systemStatus, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ?: 'Unavailable') ?></pre>
+        <div id="system-state" class="live-status loading">
+            Loading live system status…
+        </div>
+        <pre id="system-output">Loading…</pre>
     </section>
 
-    <section class="card">
+    <section class="card live-card">
         <h2>Firmware</h2>
-        <pre><?= h(json_encode($firmwareStatus, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ?: 'Unavailable') ?></pre>
+        <div id="firmware-state" class="live-status loading">
+            Loading firmware information…
+        </div>
+        <pre id="firmware-output">Loading…</pre>
+    </section>
+
+    <section class="card live-card">
+        <h2>Update status</h2>
+        <div id="upgrade-state" class="live-status loading">
+            Loading update status…
+        </div>
+        <pre id="upgrade-output">Loading…</pre>
     </section>
 </div>
 
 <form method="post" class="actions danger-zone">
     <input type="hidden" name="csrf" value="<?= h(csrf_token()) ?>">
 
-    <button name="action" value="firmware_check">Check for updates</button>
+    <button name="action" value="firmware_check">
+        Check for updates
+    </button>
 
     <button
         class="warning"
         name="action"
         value="firmware_update"
-        onclick="return confirm('Install available firmware updates now? The firewall may reboot and temporarily become unavailable.')"
+        onclick="return confirm(
+            'Install available firmware updates now? ' +
+            'The firewall may reboot and temporarily become unavailable.'
+        )"
     >
         Update now
     </button>
 
-    <button name="action" value="backup">Download configuration backup</button>
+    <button name="action" value="backup">
+        Download configuration backup
+    </button>
 
     <button
         class="warning"
@@ -167,10 +216,77 @@ require __DIR__ . '/inc/header.php';
         class="danger"
         name="action"
         value="delete"
-        onclick="return confirm('Delete this firewall from OpnCentral?')"
+        onclick="return confirm(
+            'Delete this firewall from OpnCentral?'
+        )"
     >
         Delete entry
     </button>
 </form>
+
+<script>
+(function () {
+    const firewallId = <?= (int) $firewall['id'] ?>;
+
+    function showResult(section, payload) {
+        const state = document.getElementById(section + '-state');
+        const output = document.getElementById(section + '-output');
+
+        state.classList.remove('loading', 'good', 'bad');
+
+        if (!payload || payload.ok !== true) {
+            state.classList.add('bad');
+            state.textContent = 'Could not load live status.';
+            output.textContent = payload && payload.error
+                ? payload.error
+                : 'Unavailable';
+            return;
+        }
+
+        state.classList.add('good');
+        state.textContent = 'Live status loaded.';
+        output.textContent = JSON.stringify(payload.value, null, 2);
+    }
+
+    async function loadSection(section, type) {
+        try {
+            const response = await fetch(
+                '/firewall_status.php?id=' +
+                encodeURIComponent(firewallId) +
+                '&type=' +
+                encodeURIComponent(type),
+                {
+                    credentials: 'same-origin',
+                    cache: 'no-store'
+                }
+            );
+
+            const result = await response.json();
+
+            if (!response.ok || result.ok !== true) {
+                throw new Error(result.error || 'HTTP ' + response.status);
+            }
+
+            showResult(section, result.data[type]);
+        } catch (error) {
+            showResult(section, {
+                ok: false,
+                error: error.message
+            });
+        }
+    }
+
+    loadSection('system', 'system');
+    loadSection('firmware', 'firmware');
+    loadSection('upgrade', 'upgrade');
+
+    <?php if ($message && str_contains($message, 'Firmware update check completed')): ?>
+    setTimeout(function () {
+        loadSection('firmware', 'firmware');
+        loadSection('upgrade', 'upgrade');
+    }, 800);
+    <?php endif; ?>
+})();
+</script>
 
 <?php require __DIR__ . '/inc/footer.php'; ?>

@@ -1,27 +1,60 @@
 <?php
 require_once __DIR__ . '/inc/config.php';
-require_once __DIR__ . '/inc/opnsense.php';
 require_login();
 
 $firewalls = db()->query('SELECT * FROM firewalls ORDER BY name')->fetchAll();
 require __DIR__ . '/inc/header.php';
 ?>
+
 <style>
-.view-toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.view-switch{display:inline-flex;gap:4px;padding:4px;border:1px solid rgba(127,127,127,.25);border-radius:10px;background:rgba(127,127,127,.08)}.view-switch button{border:0;border-radius:7px;padding:8px 12px;cursor:pointer;background:transparent;color:inherit}.view-switch button.active{background:rgba(127,127,127,.2);font-weight:700}.firewall-list{display:grid;gap:16px}.view-cards .firewall-list{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}.view-compact .firewall-list{display:table;width:100%;border-collapse:collapse}.view-compact .firewall-card{display:table-row}.view-compact .compact-cell{display:table-cell;padding:12px 10px;vertical-align:middle;border-bottom:1px solid rgba(127,127,127,.18)}.view-compact .card{border:0;border-radius:0;box-shadow:none;background:transparent;padding:0}.view-compact .card-head,.view-compact dl,.view-compact .actions{display:contents}.view-compact .compact-hide{display:none}.view-details .firewall-list{grid-template-columns:1fr}.view-details .firewall-card{padding:20px}.view-details .details-extra{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:16px}.view-details .details-box{padding:12px;border-radius:8px;background:rgba(127,127,127,.08)}.view-details .details-box strong{display:block;margin-bottom:4px}.view-cards .details-extra,.view-compact .details-extra{display:none}.compact-label{display:none}@media(max-width:760px){.view-compact .firewall-list,.view-compact .firewall-card,.view-compact .compact-cell{display:block;width:100%}.view-compact .firewall-card{padding:12px 0;border-bottom:1px solid rgba(127,127,127,.18)}.view-compact .compact-label{display:inline-block;min-width:90px;font-weight:700}}
+.view-toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.view-switch{display:inline-flex;gap:4px;padding:4px;border:1px solid rgba(127,127,127,.25);border-radius:10px;background:rgba(127,127,127,.08)}.view-switch button{border:0;border-radius:7px;padding:8px 12px;cursor:pointer;background:transparent;color:inherit}.view-switch button.active{background:rgba(127,127,127,.2);font-weight:700}.firewall-list{display:grid;gap:16px}.view-cards .firewall-list{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}.view-compact .firewall-list{display:table;width:100%;border-collapse:collapse}.view-compact .firewall-card{display:table-row}.view-compact .compact-cell{display:table-cell;padding:12px 10px;vertical-align:middle;border-bottom:1px solid rgba(127,127,127,.18)}.view-compact .card{border:0;border-radius:0;box-shadow:none;background:transparent;padding:0}.view-compact .card-head,.view-compact dl,.view-compact .actions{display:contents}.view-compact .compact-hide{display:none}.view-details .firewall-list{grid-template-columns:1fr}.view-details .details-extra{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:16px}.view-details .details-box{padding:12px;border-radius:8px;background:rgba(127,127,127,.08)}.view-details .details-box strong{display:block;margin-bottom:4px}.view-cards .details-extra,.view-compact .details-extra{display:none}.compact-label{display:none}@media(max-width:760px){.view-compact .firewall-list,.view-compact .firewall-card,.view-compact .compact-cell{display:block;width:100%}.view-compact .firewall-card{padding:12px 0;border-bottom:1px solid rgba(127,127,127,.18)}.view-compact .compact-label{display:inline-block;min-width:90px;font-weight:700}}
 </style>
-<div class="page-title"><div><h1>Firewalls</h1><p>Central status, backups and maintenance.</p></div><div class="view-toolbar"><div class="view-switch" aria-label="Dashboard view"><button type="button" data-view="cards">Cards</button><button type="button" data-view="compact">Compact</button><button type="button" data-view="details">Details</button></div><a class="button" href="/firewall_edit.php">Add firewall</a></div></div>
+
+<div class="page-title">
+  <div><h1>Firewalls</h1><p>Dashboard loads locally. Open Details for live information.</p></div>
+  <div class="view-toolbar">
+    <div class="view-switch" aria-label="Dashboard view">
+      <button type="button" data-view="cards">Cards</button>
+      <button type="button" data-view="compact">Compact</button>
+      <button type="button" data-view="details">Details</button>
+    </div>
+    <a class="button" href="/firewall_edit.php">Add firewall</a>
+  </div>
+</div>
+
 <div id="firewall-dashboard" class="view-cards">
-<?php if (!$firewalls): ?><div class="empty">No firewalls configured.</div><?php else: ?><div class="firewall-list">
-<?php foreach ($firewalls as $firewall): ?>
-<?php
-$systemStatus=null;$firmwareStatus=null;$error=null;
-try{$systemStatus=opn_request($firewall,'core/system/status','GET',[],8);try{$firmwareStatus=opn_request($firewall,'core/firmware/status','GET',[],8);}catch(Throwable $exception){$firmwareStatus=['status_msg'=>$exception->getMessage()];}}catch(Throwable $exception){$error=$exception->getMessage();}
-$systemText=(string)($systemStatus['status']??$systemStatus['result']??'reachable');
-$firmwareText=(string)($firmwareStatus['product_version']??$firmwareStatus['status_msg']??'API reachable');
-$statusMessage=(string)($firmwareStatus['status_msg']??$firmwareStatus['message']??'No additional information');
-$productName=(string)($firmwareStatus['product_name']??'OPNsense');
-?>
-<article class="card firewall-card"><div class="card-head compact-cell"><div><h2><?=h((string)$firewall['name'])?></h2><a class="muted compact-hide" target="_blank" rel="noopener" href="<?=h((string)$firewall['base_url'])?>"><?=h((string)$firewall['base_url'])?></a></div></div><div class="compact-cell"><span class="compact-label">Status:</span><span class="badge <?=$error?'bad':'good'?>"><?=$error?'Offline':'Online'?></span></div><dl><div class="compact-cell"><dt class="compact-label">System:</dt><dd><?=h($error?:$systemText)?></dd></div><div class="compact-cell"><dt class="compact-label">Firmware:</dt><dd><?=h($firmwareText)?></dd></div></dl><div class="details-extra"><div class="details-box"><strong>WebGUI</strong><a target="_blank" rel="noopener" href="<?=h((string)$firewall['base_url'])?>"><?=h((string)$firewall['base_url'])?></a></div><div class="details-box"><strong>Product</strong><?=h($productName)?></div><div class="details-box"><strong>Firmware information</strong><?=h($statusMessage)?></div><div class="details-box"><strong>Connection</strong><?=$error?h($error):'API reachable'?></div></div><div class="actions compact-cell"><a class="button secondary" href="/firewall_view.php?id=<?=(int)$firewall['id']?>">Details</a><a class="button secondary" href="/firewall_edit.php?id=<?=(int)$firewall['id']?>">Edit</a></div></article>
-<?php endforeach; ?></div><?php endif; ?></div>
-<script>(function(){const key='opncentral-dashboard-view';const dashboard=document.getElementById('firewall-dashboard');const buttons=document.querySelectorAll('[data-view]');if(!dashboard||!buttons.length)return;function applyView(view){const allowed=['cards','compact','details'];if(!allowed.includes(view))view='cards';dashboard.classList.remove('view-cards','view-compact','view-details');dashboard.classList.add('view-'+view);buttons.forEach(button=>button.classList.toggle('active',button.dataset.view===view));localStorage.setItem(key,view)}buttons.forEach(button=>button.addEventListener('click',()=>applyView(button.dataset.view)));applyView(localStorage.getItem(key)||'cards')})();</script>
+<?php if (!$firewalls): ?>
+  <div class="empty">No firewalls configured.</div>
+<?php else: ?>
+  <div class="firewall-list">
+  <?php foreach ($firewalls as $firewall): ?>
+    <article class="card firewall-card">
+      <div class="card-head compact-cell">
+        <div>
+          <h2><?= h((string)$firewall['name']) ?></h2>
+          <a class="muted compact-hide" target="_blank" rel="noopener" href="<?= h((string)$firewall['base_url']) ?>"><?= h((string)$firewall['base_url']) ?></a>
+        </div>
+      </div>
+      <div class="compact-cell"><span class="compact-label">Status:</span><span class="badge">Not checked</span></div>
+      <dl>
+        <div class="compact-cell"><dt class="compact-label">System:</dt><dd>Open Details for live status</dd></div>
+        <div class="compact-cell"><dt class="compact-label">Firmware:</dt><dd>Use Check for updates in Details</dd></div>
+      </dl>
+      <div class="details-extra">
+        <div class="details-box"><strong>WebGUI</strong><a target="_blank" rel="noopener" href="<?= h((string)$firewall['base_url']) ?>"><?= h((string)$firewall['base_url']) ?></a></div>
+        <div class="details-box"><strong>API status</strong>Not checked automatically</div>
+      </div>
+      <div class="actions compact-cell">
+        <a class="button secondary" href="/firewall_view.php?id=<?= (int)$firewall['id'] ?>">Details</a>
+        <a class="button secondary" href="/firewall_edit.php?id=<?= (int)$firewall['id'] ?>">Edit</a>
+      </div>
+    </article>
+  <?php endforeach; ?>
+  </div>
+<?php endif; ?>
+</div>
+
+<script>
+(function(){const key='opncentral-dashboard-view';const dashboard=document.getElementById('firewall-dashboard');const buttons=document.querySelectorAll('[data-view]');if(!dashboard||!buttons.length)return;function applyView(view){const allowed=['cards','compact','details'];if(!allowed.includes(view))view='cards';dashboard.classList.remove('view-cards','view-compact','view-details');dashboard.classList.add('view-'+view);buttons.forEach(button=>button.classList.toggle('active',button.dataset.view===view));localStorage.setItem(key,view)}buttons.forEach(button=>button.addEventListener('click',()=>applyView(button.dataset.view)));applyView(localStorage.getItem(key)||'cards')})();
+</script>
 <?php require __DIR__ . '/inc/footer.php'; ?>

@@ -1,31 +1,27 @@
-# OpnCentral v0.1.8 update
+opnCentral v0.3.6 - Background dashboard status and structured menu
 
-This update package contains complete replacement files:
-
+Replace:
 - app/index.php
 - app/firewall_view.php
+- app/firewall_status.php
+- app/inc/header.php
 
 Changes:
+- Dashboard opens immediately.
+- System and firmware status load in the background for every firewall.
+- Refresh status button updates all firewalls.
+- Each firewall also has its own Refresh button.
+- Cards, Compact and Details views remain available.
+- Navigation is grouped as Dashboard, Firewalls, Aliases, Categories and Logout.
+- Alias and Category actions are placed in compact dropdown menus.
+- Version display updated to v0.3.6.
 
-- Dashboard no longer forces a firmware repository check on every page load.
-- Firewall detail page no longer automatically loads services or upgrade status.
-- Manual "Check for updates" button remains available.
-- "Update now" remains available.
-- Configuration backup uses:
-  core/backup/download/this
+Git commands:
 
-Installation:
+git add app/index.php app/firewall_view.php app/firewall_status.php app/inc/header.php
+git commit -m "Release v0.3.6 background dashboard and structured menu"
+git pull --rebase origin main
+git push origin main
 
-1. Copy both files into the matching `app/` directory of your local repository.
-2. Commit and push:
-
-   git add app/index.php app/firewall_view.php
-   git commit -m "Release v0.1.8 performance update"
-   git push origin main
-
-3. Create the release:
-
-   git tag -a v0.1.8 -m "Improve Web UI performance"
-   git push origin v0.1.8
-
-4. In Portainer update the stack with "Pull latest image" enabled.
+git tag -a v0.3.6 -m "Background dashboard and structured menu"
+git push origin v0.3.6

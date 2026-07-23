@@ -62,25 +62,6 @@ try {
         }
     }
 
-    if ($type === 'upgrade' || $type === 'all') {
-        try {
-            $result['data']['upgrade'] = [
-                'ok' => true,
-                'value' => opn_request(
-                    $firewall,
-                    'core/firmware/upgradestatus',
-                    'GET',
-                    [],
-                    10
-                ),
-            ];
-        } catch (Throwable $exception) {
-            $result['data']['upgrade'] = [
-                'ok' => false,
-                'error' => $exception->getMessage(),
-            ];
-        }
-    }
 
     echo json_encode(
         $result,

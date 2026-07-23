@@ -172,18 +172,18 @@ require __DIR__ . '/inc/header.php';
     </section>
 
     <section class="card live-card">
-        <h2>Update status</h2>
-        <div id="upgrade-state" class="live-status loading">
-            Loading update status…
+        <h2>Update check</h2>
+        <div id="check-state" class="live-status">
+            Ready. Click “Check for updates”.
         </div>
-        <pre id="upgrade-output">Loading…</pre>
+        <pre id="check-output">No update check started.</pre>
     </section>
 </div>
 
 <form method="post" class="actions danger-zone">
     <input type="hidden" name="csrf" value="<?= h(csrf_token()) ?>">
 
-    <button name="action" value="firmware_check">
+    <button type="button" id="firmware-check-button">
         Check for updates
     </button>
 
@@ -227,6 +227,8 @@ require __DIR__ . '/inc/header.php';
 <script>
 (function () {
     const firewallId = <?= (int) $firewall['id'] ?>;
+    const csrfToken = <?= json_encode(csrf_token(), JSON_UNESCAPED_SLASHES) ?>;
+    const checkButton = document.getElementById('firmware-check-button');
 
     function showResult(section, payload) {
         const state = document.getElementById(section + '-state');
@@ -251,10 +253,8 @@ require __DIR__ . '/inc/header.php';
     async function loadSection(section, type) {
         try {
             const response = await fetch(
-                '/firewall_status.php?id=' +
-                encodeURIComponent(firewallId) +
-                '&type=' +
-                encodeURIComponent(type),
+                '/firewall_status.php?id=' + encodeURIComponent(firewallId) +
+                '&type=' + encodeURIComponent(type),
                 {
                     credentials: 'same-origin',
                     cache: 'no-store'
@@ -276,16 +276,55 @@ require __DIR__ . '/inc/header.php';
         }
     }
 
+    async function checkForUpdates() {
+        const state = document.getElementById('check-state');
+        const output = document.getElementById('check-output');
+        const body = new URLSearchParams();
+
+        body.set('csrf', csrfToken);
+        body.set('id', String(firewallId));
+        body.set('action', 'firmware_check');
+
+        checkButton.disabled = true;
+        state.className = 'live-status loading';
+        state.textContent = 'Checking OPNsense repositories…';
+        output.textContent = 'This may take a while. The page remains usable.';
+
+        try {
+            const response = await fetch('/firewall_action.php', {
+                method: 'POST',
+                credentials: 'same-origin',
+                cache: 'no-store',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+                },
+                body: body.toString()
+            });
+
+            const result = await response.json();
+
+            if (!response.ok || result.ok !== true) {
+                throw new Error(result.error || 'HTTP ' + response.status);
+            }
+
+            state.className = 'live-status good';
+            state.textContent = 'Update check completed.';
+            output.textContent = JSON.stringify(result.value, null, 2);
+
+            await loadSection('firmware', 'firmware');
+        } catch (error) {
+            state.className = 'live-status bad';
+            state.textContent = 'Update check failed.';
+            output.textContent = error.message;
+        } finally {
+            checkButton.disabled = false;
+        }
+    }
+
+    checkButton?.addEventListener('click', checkForUpdates);
+
     loadSection('system', 'system');
     loadSection('firmware', 'firmware');
-    loadSection('upgrade', 'upgrade');
-
-    <?php if ($message && str_contains($message, 'Firmware update check completed')): ?>
-    setTimeout(function () {
-        loadSection('firmware', 'firmware');
-        loadSection('upgrade', 'upgrade');
-    }, 800);
-    <?php endif; ?>
 })();
 </script>
 

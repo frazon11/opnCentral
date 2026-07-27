@@ -103,6 +103,9 @@ require __DIR__ . '/inc/header.php';
 .vpn-meta{font-size:.88rem;opacity:.78;word-break:break-word}
 .vpn-empty{opacity:.7}
 .vpn-raw{margin-top:10px}
+.vpn-actions{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-top:8px}
+.vpn-actions button{padding:6px 9px;font-size:.84rem}
+.vpn-managed{font-size:.82rem;opacity:.82}
 @keyframes pulse{0%,100%{opacity:.25}50%{opacity:1}}
 </style>
 
@@ -263,6 +266,7 @@ require __DIR__ . '/inc/header.php';
 
 <script>
 (function () {
+    let managedWireGuardLinks = {};
     const tr = {"common.loading_short":<?= json_encode(t('common.loading_short'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"common.loading":<?= json_encode(t('common.loading'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"common.online":<?= json_encode(t('common.online'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"common.offline":<?= json_encode(t('common.offline'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"common.reachable":<?= json_encode(t('common.reachable'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"common.unavailable":<?= json_encode(t('common.unavailable'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"common.unknown":<?= json_encode(t('common.unknown'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"common.not_checked":<?= json_encode(t('common.not_checked'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"common.no_update":<?= json_encode(t('common.no_update'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"common.update_available":<?= json_encode(t('common.update_available'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"common.update_now":<?= json_encode(t('common.update_now'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"common.upgrade_now":<?= json_encode(t('common.upgrade_now'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"dashboard.loading_firmware":<?= json_encode(t('dashboard.loading_firmware'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"dashboard.start_update_confirm":<?= json_encode(t('dashboard.start_update_confirm'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"dashboard.start_upgrade_confirm":<?= json_encode(t('dashboard.start_upgrade_confirm'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"dashboard.starting_update":<?= json_encode(t('dashboard.starting_update'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"dashboard.starting_upgrade":<?= json_encode(t('dashboard.starting_upgrade'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"dashboard.action_started":<?= json_encode(t('dashboard.action_started'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"details.loading_system":<?= json_encode(t('details.loading_system'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"details.loading_firmware":<?= json_encode(t('details.loading_firmware'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"details.loading_vpn":<?= json_encode(t('details.loading_vpn'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>};
     const firewallId = <?= (int) $firewall['id'] ?>;
     const csrfToken = <?= json_encode(csrf_token(), JSON_UNESCAPED_SLASHES) ?>;
@@ -567,8 +571,41 @@ require __DIR__ . '/inc/header.php';
             meta.textContent = options.meta;
             box.appendChild(meta);
         }
-
+        if (options.actions instanceof Node) box.appendChild(options.actions);
         container.appendChild(box);
+    }
+
+    function managedWireGuardActions(peer) {
+        const publicKey = String(peer?.['public-key'] || '');
+        const link = managedWireGuardLinks[publicKey];
+        if (!link?.managed) return null;
+        const box = document.createElement('div'); box.className = 'vpn-actions';
+        const label = document.createElement('span'); label.className = 'vpn-managed';
+        label.textContent = 'Managed peer: ' + link.remote.firewall_name + (link.partial_state ? ' · partial state' : '');
+        const button = document.createElement('button'); button.type = 'button';
+        const enable = !link.paired_enabled; button.className = enable ? 'secondary' : 'warning';
+        button.textContent = enable ? 'Enable both sides' : 'Disable both sides';
+        button.addEventListener('click', async function () {
+            const verb = enable ? 'enable' : 'disable';
+            if (!confirm(`Really ${verb} only this WireGuard connection on both managed firewalls?
+
+${link.local.firewall_name}: ${link.local.client_name || 'peer'}
+${link.remote.firewall_name}: ${link.remote.client_name || 'peer'}
+
+Other WireGuard peers and instances will remain unchanged.`)) return;
+            button.disabled = true; button.textContent = enable ? 'Enabling…' : 'Disabling…';
+            try {
+                const body = new URLSearchParams();
+                body.set('csrf', csrfToken); body.set('local_firewall_id', String(link.local.firewall_id));
+                body.set('remote_firewall_id', String(link.remote.firewall_id)); body.set('local_client_uuid', link.local.client_uuid);
+                body.set('remote_client_uuid', link.remote.client_uuid); body.set('local_expected_peer_key', link.local.expected_peer_key);
+                body.set('remote_expected_peer_key', link.remote.expected_peer_key); body.set('enable', enable ? '1' : '0');
+                const response = await fetch('/wireguard_link_action.php', {method:'POST',credentials:'same-origin',cache:'no-store',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},body});
+                const result = await response.json(); if (!response.ok || result.ok !== true) throw new Error(result.error || 'Action failed.');
+                setNotice(result.message, false); await loadVpn();
+            } catch (error) { setNotice(error.message, true); button.disabled = false; button.textContent = enable ? 'Enable both sides' : 'Disable both sides'; }
+        });
+        box.appendChild(label); box.appendChild(button); return box;
     }
 
     function showVpnErrors(summary, errors) {
@@ -643,7 +680,8 @@ require __DIR__ . '/inc/header.php';
                 name: textValue(row, ['name', 'ifname'], 'WireGuard peer ' + (index + 1)),
                 online: online,
                 status: online ? 'Online' : 'Offline',
-                meta: meta
+                meta: meta,
+                actions: managedWireGuardActions(row)
             });
         });
 
@@ -839,6 +877,18 @@ require __DIR__ . '/inc/header.php';
         }
     }
 
+    async function loadManagedWireGuardLinks() {
+        try {
+            const response = await fetch('/wireguard_links.php?id=' + encodeURIComponent(firewallId), {
+                credentials: 'same-origin', cache: 'no-store'
+            });
+            const result = await response.json();
+            managedWireGuardLinks = response.ok && result.ok === true ? (result.links || {}) : {};
+        } catch (error) {
+            managedWireGuardLinks = {};
+        }
+    }
+
     async function loadVpn() {
         const state = document.getElementById('vpn-state');
         const button = document.getElementById('vpn-refresh-button');
@@ -848,6 +898,7 @@ require __DIR__ . '/inc/header.php';
         button.disabled = true;
 
         try {
+            await loadManagedWireGuardLinks();
             const response = await fetch(
                 '/vpn_status.php?id=' + encodeURIComponent(firewallId) +
                 '&type=all',

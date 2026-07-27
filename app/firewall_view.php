@@ -716,6 +716,48 @@ require __DIR__ . '/inc/header.php';
             row?.is_client === true;
     }
 
+    function openVpnRemoteHost(value) {
+        let remote = String(value ?? '').trim()
+            .replace(/^(udp|tcp)(4|6)?:/i, '');
+
+        if (remote.startsWith('[')) {
+            const closingBracket = remote.indexOf(']');
+            return closingBracket > 0
+                ? remote.substring(1, closingBracket)
+                : remote;
+        }
+
+        const colonCount = (remote.match(/:/g) || []).length;
+        if (colonCount === 1) {
+            return remote.substring(0, remote.lastIndexOf(':'));
+        }
+
+        return remote;
+    }
+
+    function roadwarriorStatistics(rows) {
+        const usernames = new Set();
+        const publicAddresses = new Set();
+        const virtualAddresses = new Set();
+
+        rows.forEach(function (row) {
+            const username = String(row?.username ?? '').trim();
+            const publicAddress = openVpnRemoteHost(row?.real_address);
+            const virtualAddress = String(row?.virtual_address ?? '').trim();
+
+            if (username) usernames.add(username);
+            if (publicAddress) publicAddresses.add(publicAddress);
+            if (virtualAddress) virtualAddresses.add(virtualAddress);
+        });
+
+        return {
+            records: rows.length,
+            usernames: usernames.size,
+            publicAddresses: publicAddresses.size,
+            virtualAddresses: virtualAddresses.size
+        };
+    }
+
     function renderOpenVpn(payload) {
         const summary = document.getElementById('openvpn-summary');
         const list = document.getElementById('openvpn-list');
@@ -730,13 +772,14 @@ require __DIR__ . '/inc/header.php';
             ? firstArray(payload.sessions.value)
             : [];
         const roadwarriors = sessions.filter(isRoadwarriorSession);
+        const roadwarriorStats = roadwarriorStatistics(roadwarriors);
         const siteToSite = sessions.filter(row => !isRoadwarriorSession(row));
         const onlineSiteToSite = siteToSite.filter(rowIsOnline).length;
 
         const badge = document.createElement('span');
         badge.className = 'badge ' + (onlineSiteToSite > 0 ? 'good' : 'neutral');
         badge.textContent = 'Site-to-site: ' + onlineSiteToSite + '/' + siteToSite.length +
-            ' · Roadwarriors: ' + roadwarriors.length + ' connected';
+            ' · Roadwarrior records: ' + roadwarriorStats.records;
         summary.appendChild(badge);
         showVpnErrors(summary, errors);
 
@@ -767,11 +810,18 @@ require __DIR__ . '/inc/header.php';
             const title = document.createElement('strong');
             title.textContent = 'Roadwarrior sessions';
             const rwBadge = document.createElement('span');
-            rwBadge.className = 'badge good';
-            rwBadge.textContent = roadwarriors.length + ' connected';
+            rwBadge.className = 'badge neutral';
+            rwBadge.textContent = roadwarriorStats.records + ' session records';
             const meta = document.createElement('div');
             meta.className = 'vpn-meta';
-            meta.textContent = 'Displayed as a separate count; route records are not counted as tunnels.';
+            meta.textContent =
+                roadwarriorStats.usernames + ' unique username' +
+                (roadwarriorStats.usernames === 1 ? '' : 's') + ' · ' +
+                roadwarriorStats.publicAddresses + ' unique public IP' +
+                (roadwarriorStats.publicAddresses === 1 ? '' : 's') + ' · ' +
+                roadwarriorStats.virtualAddresses + ' unique virtual IP' +
+                (roadwarriorStats.virtualAddresses === 1 ? '' : 's') +
+                '. Route records are excluded.';
             rw.appendChild(title);
             rw.appendChild(rwBadge);
             rw.appendChild(meta);

@@ -62,12 +62,12 @@ $rows = db()->query(
 require __DIR__ . '/inc/header.php';
 ?>
 <style>.overview-table{width:100%;border-collapse:collapse}.overview-table th,.overview-table td{text-align:left;padding:10px;border-bottom:1px solid rgba(127,127,127,.18);vertical-align:top}.sync{font-weight:700}.sync.synchronized{color:#2aa84a}.sync.different,.sync.missing,.sync.unknown{color:#d58a00}.sync.unreachable{color:#d74747}</style>
-<div class="page-title"><div><h1>Distributed categories</h1><p>Shows the last stored synchronization result.</p></div><a class="button" href="/categories.php">Distribute category</a></div>
+<div class="page-title"><div><h1><?= h(t('categories.distributed')) ?></h1><p><?= h(t('aliases.stored_result')) ?></p></div><a class="button" href="/categories.php"><?= h(t('categories.distribute')) ?></a></div>
 <?php if ($message): ?><div class="alert goodbox"><?= h($message) ?></div><?php endif; ?>
 <?php if ($error): ?><div class="alert error"><?= h($error) ?></div><?php endif; ?>
-<form method="post" class="actions"><input type="hidden" name="csrf" value="<?= h(csrf_token()) ?>"><button name="action" value="check">Check synchronization</button></form>
-<?php if (!$categories): ?><div class="empty">No categories have been distributed by opnCentral.</div><?php else: ?>
-<section class="card"><table class="overview-table"><thead><tr><th>Category</th><th>Color</th><th>Firewall</th><th>Status</th><th>Information</th><th>Last checked</th></tr></thead><tbody>
+<form method="post" class="actions"><input type="hidden" name="csrf" value="<?= h(csrf_token()) ?>"><button name="action" value="check"><?= h(t('aliases.check_sync')) ?></button></form>
+<?php if (!$categories): ?><div class="empty"><?= h(t('categories.none')) ?></div><?php else: ?>
+<section class="card"><table class="overview-table"><thead><tr><th>Category</th><th><?= h(t('categories.color')) ?></th><th>Firewall</th><th>Status</th><th>Information</th><th>Last checked</th></tr></thead><tbody>
 <?php foreach ($rows as $row): $class=str_replace(' ','-',(string)$row['last_status']); ?><tr><td><strong><?= h($row['name']) ?></strong></td><td><?= h($row['color'] ?: 'Default') ?></td><td><?= h($row['firewall_name']) ?></td><td><span class="sync <?= h($class) ?>"><?= h(ucfirst((string)$row['last_status'])) ?></span></td><td><?= h($row['last_message']) ?></td><td><?= h($row['last_checked_at'] ?: 'Never') ?></td></tr><?php endforeach; ?>
 </tbody></table></section><?php endif; ?>
 <?php require __DIR__ . '/inc/footer.php'; ?>

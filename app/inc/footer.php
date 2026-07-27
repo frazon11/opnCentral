@@ -1,1 +1,1 @@
-</main><footer>OPNsense Central Lite · Self-hosted</footer></body></html>
+</main><footer><?= h(t('footer')) ?></footer></body></html>

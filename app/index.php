@@ -32,30 +32,30 @@ require __DIR__ . '/inc/header.php';
 
 <div class="page-title">
     <div>
-        <h1>Firewalls</h1>
-        <p>Live status loads in the background.</p>
+        <h1><?= h(t('dashboard.title')) ?></h1>
+        <p><?= h(t('dashboard.subtitle')) ?></p>
     </div>
 
     <div class="view-toolbar">
         <div class="view-switch">
-            <button type="button" data-view="cards">Cards</button>
-            <button type="button" data-view="compact">Compact</button>
-            <button type="button" data-view="details">Details</button>
+            <button type="button" data-view="cards"><?= h(t('common.cards')) ?></button>
+            <button type="button" data-view="compact"><?= h(t('common.compact')) ?></button>
+            <button type="button" data-view="details"><?= h(t('common.details')) ?></button>
         </div>
 
         <button type="button" class="button secondary" id="refresh-all">
-            Refresh status
+            <?= h(t('common.refresh_status')) ?>
         </button>
 
         <a class="button" href="/firewall_edit.php">
-            Add firewall
+            <?= h(t('menu.add_firewall')) ?>
         </a>
     </div>
 </div>
 
 <div id="firewall-dashboard" class="view-cards">
 <?php if (!$firewalls): ?>
-    <div class="empty">No firewalls configured.</div>
+    <div class="empty"><?= h(t('dashboard.none')) ?></div>
 <?php else: ?>
     <div class="firewall-list">
         <?php foreach ($firewalls as $firewall): ?>
@@ -80,18 +80,18 @@ require __DIR__ . '/inc/header.php';
                 </div>
 
                 <dl>
-                    <dt>System</dt>
-                    <dd class="system-value status-loading">Loading…</dd>
+                    <dt><?= h(t('common.system')) ?></dt>
+                    <dd class="system-value status-loading"><?= h(t('common.loading')) ?></dd>
                 </dl>
 
                 <div class="firmware-versions">
                     <div>
-                        <strong>Current version</strong>
-                        <span class="current-version status-loading">Loading…</span>
+                        <strong><?= h(t('dashboard.current_version')) ?></strong>
+                        <span class="current-version status-loading"><?= h(t('common.loading')) ?></span>
                     </div>
                     <div>
-                        <strong>Available version</strong>
-                        <span class="available-version status-loading">Loading…</span>
+                        <strong><?= h(t('dashboard.available_version')) ?></strong>
+                        <span class="available-version status-loading"><?= h(t('common.loading')) ?></span>
                     </div>
                 </div>
 
@@ -133,6 +133,7 @@ require __DIR__ . '/inc/header.php';
 
 <script>
 (function () {
+    const tr = {"common.loading_short":<?= json_encode(t('common.loading_short'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"common.loading":<?= json_encode(t('common.loading'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"common.online":<?= json_encode(t('common.online'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"common.offline":<?= json_encode(t('common.offline'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"common.reachable":<?= json_encode(t('common.reachable'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"common.unavailable":<?= json_encode(t('common.unavailable'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"common.unknown":<?= json_encode(t('common.unknown'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"common.not_checked":<?= json_encode(t('common.not_checked'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"common.no_update":<?= json_encode(t('common.no_update'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"common.update_available":<?= json_encode(t('common.update_available'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"common.update_now":<?= json_encode(t('common.update_now'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"common.upgrade_now":<?= json_encode(t('common.upgrade_now'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"dashboard.loading_firmware":<?= json_encode(t('dashboard.loading_firmware'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"dashboard.start_update_confirm":<?= json_encode(t('dashboard.start_update_confirm'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"dashboard.start_upgrade_confirm":<?= json_encode(t('dashboard.start_upgrade_confirm'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"dashboard.starting_update":<?= json_encode(t('dashboard.starting_update'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"dashboard.starting_upgrade":<?= json_encode(t('dashboard.starting_upgrade'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"dashboard.action_started":<?= json_encode(t('dashboard.action_started'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"details.loading_system":<?= json_encode(t('details.loading_system'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"details.loading_firmware":<?= json_encode(t('details.loading_firmware'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"details.loading_vpn":<?= json_encode(t('details.loading_vpn'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>};
     const csrfToken = <?= json_encode(csrf_token(), JSON_UNESCAPED_SLASHES) ?>;
     const dashboard = document.getElementById('firewall-dashboard');
     const cards = [...document.querySelectorAll('.firewall-card')];
@@ -217,13 +218,13 @@ require __DIR__ . '/inc/header.php';
     }
 
     function setLoading(card) {
-        card.querySelector('.status-badge').textContent = 'Loading';
+        card.querySelector('.status-badge').textContent = tr['common.loading_short'];
         card.querySelector('.status-badge').className = 'badge status-badge';
-        card.querySelector('.system-value').textContent = 'Loading…';
-        card.querySelector('.current-version').textContent = 'Loading…';
-        card.querySelector('.available-version').textContent = 'Loading…';
+        card.querySelector('.system-value').textContent = tr['common.loading'];
+        card.querySelector('.current-version').textContent = tr['common.loading'];
+        card.querySelector('.available-version').textContent = tr['common.loading'];
         card.querySelector('.firmware-message').textContent =
-            'Loading firmware status…';
+            tr['dashboard.loading_firmware'];
         card.querySelector('.card-update-button').classList.add('hidden');
         card.dataset.firmwareAction = '';
     }
@@ -246,16 +247,16 @@ require __DIR__ . '/inc/header.php';
         ) {
             const value = systemResult.value.value || {};
             badge.className = 'badge status-badge good';
-            badge.textContent = 'Online';
+            badge.textContent = tr['common.online'];
             system.textContent =
-                value.status || value.result || value.message || 'Reachable';
+                value.status || value.result || value.message || tr['common.reachable'];
         } else {
             const error = systemResult.status === 'rejected'
                 ? systemResult.reason.message
-                : (systemResult.value?.error || 'Unavailable');
+                : (systemResult.value?.error || tr['common.unavailable']);
 
             badge.className = 'badge status-badge bad';
-            badge.textContent = 'Offline';
+            badge.textContent = tr['common.offline'];
             system.textContent = error;
         }
 
@@ -270,25 +271,25 @@ require __DIR__ . '/inc/header.php';
         ) {
             const summary = firmwareResult.value.summary || {};
 
-            current.textContent = summary.current_version || 'Unknown';
+            current.textContent = summary.current_version || tr['common.unknown'];
             available.textContent = summary.update_available
-                ? (summary.available_version || 'Update available')
-                : (summary.checked ? 'No update available' : 'Not checked');
+                ? (summary.available_version || tr['common.update_available'])
+                : (summary.checked ? tr['common.no_update'] : tr['common.not_checked']);
             message.textContent = summary.message || '';
 
             if (summary.update_available && summary.action) {
                 card.dataset.firmwareAction = summary.action;
                 updateButton.textContent =
-                    summary.action_label || 'Update now';
+                    summary.action_label || tr['common.update_now'];
                 updateButton.classList.remove('hidden');
             }
         } else {
             const error = firmwareResult.status === 'rejected'
                 ? firmwareResult.reason.message
-                : (firmwareResult.value?.error || 'Unavailable');
+                : (firmwareResult.value?.error || tr['common.unavailable']);
 
-            current.textContent = 'Unknown';
-            available.textContent = 'Unknown';
+            current.textContent = tr['common.unknown'];
+            available.textContent = tr['common.unknown'];
             message.textContent = error;
         }
     }

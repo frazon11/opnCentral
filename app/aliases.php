@@ -123,18 +123,18 @@ require __DIR__ . '/inc/header.php';
 <style>
 .alias-grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(280px,.8fr);gap:20px}.alias-form label{display:block;font-weight:700;margin:14px 0 6px}.alias-form input[type=text],.alias-form select,.alias-form textarea{width:100%;box-sizing:border-box}.alias-form textarea{min-height:180px;font-family:monospace}.targets,.results{display:grid;gap:8px}.target,.result{padding:10px;border-radius:8px;background:rgba(127,127,127,.08)}.result.good{border-left:4px solid #2aa84a}.result.bad{border-left:4px solid #d74747}@media(max-width:850px){.alias-grid{grid-template-columns:1fr}}
 </style>
-<div class="page-title"><div><h1>Distribute alias</h1><p>Category opnCentral protects centrally managed aliases.</p></div><a class="button secondary" href="/alias_overview.php">Overview</a></div>
+<div class="page-title"><div><h1><?= h(t('aliases.distribute')) ?></h1><p>Category opnCentral protects centrally managed aliases.</p></div><a class="button secondary" href="/alias_overview.php">Overview</a></div>
 <?php if ($error): ?><div class="alert error"><?= h($error) ?></div><?php endif; ?>
 <div class="alias-grid">
 <section class="card"><h2>Alias</h2><form method="post" class="alias-form"><input type="hidden" name="csrf" value="<?= h(csrf_token()) ?>">
 <label>Name</label><input type="text" name="name" required pattern="[A-Za-z0-9_]+" value="<?= h((string)($_POST['name'] ?? '')) ?>" placeholder="Trusted_Admins">
-<label>Type</label><select name="type"><?php foreach (['host'=>'Host(s)','network'=>'Network(s)','port'=>'Port(s)','url'=>'URL','urltable'=>'URL table','networkgroup'=>'Network group','mac'=>'MAC','asn'=>'ASN'] as $value=>$label): ?><option value="<?= h($value) ?>" <?= (($_POST['type'] ?? 'host') === $value) ? 'selected' : '' ?>><?= h($label) ?></option><?php endforeach; ?></select>
-<label>Content</label><textarea name="content" required placeholder="One value per line"><?= h((string)($_POST['content'] ?? '')) ?></textarea>
-<label>Description</label><input type="text" name="description" value="<?= h((string)($_POST['description'] ?? '')) ?>">
-<label>Existing alias</label><select name="mode"><option value="create">Create only</option><option value="replace">Replace</option><option value="merge">Merge</option></select>
+<label><?= h(t('aliases.type')) ?></label><select name="type"><?php foreach (['host'=>'Host(s)','network'=>'Network(s)','port'=>'Port(s)','url'=>'URL','urltable'=>'URL table','networkgroup'=>'Network group','mac'=>'MAC','asn'=>'ASN'] as $value=>$label): ?><option value="<?= h($value) ?>" <?= (($_POST['type'] ?? 'host') === $value) ? 'selected' : '' ?>><?= h($label) ?></option><?php endforeach; ?></select>
+<label><?= h(t('aliases.content')) ?></label><textarea name="content" required placeholder="One value per line"><?= h((string)($_POST['content'] ?? '')) ?></textarea>
+<label><?= h(t('aliases.description')) ?></label><input type="text" name="description" value="<?= h((string)($_POST['description'] ?? '')) ?>">
+<label>Existing alias</label><select name="mode"><option value="create"><?= h(t('aliases.create_only')) ?></option><option value="replace">Replace</option><option value="merge">Merge</option></select>
 <label><input type="checkbox" name="enabled" value="1" checked> Enabled</label>
-<label>Target firewalls</label><div class="targets"><?php foreach ($firewalls as $firewall): ?><label class="target"><input type="checkbox" name="targets[]" value="<?= (int)$firewall['id'] ?>"> <strong><?= h($firewall['name']) ?></strong><br><span class="muted"><?= h($firewall['base_url']) ?></span></label><?php endforeach; ?></div>
-<div class="actions"><button type="button" id="all">Select all</button><button type="submit" onclick="return confirm('Distribute this alias?')">Distribute</button></div></form></section>
+<label><?= h(t('categories.targets')) ?></label><div class="targets"><?php foreach ($firewalls as $firewall): ?><label class="target"><input type="checkbox" name="targets[]" value="<?= (int)$firewall['id'] ?>"> <strong><?= h($firewall['name']) ?></strong><br><span class="muted"><?= h($firewall['base_url']) ?></span></label><?php endforeach; ?></div>
+<div class="actions"><button type="button" id="all"><?= h(t('common.select_all')) ?></button><button type="submit" onclick="return confirm('Distribute this alias?')">Distribute</button></div></form></section>
 <section class="card"><h2>Results</h2><?php if (!$results): ?><div class="empty">No distribution performed yet.</div><?php else: ?><div class="results"><?php foreach ($results as $result): ?><div class="result <?= $result['ok'] ? 'good' : 'bad' ?>"><strong><?= h($result['name']) ?></strong><br><?= h($result['message']) ?></div><?php endforeach; ?></div><?php endif; ?></section>
 </div>
 <script>document.getElementById('all')?.addEventListener('click',()=>document.querySelectorAll('input[name="targets[]"]').forEach(x=>x.checked=true));</script>

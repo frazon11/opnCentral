@@ -3,7 +3,7 @@ require_once __DIR__ . '/config.php';
 start_session_secure();
 ?>
 <!doctype html>
-<html>
+<html lang="<?= h(current_language()) ?>">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -27,44 +27,53 @@ start_session_secure();
 <header>
     <div class="brand">
         <div><?= h(app_name()) ?></div>
-        <div class="opncentral-version" style="font-size:11px;line-height:1.2;opacity:.65;margin-top:2px;">v0.3.10</div>
+        <div class="opncentral-version" style="font-size:11px;line-height:1.2;opacity:.65;margin-top:2px;">v0.4.0</div>
     </div>
 
     <?php if (logged_in()): ?>
         <nav class="main-nav">
-            <a href="/">Dashboard</a>
+            <a href="/"><?= h(t('menu.dashboard')) ?></a>
 
             <details class="nav-menu">
-                <summary>Firewalls</summary>
+                <summary><?= h(t('menu.firewalls')) ?></summary>
                 <div class="nav-dropdown">
-                    <a href="/">Overview</a>
-                    <a href="/firewall_edit.php">Add firewall</a>
+                    <a href="/"><?= h(t('menu.overview')) ?></a>
+                    <a href="/firewall_edit.php"><?= h(t('menu.add_firewall')) ?></a>
                 </div>
             </details>
 
             <details class="nav-menu">
-                <summary>Aliases</summary>
+                <summary><?= h(t('menu.aliases')) ?></summary>
                 <div class="nav-dropdown">
-                    <a href="/aliases.php">Distribute alias</a>
-                    <a href="/alias_overview.php">Alias overview</a>
+                    <a href="/aliases.php"><?= h(t('menu.distribute_alias')) ?></a>
+                    <a href="/alias_overview.php"><?= h(t('menu.alias_overview')) ?></a>
                 </div>
             </details>
 
             <details class="nav-menu">
-                <summary>Categories</summary>
+                <summary><?= h(t('menu.categories')) ?></summary>
                 <div class="nav-dropdown">
-                    <a href="/categories.php">Distribute category</a>
-                    <a href="/category_overview.php">Category overview</a>
+                    <a href="/categories.php"><?= h(t('menu.distribute_category')) ?></a>
+                    <a href="/category_overview.php"><?= h(t('menu.category_overview')) ?></a>
                 </div>
             </details>
 
+            <label class="language-select" style="display:inline-flex;align-items:center;gap:6px;font-size:.86rem;">
+<span><?= h(t('language')) ?></span>
+<select id="language-selector" style="width:auto;margin:0;padding:6px 8px;" aria-label="<?= h(t('language')) ?>">
+<?php foreach (supported_languages() as $code => $label): ?>
+<option value="<?= h($code) ?>" <?= current_language()===$code?'selected':'' ?>><?= h($label) ?></option>
+<?php endforeach; ?>
+</select>
+</label>
             <span class="nav-separator" aria-hidden="true"></span>
-            <a href="/logout.php">Logout</a>
+            <a href="/logout.php"><?= h(t('menu.logout')) ?></a>
         </nav>
     <?php endif; ?>
 </header>
 <main>
 <script>
+document.getElementById('language-selector')?.addEventListener('change', function(){const url=new URL(window.location.href);url.searchParams.set('lang',this.value);window.location.href=url.toString();});
 document.addEventListener('click', function (event) {
     document.querySelectorAll('.nav-menu[open]').forEach(function (menu) {
         if (!menu.contains(event.target)) {

@@ -135,39 +135,39 @@ require __DIR__ . '/inc/header.php';
 
 <div class="detail-grid">
     <section class="card live-card">
-        <h2>System</h2>
+        <h2><?= h(t('common.system')) ?></h2>
         <div id="system-state" class="live-status loading">
             Loading live system status…
         </div>
-        <pre id="system-output">Loading…</pre>
+        <pre id="system-output"><?= h(t('common.loading')) ?></pre>
     </section>
 
     <section class="card live-card">
-        <h2>Firmware</h2>
+        <h2><?= h(t('details.firmware')) ?></h2>
         <div id="firmware-state" class="live-status loading">
             Loading firmware information…
         </div>
 
         <div class="version-grid">
             <div class="version-box">
-                <strong>Current version</strong>
-                <span id="current-version">Loading…</span>
+                <strong><?= h(t('dashboard.current_version')) ?></strong>
+                <span id="current-version"><?= h(t('common.loading')) ?></span>
             </div>
             <div class="version-box">
-                <strong>Available version</strong>
+                <strong><?= h(t('dashboard.available_version')) ?></strong>
                 <span id="available-version">Not checked</span>
             </div>
         </div>
 
-        <div id="firmware-message">Loading…</div>
-        <pre id="firmware-output">Loading…</pre>
+        <div id="firmware-message"><?= h(t('common.loading')) ?></div>
+        <pre id="firmware-output"><?= h(t('common.loading')) ?></pre>
     </section>
 
 
     <section class="card live-card wide">
         <div class="card-head">
             <div>
-                <h2>Site-to-site VPN</h2>
+                <h2><?= h(t('details.site_vpn')) ?></h2>
                 <div id="vpn-state" class="live-status loading">
                     Loading WireGuard, IPsec and OpenVPN status…
                 </div>
@@ -181,31 +181,31 @@ require __DIR__ . '/inc/header.php';
         <div class="vpn-grid">
             <div class="vpn-panel">
                 <h3>WireGuard</h3>
-                <div id="wireguard-summary" class="vpn-summary">Loading…</div>
+                <div id="wireguard-summary" class="vpn-summary"><?= h(t('common.loading')) ?></div>
                 <div id="wireguard-list" class="vpn-list"></div>
                 <details class="vpn-raw">
-                    <summary>Raw API data</summary>
-                    <pre id="wireguard-raw">Loading…</pre>
+                    <summary><?= h(t('details.raw_api')) ?></summary>
+                    <pre id="wireguard-raw"><?= h(t('common.loading')) ?></pre>
                 </details>
             </div>
 
             <div class="vpn-panel">
                 <h3>IPsec</h3>
-                <div id="ipsec-summary" class="vpn-summary">Loading…</div>
+                <div id="ipsec-summary" class="vpn-summary"><?= h(t('common.loading')) ?></div>
                 <div id="ipsec-list" class="vpn-list"></div>
                 <details class="vpn-raw">
-                    <summary>Raw API data</summary>
-                    <pre id="ipsec-raw">Loading…</pre>
+                    <summary><?= h(t('details.raw_api')) ?></summary>
+                    <pre id="ipsec-raw"><?= h(t('common.loading')) ?></pre>
                 </details>
             </div>
 
             <div class="vpn-panel">
                 <h3>OpenVPN</h3>
-                <div id="openvpn-summary" class="vpn-summary">Loading…</div>
+                <div id="openvpn-summary" class="vpn-summary"><?= h(t('common.loading')) ?></div>
                 <div id="openvpn-list" class="vpn-list"></div>
                 <details class="vpn-raw">
-                    <summary>Raw API data</summary>
-                    <pre id="openvpn-raw">Loading…</pre>
+                    <summary><?= h(t('details.raw_api')) ?></summary>
+                    <pre id="openvpn-raw"><?= h(t('common.loading')) ?></pre>
                 </details>
             </div>
         </div>
@@ -213,7 +213,7 @@ require __DIR__ . '/inc/header.php';
 
 
     <section class="card live-card">
-        <h2>Firmware actions</h2>
+        <h2><?= h(t('details.firmware_actions')) ?></h2>
 
         <div id="check-state" class="live-status">
             Ready. Click “Check for updates”.
@@ -263,6 +263,7 @@ require __DIR__ . '/inc/header.php';
 
 <script>
 (function () {
+    const tr = {"common.loading_short":<?= json_encode(t('common.loading_short'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"common.loading":<?= json_encode(t('common.loading'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"common.online":<?= json_encode(t('common.online'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"common.offline":<?= json_encode(t('common.offline'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"common.reachable":<?= json_encode(t('common.reachable'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"common.unavailable":<?= json_encode(t('common.unavailable'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"common.unknown":<?= json_encode(t('common.unknown'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"common.not_checked":<?= json_encode(t('common.not_checked'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"common.no_update":<?= json_encode(t('common.no_update'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"common.update_available":<?= json_encode(t('common.update_available'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"common.update_now":<?= json_encode(t('common.update_now'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"common.upgrade_now":<?= json_encode(t('common.upgrade_now'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"dashboard.loading_firmware":<?= json_encode(t('dashboard.loading_firmware'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"dashboard.start_update_confirm":<?= json_encode(t('dashboard.start_update_confirm'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"dashboard.start_upgrade_confirm":<?= json_encode(t('dashboard.start_upgrade_confirm'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"dashboard.starting_update":<?= json_encode(t('dashboard.starting_update'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"dashboard.starting_upgrade":<?= json_encode(t('dashboard.starting_upgrade'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"dashboard.action_started":<?= json_encode(t('dashboard.action_started'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"details.loading_system":<?= json_encode(t('details.loading_system'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"details.loading_firmware":<?= json_encode(t('details.loading_firmware'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>,"details.loading_vpn":<?= json_encode(t('details.loading_vpn'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>};
     const firewallId = <?= (int) $firewall['id'] ?>;
     const csrfToken = <?= json_encode(csrf_token(), JSON_UNESCAPED_SLASHES) ?>;
     const checkButton = document.getElementById('firmware-check-button');
@@ -290,7 +291,7 @@ require __DIR__ . '/inc/header.php';
         if (!payload || payload.ok !== true) {
             state.classList.add('bad');
             state.textContent = 'Could not load live status.';
-            output.textContent = payload?.error || 'Unavailable';
+            output.textContent = payload?.error || tr['common.unavailable'];
             return;
         }
 
@@ -313,10 +314,10 @@ require __DIR__ . '/inc/header.php';
         if (!payload || payload.ok !== true) {
             state.classList.add('bad');
             state.textContent = 'Could not load firmware status.';
-            output.textContent = payload?.error || 'Unavailable';
-            current.textContent = 'Unknown';
-            available.textContent = 'Unknown';
-            message.textContent = payload?.error || 'Unavailable';
+            output.textContent = payload?.error || tr['common.unavailable'];
+            current.textContent = tr['common.unknown'];
+            available.textContent = tr['common.unknown'];
+            message.textContent = payload?.error || tr['common.unavailable'];
             return;
         }
 
@@ -324,16 +325,16 @@ require __DIR__ . '/inc/header.php';
 
         state.classList.add('good');
         state.textContent = 'Firmware status loaded.';
-        current.textContent = summary.current_version || 'Unknown';
+        current.textContent = summary.current_version || tr['common.unknown'];
         available.textContent = summary.update_available
-            ? (summary.available_version || 'Update available')
-            : (summary.checked ? 'No update available' : 'Not checked');
+            ? (summary.available_version || tr['common.update_available'])
+            : (summary.checked ? tr['common.no_update'] : tr['common.not_checked']);
         message.textContent = summary.message || '';
         output.textContent = JSON.stringify(payload.value, null, 2);
 
         if (summary.update_available && summary.action) {
             firmwareAction = summary.action;
-            installButton.textContent = summary.action_label || 'Update now';
+            installButton.textContent = summary.action_label || tr['common.update_now'];
             installButton.classList.remove('hidden');
         }
     }
@@ -635,7 +636,7 @@ require __DIR__ . '/inc/header.php';
         );
         statusBadge.textContent = rows.length
             ? connected + ' connected / ' + rows.length + ' returned'
-            : (errors.length ? 'Unavailable' : 'No sessions');
+            : (errors.length ? tr['common.unavailable'] : 'No sessions');
 
         summary.appendChild(statusBadge);
 
@@ -695,7 +696,7 @@ require __DIR__ . '/inc/header.php';
 
             ['wireguard', 'ipsec', 'openvpn'].forEach(function (type) {
                 document.getElementById(type + '-summary').textContent =
-                    'Unavailable';
+                    tr['common.unavailable'];
                 document.getElementById(type + '-list').textContent = '';
                 document.getElementById(type + '-raw').textContent =
                     error.message;

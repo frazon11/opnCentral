@@ -126,41 +126,41 @@ require __DIR__ . '/inc/header.php';
 
 <div class="page-title">
     <div>
-        <h1>Central Categories</h1>
-        <p>Create or update one firewall category on multiple OPNsense systems.</p>
+        <h1><?= h(t('categories.title')) ?></h1>
+        <p><?= h(t('categories.subtitle')) ?></p>
     </div>
-    <a class="button secondary" href="/category_overview.php">Category overview</a>
+    <a class="button secondary" href="/category_overview.php"><?= h(t('categories.overview')) ?></a>
 </div>
 
 <?php if ($error): ?><div class="alert error"><?= h($error) ?></div><?php endif; ?>
 
 <div class="category-layout">
 <section class="card">
-<h2>Category definition</h2>
+<h2><?= h(t('categories.definition')) ?></h2>
 <form method="post" class="category-form">
 <input type="hidden" name="csrf" value="<?= h(csrf_token()) ?>">
 
-<label for="name">Category name</label>
+<label for="name"><?= h(t('categories.name')) ?></label>
 <input id="name" name="name" type="text" required maxlength="255" value="<?= h((string)($_POST['name'] ?? 'opnCentral')) ?>">
 
-<label for="color">Color</label>
+<label for="color"><?= h(t('categories.color')) ?></label>
 <input id="color" name="color" type="text" value="<?= h((string)($_POST['color'] ?? '#f0ad4e')) ?>" placeholder="#f0ad4e">
-<div class="help">Choose a color. opnCentral removes the # before sending it to OPNsense.</div>
+<div class="help"><?= h(t('categories.color_help')) ?></div>
 
-<label for="mode">If the category already exists</label>
+<label for="mode"><?= h(t('categories.exists')) ?></label>
 <?php $selectedMode = (string)($_POST['mode'] ?? 'create'); ?>
 <select id="mode" name="mode">
-<option value="create" <?= $selectedMode === 'create' ? 'selected' : '' ?>>Create only</option>
-<option value="replace" <?= $selectedMode === 'replace' ? 'selected' : '' ?>>Replace settings</option>
+<option value="create" <?= $selectedMode === 'create' ? 'selected' : '' ?>><?= h(t('aliases.create_only')) ?></option>
+<option value="replace" <?= $selectedMode === 'replace' ? 'selected' : '' ?>><?= h(t('categories.replace')) ?></option>
 </select>
 
-<label><input type="checkbox" name="automatic" value="1" <?= isset($_POST['automatic']) ? 'checked' : '' ?>> Automatic category</label>
+<label><input type="checkbox" name="automatic" value="1" <?= isset($_POST['automatic']) ? 'checked' : '' ?>> <?= h(t('categories.automatic')) ?></label>
 <div class="help">Automatic categories may be removed by OPNsense when no longer used. Leave this disabled for centrally managed categories.</div>
 
-<label>Target firewalls</label>
+<label><?= h(t('categories.targets')) ?></label>
 <div class="target-list">
 <?php $selectedTargets = array_map('intval', (array)($_POST['targets'] ?? [])); ?>
-<?php if (!$firewalls): ?><div class="empty">No firewalls configured.</div><?php endif; ?>
+<?php if (!$firewalls): ?><div class="empty"><?= h(t('dashboard.none')) ?></div><?php endif; ?>
 <?php foreach ($firewalls as $firewall): ?>
 <label class="target-item">
 <input type="checkbox" name="targets[]" value="<?= (int)$firewall['id'] ?>" <?= in_array((int)$firewall['id'], $selectedTargets, true) ? 'checked' : '' ?>>
@@ -170,15 +170,15 @@ require __DIR__ . '/inc/header.php';
 </div>
 
 <div class="actions">
-<button type="button" class="secondary" id="select-all-firewalls">Select all</button>
-<button type="submit" onclick="return confirm('Distribute this category to the selected firewalls?')">Distribute category</button>
+<button type="button" class="secondary" id="select-all-firewalls"><?= h(t('common.select_all')) ?></button>
+<button type="submit" onclick="return confirm('Distribute this category to the selected firewalls?')"><?= h(t('categories.distribute')) ?></button>
 </div>
 </form>
 </section>
 
 <section class="card">
-<h2>Distribution results</h2>
-<?php if (!$results): ?><div class="empty">Results will appear here after distribution.</div><?php else: ?>
+<h2><?= h(t('aliases.results')) ?></h2>
+<?php if (!$results): ?><div class="empty"><?= h(t('aliases.results_empty')) ?></div><?php else: ?>
 <div class="result-list">
 <?php foreach ($results as $result): ?>
 <div class="result-item <?= $result['ok'] ? 'ok' : 'bad' ?>"><strong><?= h($result['name']) ?></strong><?= h($result['message']) ?></div>

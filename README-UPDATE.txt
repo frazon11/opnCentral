@@ -1,30 +1,28 @@
-opnCentral v0.3.10 - Container security refresh
+opnCentral v0.4.0 - Multi-language support
 
-Replace:
-- Dockerfile
-- .dockerignore
-- app/inc/header.php
+Full replacement project based on the uploaded current repository.
 
-This release does not replace the working VPN, firmware, alias or category PHP files.
+Languages:
+- English (default and fallback)
+- German
+- French
+- Dutch
 
-Changes:
-- Pins php:8.5-apache-trixie.
-- Installs available Debian security updates during build.
-- Keeps only required runtime libraries.
-- Removes development packages after compiling PHP extensions.
-- Cleans APT and temporary files.
-- Adds HEALTHCHECK.
-- Updates WebUI version to v0.3.10.
+New files:
+- app/inc/i18n.php
+- app/lang/en.php
+- app/lang/de.php
+- app/lang/fr.php
+- app/lang/nl.php
+
+Optional environment variable:
+DEFAULT_LANGUAGE=en
 
 Git:
-git add Dockerfile .dockerignore app/inc/header.php
-git commit -m "Release v0.3.10 container security refresh"
+git add .
+git commit -m "Release v0.4.0 multilingual support"
 git status
 git pull --rebase origin main
 git push origin main
-git tag -a v0.3.10 -m "Container security refresh"
-git push origin v0.3.10
-
-For docker/build-push-action use:
-  pull: true
-  no-cache: true
+git tag -a v0.4.0 -m "Multilingual support"
+git push origin v0.4.0

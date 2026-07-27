@@ -2,6 +2,17 @@
 
 Lightweight, self-hosted central management interface for multiple OPNsense firewalls.
 
+
+## Languages
+
+opnCentral supports English, German, French and Dutch. English is the default and fallback language. Use the language selector in the top-right menu. The selection is stored in the session and in a cookie.
+
+Optional environment variable:
+
+```dotenv
+DEFAULT_LANGUAGE=en
+```
+
 ## Features
 
 - Multiple OPNsense systems

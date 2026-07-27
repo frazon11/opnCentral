@@ -42,3 +42,5 @@ function logged_in(): bool { start_session_secure(); return ($_SESSION['auth']??
 function require_login(): void { if(!logged_in()){header('Location: /login.php');exit;}}
 function h(string $v): string { return htmlspecialchars($v,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');}
 function normalize_url(string $u): string {$u=rtrim(trim($u),'/');if(!preg_match('#^https?://#i',$u))$u='https://'.$u;if(filter_var($u,FILTER_VALIDATE_URL)===false)throw new InvalidArgumentException('Invalid URL.');return $u;}
+
+require_once __DIR__ . '/i18n.php';

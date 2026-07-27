@@ -99,7 +99,7 @@ try {
         $firewall,
         'core/firmware/status',
         'GET',
-        null,
+        [],
         20
     );
 

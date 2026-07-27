@@ -72,7 +72,7 @@ try {
                     $firewall,
                     'core/system/status',
                     'GET',
-                    null,
+                    [],
                     10
                 ),
             ];
@@ -90,7 +90,7 @@ try {
                 $firewall,
                 'core/firmware/status',
                 'GET',
-                null,
+                [],
                 20
             );
 

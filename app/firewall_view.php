@@ -291,7 +291,17 @@ require __DIR__ . '/inc/header.php';
             }
         );
 
-        const result = await response.json();
+        const responseText = await response.text();
+        let result;
+
+        try {
+            result = JSON.parse(responseText);
+        } catch (error) {
+            throw new Error(
+                'Server returned invalid JSON: ' +
+                responseText.replace(/\s+/g, ' ').trim().slice(0, 500)
+            );
+        }
 
         if (!response.ok || result.ok !== true) {
             throw new Error(result.error || 'HTTP ' + response.status);
@@ -316,7 +326,17 @@ require __DIR__ . '/inc/header.php';
             body
         });
 
-        const result = await response.json();
+        const responseText = await response.text();
+        let result;
+
+        try {
+            result = JSON.parse(responseText);
+        } catch (error) {
+            throw new Error(
+                'Server returned invalid JSON: ' +
+                responseText.replace(/\s+/g, ' ').trim().slice(0, 500)
+            );
+        }
 
         if (!response.ok || result.ok !== true) {
             throw new Error(result.error || 'HTTP ' + response.status);

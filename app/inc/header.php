@@ -27,7 +27,7 @@ start_session_secure();
 <header>
     <div class="brand">
         <div><?= h(app_name()) ?></div>
-        <div class="opncentral-version" style="font-size:11px;line-height:1.2;opacity:.65;margin-top:2px;">v0.4.0</div>
+        <div class="opncentral-version" style="font-size:11px;line-height:1.2;opacity:.65;margin-top:2px;">v0.4.1</div>
     </div>
 
     <?php if (logged_in()): ?>
@@ -57,6 +57,8 @@ start_session_secure();
                     <a href="/category_overview.php"><?= h(t('menu.category_overview')) ?></a>
                 </div>
             </details>
+
+            <a href="/notifications.php"><?= h(t('menu.notifications')) ?></a>
 
             <label class="language-select" style="display:inline-flex;align-items:center;gap:6px;font-size:.86rem;">
 <span><?= h(t('language')) ?></span>

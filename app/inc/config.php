@@ -15,6 +15,8 @@ function db(): PDO {
  id INTEGER PRIMARY KEY AUTOINCREMENT,name TEXT NOT NULL,base_url TEXT NOT NULL,
  api_key_enc TEXT NOT NULL,api_secret_enc TEXT NOT NULL,verify_tls INTEGER NOT NULL DEFAULT 1,
  notes TEXT NOT NULL DEFAULT "",created_at TEXT NOT NULL,updated_at TEXT NOT NULL)');
+ $p->exec('CREATE TABLE IF NOT EXISTS alert_states (state_key TEXT PRIMARY KEY,state_value TEXT NOT NULL,failure_count INTEGER NOT NULL DEFAULT 0,details TEXT NOT NULL DEFAULT "",updated_at TEXT NOT NULL)');
+ $p->exec('CREATE TABLE IF NOT EXISTS alert_log (id INTEGER PRIMARY KEY AUTOINCREMENT,state_key TEXT NOT NULL,event_type TEXT NOT NULL,subject TEXT NOT NULL,message TEXT NOT NULL,sent_ok INTEGER NOT NULL DEFAULT 0,error TEXT NOT NULL DEFAULT "",created_at TEXT NOT NULL)');
  return $p;
 }
 function crypto_key(): string {

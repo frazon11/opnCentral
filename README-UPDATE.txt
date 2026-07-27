@@ -1,21 +1,25 @@
-opnCentral v0.4.1.2 - PHP 8.5 cURL deprecation fix
+opnCentral v0.4.2 - WebUI notification settings
 
-Changed:
-- Removed both deprecated curl_close() calls from app/inc/opnsense.php.
-- No API request, timeout, TLS, authentication or response handling logic changed.
-- Updated the displayed version to v0.4.1.2.
-
-PHP 8.5 automatically releases CurlHandle objects, so curl_close() has no effect
-and now produces a deprecation warning.
+New:
+- All notification settings are editable from the Notifications page.
+- Alert enablement, VPN alerts, interval and failure threshold are stored in SQLite.
+- SMTP host, port, security, username, encrypted password, sender and recipients are stored in SQLite.
+- Existing environment variables remain the initial defaults/fallbacks until settings are saved.
+- The SMTP password is encrypted with APP_KEY and is never shown in the WebUI.
+- Leaving the password field empty preserves the existing password.
+- The background worker always starts and reads the current WebUI settings dynamically.
+- Language is now directly above Logout in the top-right dropdown.
+- Browser title is fixed to opnCentral.
+- Added a multi-node opnCentral favicon.
 
 Git:
 git add .
-git commit -m "Release v0.4.1.2 fix PHP 8.5 curl deprecation"
+git commit -m "Release v0.4.2 WebUI notification settings"
 git status
 
-Only when the working tree is clean:
+Only when clean:
 git pull --rebase origin main
 git push origin main
 
-git tag -a v0.4.1.2 -m "Fix PHP 8.5 curl deprecation"
-git push origin v0.4.1.2
+git tag -a v0.4.2 -m "WebUI notification settings"
+git push origin v0.4.2

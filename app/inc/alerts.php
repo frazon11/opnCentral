@@ -4,6 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/opnsense.php';
 require_once __DIR__ . '/mailer.php';
+require_once __DIR__ . '/notification_settings.php';
 
 function alerts_prepare_database(): void
 {
@@ -28,12 +29,13 @@ function alerts_prepare_database(): void
 
 function alerts_enabled(): bool
 {
-    return filter_var(envv('ALERTS_ENABLED', 'false'), FILTER_VALIDATE_BOOL) && smtp_is_configured();
+    $settings = notification_settings();
+    return (bool) $settings['alerts_enabled'] && smtp_is_configured();
 }
 
 function alert_threshold(): int
 {
-    return max(1, (int) envv('ALERT_FAILURE_THRESHOLD', '2'));
+    return max(1, (int) notification_settings()['failure_threshold']);
 }
 
 function alert_record(string $key, string $event, string $subject, string $message): void
@@ -219,7 +221,7 @@ function run_alert_checks(): void
             "Firewall is reachable again.\n\nName: {$firewall['name']}\nURL: {$firewall['base_url']}\nTime: " . date(DATE_RFC2822)
         );
 
-        if (!$online || !filter_var(envv('ALERT_VPN', 'true'), FILTER_VALIDATE_BOOL)) {
+        if (!$online || !(bool) notification_settings()['alert_vpn']) {
             continue;
         }
 

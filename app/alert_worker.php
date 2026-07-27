@@ -8,12 +8,12 @@ if (!is_resource($lock) || !flock($lock, LOCK_EX | LOCK_NB)) {
     exit(0);
 }
 
-$interval = max(60, (int) envv('ALERT_CHECK_INTERVAL', '300'));
 while (true) {
     try {
         run_alert_checks();
     } catch (Throwable $exception) {
         error_log('[opnCentral alerts] ' . $exception->getMessage());
     }
+    $interval = max(60, (int) notification_settings()['check_interval']);
     sleep($interval);
 }

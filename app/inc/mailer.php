@@ -2,18 +2,20 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/notification_settings.php';
 
 function smtp_config(): array
 {
+    $settings = notification_settings();
     return [
-        'host' => envv('SMTP_HOST'),
-        'port' => max(1, (int) envv('SMTP_PORT', '587')),
-        'security' => strtolower(envv('SMTP_SECURITY', 'tls')),
-        'username' => envv('SMTP_USERNAME'),
-        'password' => envv('SMTP_PASSWORD'),
-        'from' => envv('SMTP_FROM'),
-        'from_name' => envv('SMTP_FROM_NAME', 'opnCentral'),
-        'to' => array_values(array_filter(array_map('trim', explode(',', envv('NOTIFY_TO'))))),
+        'host' => $settings['smtp_host'],
+        'port' => $settings['smtp_port'],
+        'security' => $settings['smtp_security'],
+        'username' => $settings['smtp_username'],
+        'password' => $settings['smtp_password'],
+        'from' => $settings['smtp_from'],
+        'from_name' => $settings['smtp_from_name'],
+        'to' => array_values(array_filter(array_map('trim', explode(',', $settings['notify_to'])))),
     ];
 }
 

@@ -16,9 +16,9 @@ start_session_secure();
         .nav-menu{position:relative}
         .nav-menu>summary::-webkit-details-marker{display:none}
         .nav-menu>summary::after{content:"▾";font-size:10px;margin-left:7px;opacity:.65}
-        .nav-dropdown{position:absolute;z-index:1000;top:calc(100% + 6px);left:0;display:grid;min-width:180px;padding:6px;border:1px solid rgba(127,127,127,.24);border-radius:10px;background:var(--card-bg,#fff);box-shadow:0 10px 28px rgba(0,0,0,.18)}
-        .nav-dropdown a{display:block;padding:9px 10px;border-radius:7px;text-decoration:none;white-space:nowrap}
-        .nav-dropdown a:hover{background:rgba(127,127,127,.14)}
+        .nav-dropdown{position:absolute;z-index:1000;top:calc(100% + 6px);left:0;display:grid;min-width:180px;padding:6px;border:1px solid rgba(127,127,127,.24);border-radius:10px;background:#fff;color:#17202a;box-shadow:0 10px 28px rgba(0,0,0,.18)}
+        .nav-dropdown a{display:block;margin:0;padding:9px 10px;border-radius:7px;color:#17202a!important;text-decoration:none;white-space:nowrap}
+        .nav-dropdown a:hover,.nav-dropdown a:focus{background:#e7edf2;color:#17202a!important;outline:none}
         .nav-separator{width:1px;height:24px;background:rgba(127,127,127,.28);margin:0 3px}
         @media(max-width:850px){.main-nav{gap:4px}.nav-dropdown{position:fixed;left:12px;right:12px;top:auto;min-width:0}.nav-separator{display:none}}
     </style>
@@ -27,7 +27,7 @@ start_session_secure();
 <header>
     <div class="brand">
         <div><?= h(app_name()) ?></div>
-        <div class="opncentral-version" style="font-size:11px;line-height:1.2;opacity:.65;margin-top:2px;">v0.3.8.2</div>
+        <div class="opncentral-version" style="font-size:11px;line-height:1.2;opacity:.65;margin-top:2px;">v0.3.8.3</div>
     </div>
 
     <?php if (logged_in()): ?>

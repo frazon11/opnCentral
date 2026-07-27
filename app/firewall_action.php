@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/inc/config.php';
 require_once __DIR__ . '/inc/opnsense.php';
+require_once __DIR__ . '/inc/firmware.php';
 
 require_login();
 
@@ -21,22 +22,78 @@ try {
     $action = (string) ($_POST['action'] ?? '');
     $firewall = firewall_by_id($id);
 
-    if ($action !== 'firmware_check') {
+    if ($action === 'firmware_check') {
+        $value = opn_request(
+            $firewall,
+            'core/firmware/status',
+            'POST',
+            [],
+            120
+        );
+
+        echo json_encode(
+            [
+                'ok' => true,
+                'value' => $value,
+                'summary' => normalize_firmware_status($value),
+            ],
+            JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR
+        );
+        exit;
+    }
+
+    if (!in_array($action, ['firmware_update', 'firmware_upgrade'], true)) {
         throw new RuntimeException('Unsupported action.');
     }
 
-    $value = opn_request(
+    /*
+     * Refuse an update/upgrade command unless the current checked
+     * firmware status explicitly offers that exact action.
+     */
+    $statusValue = opn_request(
         $firewall,
         'core/firmware/status',
+        'GET',
+        [],
+        20
+    );
+
+    $summary = normalize_firmware_status($statusValue);
+
+    if ($summary['action'] !== $action || !$summary['update_available']) {
+        throw new RuntimeException(
+            'OPNsense does not currently offer this firmware action. ' .
+            'Run Check for updates first.'
+        );
+    }
+
+    $endpoint = $action === 'firmware_upgrade'
+        ? 'core/firmware/upgrade'
+        : 'core/firmware/update';
+
+    $value = opn_request(
+        $firewall,
+        $endpoint,
         'POST',
         [],
-        120
+        30
     );
+
+    if (($value['status'] ?? '') !== 'ok') {
+        throw new RuntimeException(
+            'OPNsense rejected the firmware command: ' .
+            json_encode($value, JSON_UNESCAPED_SLASHES)
+        );
+    }
 
     echo json_encode(
         [
             'ok' => true,
             'value' => $value,
+            'action' => $action,
+            'message' => $action === 'firmware_upgrade'
+                ? 'Major firmware upgrade started.'
+                : 'Firmware update started.',
         ],
         JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR
     );

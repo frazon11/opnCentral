@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/inc/config.php';
 require_once __DIR__ . '/inc/opnsense.php';
+require_once __DIR__ . '/inc/firmware.php';
 
 require_login();
 
@@ -44,15 +45,18 @@ try {
 
     if ($type === 'firmware' || $type === 'all') {
         try {
+            $value = opn_request(
+                $firewall,
+                'core/firmware/status',
+                'GET',
+                [],
+                20
+            );
+
             $result['data']['firmware'] = [
                 'ok' => true,
-                'value' => opn_request(
-                    $firewall,
-                    'core/firmware/status',
-                    'GET',
-                    [],
-                    15
-                ),
+                'value' => $value,
+                'summary' => normalize_firmware_status($value),
             ];
         } catch (Throwable $exception) {
             $result['data']['firmware'] = [
@@ -61,7 +65,6 @@ try {
             ];
         }
     }
-
 
     echo json_encode(
         $result,

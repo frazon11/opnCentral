@@ -56,43 +56,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             $message = 'Backup saved: ' . basename($filename);
-        } elseif ($action === 'firmware_check') {
-            opn_request(
-                $firewall,
-                'core/firmware/status',
-                'POST',
-                [],
-                90
-            );
-
-            $message = 'Firmware update check completed.';
-        } elseif ($action === 'firmware_update') {
-            opn_request(
-                $firewall,
-                'core/firmware/status',
-                'POST',
-                [],
-                90
-            );
-
-            $updateResult = opn_request(
-                $firewall,
-                'core/firmware/update',
-                'POST',
-                [],
-                30
-            );
-
-            $updateMessage =
-                $updateResult['status_msg']
-                ?? $updateResult['message']
-                ?? $updateResult['status']
-                ?? 'Firmware update command accepted.';
-
-            $message =
-                'Firmware update started: ' .
-                (string) $updateMessage .
-                ' The firewall may reboot and temporarily become unavailable.';
         } elseif ($action === 'reboot') {
             opn_request(
                 $firewall,
@@ -106,7 +69,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $statement = db()->prepare(
                 'DELETE FROM firewalls WHERE id = ?'
             );
-
             $statement->execute([$id]);
 
             header('Location: /');
@@ -127,6 +89,10 @@ require __DIR__ . '/inc/header.php';
 .live-status.loading::before{content:"● ";animation:pulse 1s infinite}
 .live-status.good{color:#35a853}
 .live-status.bad{color:#d74747}
+.version-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:12px 0}
+.version-box{padding:10px;border-radius:8px;background:rgba(127,127,127,.08)}
+.version-box strong{display:block;margin-bottom:4px}
+.hidden{display:none!important}
 @keyframes pulse{0%,100%{opacity:.25}50%{opacity:1}}
 </style>
 
@@ -154,6 +120,9 @@ require __DIR__ . '/inc/header.php';
     <div class="alert error"><?= h($error) ?></div>
 <?php endif; ?>
 
+<div id="ajax-message" class="alert goodbox hidden"></div>
+<div id="ajax-error" class="alert error hidden"></div>
+
 <div class="detail-grid">
     <section class="card live-card">
         <h2>System</h2>
@@ -168,36 +137,45 @@ require __DIR__ . '/inc/header.php';
         <div id="firmware-state" class="live-status loading">
             Loading firmware information…
         </div>
+
+        <div class="version-grid">
+            <div class="version-box">
+                <strong>Current version</strong>
+                <span id="current-version">Loading…</span>
+            </div>
+            <div class="version-box">
+                <strong>Available version</strong>
+                <span id="available-version">Not checked</span>
+            </div>
+        </div>
+
+        <div id="firmware-message">Loading…</div>
         <pre id="firmware-output">Loading…</pre>
     </section>
 
     <section class="card live-card">
-        <h2>Update check</h2>
+        <h2>Firmware actions</h2>
+
         <div id="check-state" class="live-status">
             Ready. Click “Check for updates”.
         </div>
-        <pre id="check-output">No update check started.</pre>
+
+        <button type="button" id="firmware-check-button">
+            Check for updates
+        </button>
+
+        <button
+            type="button"
+            id="firmware-install-button"
+            class="warning hidden"
+        >
+            Update now
+        </button>
     </section>
 </div>
 
 <form method="post" class="actions danger-zone">
     <input type="hidden" name="csrf" value="<?= h(csrf_token()) ?>">
-
-    <button type="button" id="firmware-check-button">
-        Check for updates
-    </button>
-
-    <button
-        class="warning"
-        name="action"
-        value="firmware_update"
-        onclick="return confirm(
-            'Install available firmware updates now? ' +
-            'The firewall may reboot and temporarily become unavailable.'
-        )"
-    >
-        Update now
-    </button>
 
     <button name="action" value="backup">
         Download configuration backup
@@ -229,19 +207,31 @@ require __DIR__ . '/inc/header.php';
     const firewallId = <?= (int) $firewall['id'] ?>;
     const csrfToken = <?= json_encode(csrf_token(), JSON_UNESCAPED_SLASHES) ?>;
     const checkButton = document.getElementById('firmware-check-button');
+    const installButton = document.getElementById('firmware-install-button');
+    let firmwareAction = null;
 
-    function showResult(section, payload) {
-        const state = document.getElementById(section + '-state');
-        const output = document.getElementById(section + '-output');
+    function setNotice(message, isError) {
+        const good = document.getElementById('ajax-message');
+        const bad = document.getElementById('ajax-error');
+
+        good.classList.add('hidden');
+        bad.classList.add('hidden');
+
+        const target = isError ? bad : good;
+        target.textContent = message;
+        target.classList.remove('hidden');
+    }
+
+    function showSystem(payload) {
+        const state = document.getElementById('system-state');
+        const output = document.getElementById('system-output');
 
         state.classList.remove('loading', 'good', 'bad');
 
         if (!payload || payload.ok !== true) {
             state.classList.add('bad');
             state.textContent = 'Could not load live status.';
-            output.textContent = payload && payload.error
-                ? payload.error
-                : 'Unavailable';
+            output.textContent = payload?.error || 'Unavailable';
             return;
         }
 
@@ -250,81 +240,167 @@ require __DIR__ . '/inc/header.php';
         output.textContent = JSON.stringify(payload.value, null, 2);
     }
 
-    async function loadSection(section, type) {
-        try {
-            const response = await fetch(
-                '/firewall_status.php?id=' + encodeURIComponent(firewallId) +
-                '&type=' + encodeURIComponent(type),
-                {
-                    credentials: 'same-origin',
-                    cache: 'no-store'
-                }
-            );
+    function showFirmware(payload) {
+        const state = document.getElementById('firmware-state');
+        const output = document.getElementById('firmware-output');
+        const current = document.getElementById('current-version');
+        const available = document.getElementById('available-version');
+        const message = document.getElementById('firmware-message');
 
-            const result = await response.json();
+        state.classList.remove('loading', 'good', 'bad');
+        installButton.classList.add('hidden');
+        firmwareAction = null;
 
-            if (!response.ok || result.ok !== true) {
-                throw new Error(result.error || 'HTTP ' + response.status);
-            }
+        if (!payload || payload.ok !== true) {
+            state.classList.add('bad');
+            state.textContent = 'Could not load firmware status.';
+            output.textContent = payload?.error || 'Unavailable';
+            current.textContent = 'Unknown';
+            available.textContent = 'Unknown';
+            message.textContent = payload?.error || 'Unavailable';
+            return;
+        }
 
-            showResult(section, result.data[type]);
-        } catch (error) {
-            showResult(section, {
-                ok: false,
-                error: error.message
-            });
+        const summary = payload.summary || {};
+
+        state.classList.add('good');
+        state.textContent = 'Firmware status loaded.';
+        current.textContent = summary.current_version || 'Unknown';
+        available.textContent = summary.update_available
+            ? (summary.available_version || 'Update available')
+            : (summary.checked ? 'No update available' : 'Not checked');
+        message.textContent = summary.message || '';
+        output.textContent = JSON.stringify(payload.value, null, 2);
+
+        if (summary.update_available && summary.action) {
+            firmwareAction = summary.action;
+            installButton.textContent = summary.action_label || 'Update now';
+            installButton.classList.remove('hidden');
         }
     }
 
-    async function checkForUpdates() {
-        const state = document.getElementById('check-state');
-        const output = document.getElementById('check-output');
-        const body = new URLSearchParams();
+    async function fetchStatus(type) {
+        const response = await fetch(
+            '/firewall_status.php?id=' +
+            encodeURIComponent(firewallId) +
+            '&type=' +
+            encodeURIComponent(type),
+            {
+                credentials: 'same-origin',
+                cache: 'no-store'
+            }
+        );
 
+        const result = await response.json();
+
+        if (!response.ok || result.ok !== true) {
+            throw new Error(result.error || 'HTTP ' + response.status);
+        }
+
+        return result.data[type];
+    }
+
+    async function runAction(action) {
+        const body = new URLSearchParams();
         body.set('csrf', csrfToken);
         body.set('id', String(firewallId));
-        body.set('action', 'firmware_check');
+        body.set('action', action);
 
-        checkButton.disabled = true;
-        state.className = 'live-status loading';
-        state.textContent = 'Checking OPNsense repositories…';
-        output.textContent = 'This may take a while. The page remains usable.';
+        const response = await fetch('/firewall_action.php', {
+            method: 'POST',
+            credentials: 'same-origin',
+            cache: 'no-store',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+            },
+            body
+        });
 
+        const result = await response.json();
+
+        if (!response.ok || result.ok !== true) {
+            throw new Error(result.error || 'HTTP ' + response.status);
+        }
+
+        return result;
+    }
+
+    async function loadSystem() {
         try {
-            const response = await fetch('/firewall_action.php', {
-                method: 'POST',
-                credentials: 'same-origin',
-                cache: 'no-store',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
-                },
-                body: body.toString()
-            });
-
-            const result = await response.json();
-
-            if (!response.ok || result.ok !== true) {
-                throw new Error(result.error || 'HTTP ' + response.status);
-            }
-
-            state.className = 'live-status good';
-            state.textContent = 'Update check completed.';
-            output.textContent = JSON.stringify(result.value, null, 2);
-
-            await loadSection('firmware', 'firmware');
+            showSystem(await fetchStatus('system'));
         } catch (error) {
-            state.className = 'live-status bad';
-            state.textContent = 'Update check failed.';
-            output.textContent = error.message;
-        } finally {
-            checkButton.disabled = false;
+            showSystem({ok: false, error: error.message});
         }
     }
 
-    checkButton?.addEventListener('click', checkForUpdates);
+    async function loadFirmware() {
+        try {
+            showFirmware(await fetchStatus('firmware'));
+        } catch (error) {
+            showFirmware({ok: false, error: error.message});
+        }
+    }
 
-    loadSection('system', 'system');
-    loadSection('firmware', 'firmware');
+    checkButton.addEventListener('click', async function () {
+        checkButton.disabled = true;
+        checkButton.textContent = 'Checking…';
+        document.getElementById('check-state').textContent =
+            'OPNsense is checking its firmware mirror…';
+
+        try {
+            const result = await runAction('firmware_check');
+
+            showFirmware({
+                ok: true,
+                value: result.value,
+                summary: result.summary
+            });
+
+            document.getElementById('check-state').textContent =
+                'Firmware check completed.';
+            setNotice('Firmware check completed.', false);
+        } catch (error) {
+            document.getElementById('check-state').textContent =
+                'Firmware check failed.';
+            setNotice(error.message, true);
+        } finally {
+            checkButton.disabled = false;
+            checkButton.textContent = 'Check for updates';
+        }
+    });
+
+    installButton.addEventListener('click', async function () {
+        if (!firmwareAction) {
+            return;
+        }
+
+        const isUpgrade = firmwareAction === 'firmware_upgrade';
+        const question = isUpgrade
+            ? 'Start the major OPNsense upgrade now? The firewall will reboot and may be unavailable for an extended period.'
+            : 'Install the available OPNsense update now? The firewall may reboot and temporarily become unavailable.';
+
+        if (!confirm(question)) {
+            return;
+        }
+
+        installButton.disabled = true;
+        installButton.textContent = isUpgrade
+            ? 'Starting upgrade…'
+            : 'Starting update…';
+
+        try {
+            const result = await runAction(firmwareAction);
+            setNotice(result.message || 'Firmware action started.', false);
+            installButton.classList.add('hidden');
+        } catch (error) {
+            setNotice(error.message, true);
+        } finally {
+            installButton.disabled = false;
+        }
+    });
+
+    loadSystem();
+    loadFirmware();
 })();
 </script>
 

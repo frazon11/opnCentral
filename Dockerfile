@@ -1,4 +1,4 @@
-FROM php:8.3-apache
+FROM php:8.5-apache
 
 LABEL org.opencontainers.image.title="opnCentral"
 LABEL org.opencontainers.image.description="Central manager for multiple OPNsense firewalls"
@@ -30,6 +30,5 @@ RUN chmod +x /usr/local/bin/opnsense-central-entrypoint \
         /var/www/backups
 
 WORKDIR /var/www/html
-
 ENTRYPOINT ["opnsense-central-entrypoint"]
 CMD ["apache2-foreground"]

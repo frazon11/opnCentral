@@ -34,7 +34,7 @@ start_session_secure();
         <div class="brand-text">
             <div><?= h(app_name()) ?></div>
             <div class="brand-meta">
-                <span class="opncentral-version">v0.4.2.6</span>
+                <span class="opncentral-version">v0.4.2.7</span>
                 <span aria-hidden="true">·</span>
                 <a
                     class="support-link"

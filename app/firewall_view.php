@@ -106,6 +106,7 @@ require __DIR__ . '/inc/header.php';
 .vpn-actions{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-top:8px}
 .vpn-actions button{padding:6px 9px;font-size:.84rem}
 .vpn-managed{font-size:.82rem;opacity:.82}
+.vpn-section-title{margin:16px 0 7px;padding-top:10px;border-top:1px solid #dce1e5;font-size:.92rem}
 @keyframes pulse{0%,100%{opacity:.25}50%{opacity:1}}
 </style>
 
@@ -559,7 +560,7 @@ require __DIR__ . '/inc/header.php';
         title.textContent = options.name;
 
         const badge = document.createElement('span');
-        badge.className = 'badge ' + (options.online ? 'good' : 'bad');
+        badge.className = 'badge ' + (options.statusClass || (options.online ? 'good' : 'bad'));
         badge.textContent = options.status;
 
         box.appendChild(title);
@@ -643,14 +644,28 @@ Other WireGuard peers and instances will remain unchanged.`)) return;
             : [];
         const interfaces = rows.filter(row => row?.type === 'interface');
         const peers = rows.filter(row => row?.type === 'peer');
+        const runtimePeerKeys = new Set(peers.map(row => String(row?.['public-key'] || '')).filter(Boolean));
+        const disabledManagedPeers = Object.entries(managedWireGuardLinks)
+            .filter(([publicKey, link]) =>
+                link?.managed === true &&
+                link?.paired_enabled === false &&
+                link?.partial_state !== true &&
+                !runtimePeerKeys.has(publicKey)
+            );
+        const partialManagedPeers = Object.entries(managedWireGuardLinks)
+            .filter(([publicKey, link]) =>
+                link?.managed === true &&
+                link?.partial_state === true &&
+                !runtimePeerKeys.has(publicKey)
+            );
         const onlinePeers = peers.filter(rowIsOnline).length;
         const interfaceUp = interfaces.some(row => normalisedStatus(row.status) === 'up');
 
         const badge = document.createElement('span');
         badge.className = 'badge ' + (interfaceUp || onlinePeers > 0 ? 'good' : 'bad');
         badge.textContent = peers.length
-            ? onlinePeers + ' online / ' + peers.length + ' peers'
-            : (interfaceUp ? 'Interface up · no peers returned' : 'No peers returned');
+            ? onlinePeers + ' online / ' + peers.length + ' active peers'
+            : (interfaceUp ? 'Interface up · no active peers returned' : 'No active peers returned');
         summary.appendChild(badge);
 
         const interfaceText = document.createElement('span');
@@ -659,6 +674,23 @@ Other WireGuard peers and instances will remain unchanged.`)) return;
             ? 'Interface: ' + (interfaceUp ? 'Up' : textValue(interfaces[0], ['status'], 'Unknown'))
             : 'Interface status unavailable';
         summary.appendChild(interfaceText);
+
+        if (disabledManagedPeers.length) {
+            const disabledSummary = document.createElement('span');
+            disabledSummary.className = 'vpn-meta';
+            disabledSummary.textContent = disabledManagedPeers.length + ' managed peer' +
+                (disabledManagedPeers.length === 1 ? '' : 's') + ' disabled on both sides';
+            summary.appendChild(disabledSummary);
+        }
+
+        if (partialManagedPeers.length) {
+            const partialSummary = document.createElement('span');
+            partialSummary.className = 'vpn-meta';
+            partialSummary.textContent = partialManagedPeers.length + ' managed peer' +
+                (partialManagedPeers.length === 1 ? '' : 's') + ' in a partial state';
+            summary.appendChild(partialSummary);
+        }
+
         showVpnErrors(summary, errors);
 
         peers.forEach(function (row, index) {
@@ -685,7 +717,44 @@ Other WireGuard peers and instances will remain unchanged.`)) return;
             });
         });
 
-        if (!peers.length) {
+        if (disabledManagedPeers.length) {
+            const heading = document.createElement('h4');
+            heading.className = 'vpn-section-title';
+            heading.textContent = 'Disabled peers';
+            list.appendChild(heading);
+
+            disabledManagedPeers.forEach(function ([publicKey, link]) {
+                appendVpnRow(list, {
+                    name: link.local.client_name || ('Managed peer to ' + link.remote.firewall_name),
+                    online: false,
+                    statusClass: 'neutral',
+                    status: 'Disabled on both sides',
+                    meta: link.local.firewall_name + ' ↔ ' + link.remote.firewall_name,
+                    actions: managedWireGuardActions({'public-key': publicKey})
+                });
+            });
+        }
+
+        if (partialManagedPeers.length) {
+            const heading = document.createElement('h4');
+            heading.className = 'vpn-section-title';
+            heading.textContent = 'Needs attention';
+            list.appendChild(heading);
+
+            partialManagedPeers.forEach(function ([publicKey, link]) {
+                appendVpnRow(list, {
+                    name: link.local.client_name || ('Managed peer to ' + link.remote.firewall_name),
+                    online: false,
+                    statusClass: 'bad',
+                    status: 'Partial state',
+                    meta: link.local.firewall_name + ': ' + (link.local.enabled ? 'enabled' : 'disabled') +
+                        ' · ' + link.remote.firewall_name + ': ' + (link.remote.enabled ? 'enabled' : 'disabled'),
+                    actions: managedWireGuardActions({'public-key': publicKey})
+                });
+            });
+        }
+
+        if (!peers.length && !disabledManagedPeers.length && !partialManagedPeers.length) {
             list.textContent = 'No WireGuard peers returned.';
             list.className = 'vpn-list vpn-empty';
         } else {

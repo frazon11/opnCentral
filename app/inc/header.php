@@ -28,7 +28,7 @@ start_session_secure();
 <header>
     <div class="brand">
         <div><?= h(app_name()) ?></div>
-        <div class="opncentral-version" style="font-size:11px;line-height:1.2;opacity:.65;margin-top:2px;">v0.4.2</div>
+        <div class="opncentral-version" style="font-size:11px;line-height:1.2;opacity:.65;margin-top:2px;">v0.4.2.1</div>
     </div>
 
     <?php if (logged_in()): ?>
@@ -74,9 +74,9 @@ start_session_secure();
                         </select>
                     </label>
                     <div class="dropdown-separator" aria-hidden="true"></div>
-                    <a href="/logout.php"><?= h(t('menu.logout')) ?></a>
-                </div>
+</div>
             </details>
+            <a href="/logout.php"><?= h(t('menu.logout')) ?></a>
         </nav>
     <?php endif; ?>
 </header>

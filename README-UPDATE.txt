@@ -1,25 +1,19 @@
-opnCentral v0.4.2 - WebUI notification settings
+opnCentral v0.4.2.1 - Navigation placement fix
 
-New:
-- All notification settings are editable from the Notifications page.
-- Alert enablement, VPN alerts, interval and failure threshold are stored in SQLite.
-- SMTP host, port, security, username, encrypted password, sender and recipients are stored in SQLite.
-- Existing environment variables remain the initial defaults/fallbacks until settings are saved.
-- The SMTP password is encrypted with APP_KEY and is never shown in the WebUI.
-- Leaving the password field empty preserves the existing password.
-- The background worker always starts and reads the current WebUI settings dynamically.
-- Language is now directly above Logout in the top-right dropdown.
-- Browser title is fixed to opnCentral.
-- Added a multi-node opnCentral favicon.
+Changed:
+- Language remains its own dropdown/menu item.
+- Logout is now a separate standalone link directly after Language.
+- Logout is no longer inside the Language dropdown.
+- Version updated to v0.4.2.1.
 
 Git:
 git add .
-git commit -m "Release v0.4.2 WebUI notification settings"
+git commit -m "Release v0.4.2.1 fix Language and Logout placement"
 git status
 
-Only when clean:
+Only when the working tree is clean:
 git pull --rebase origin main
 git push origin main
 
-git tag -a v0.4.2 -m "WebUI notification settings"
-git push origin v0.4.2
+git tag -a v0.4.2.1 -m "Fix Language and Logout placement"
+git push origin v0.4.2.1

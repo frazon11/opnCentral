@@ -1,35 +1,30 @@
-opnCentral v0.3.9 - Site-to-site VPN status
+opnCentral v0.3.10 - Container security refresh
 
 Replace:
-- app/firewall_view.php
+- Dockerfile
+- .dockerignore
 - app/inc/header.php
-- app/assets/style.css
 
-Add:
-- app/vpn_status.php
+This release does not replace the working VPN, firmware, alias or category PHP files.
 
-New:
-- Site-to-site VPN section in firewall Details
-- WireGuard service and peer/tunnel status
-- IPsec service, Phase 1 and Phase 2 status
-- OpenVPN sessions and routes
-- All VPN calls load asynchronously in the background
-- Failure of one VPN technology does not block the others
-- Raw API data remains available under expandable sections
-- Version updated to v0.3.9
+Changes:
+- Pins php:8.5-apache-trixie.
+- Installs available Debian security updates during build.
+- Keeps only required runtime libraries.
+- Removes development packages after compiling PHP extensions.
+- Cleans APT and temporary files.
+- Adds HEALTHCHECK.
+- Updates WebUI version to v0.3.10.
 
-The API user needs effective privileges for the relevant VPN endpoints.
-
-Safe Git sequence:
-
-git add .
-git commit -m "Release v0.3.9 site-to-site VPN status"
+Git:
+git add Dockerfile .dockerignore app/inc/header.php
+git commit -m "Release v0.3.10 container security refresh"
 git status
-
-Continue only when working tree is clean:
-
 git pull --rebase origin main
 git push origin main
+git tag -a v0.3.10 -m "Container security refresh"
+git push origin v0.3.10
 
-git tag -a v0.3.9 -m "Site-to-site VPN status"
-git push origin v0.3.9
+For docker/build-push-action use:
+  pull: true
+  no-cache: true

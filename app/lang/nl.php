@@ -1,6 +1,9 @@
 <?php
 return [
     'language' => 'Taal',
+    'menu.actions' => 'Acties',
+    'menu.settings' => 'Instellingen',
+    'menu.support' => 'Steun mij',
     'menu.dashboard' => 'Dashboard',
     'menu.firewalls' => 'Firewalls',
     'menu.overview' => 'Overzicht',

@@ -13,7 +13,7 @@ start_session_secure();
     <style>
         .brand-with-icon{display:flex;align-items:center;gap:10px}
         .brand-icon{width:34px;height:34px;display:block;flex:0 0 auto}
-        .brand-text{display:flex;flex-direction:column;justify-content:center}
+        .brand-text{display:flex;flex-direction:column;justify-content:center}.brand-meta{display:flex;align-items:center;gap:6px;font-size:11px;line-height:1.2;opacity:.72;margin-top:2px}.support-link{color:inherit;text-decoration:none;white-space:nowrap}.support-link:hover,.support-link:focus{text-decoration:underline;opacity:1}
         .main-nav{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
         .main-nav>a,.nav-menu>summary{display:inline-flex;align-items:center;min-height:34px;padding:0 10px;border-radius:7px;text-decoration:none;cursor:pointer;list-style:none}
         .main-nav>a:hover,.nav-menu>summary:hover,.nav-menu[open]>summary{background:rgba(127,127,127,.14)}
@@ -33,7 +33,17 @@ start_session_secure();
         <img src="/assets/opncentral-icon.svg" alt="" class="brand-icon" aria-hidden="true">
         <div class="brand-text">
             <div><?= h(app_name()) ?></div>
-            <div class="opncentral-version" style="font-size:11px;line-height:1.2;opacity:.65;margin-top:2px;">v0.4.2.5</div>
+            <div class="brand-meta">
+                <span class="opncentral-version">v0.4.2.6</span>
+                <span aria-hidden="true">·</span>
+                <a
+                    class="support-link"
+                    href="https://www.paypal.com/paypalme/FrazoN11"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="<?= h(t('menu.support')) ?>"
+                >♥ <?= h(t('menu.support')) ?></a>
+            </div>
         </div>
     </div>
 
@@ -50,27 +60,23 @@ start_session_secure();
             </details>
 
             <details class="nav-menu">
-                <summary><?= h(t('menu.aliases')) ?></summary>
+                <summary><?= h(t('menu.actions')) ?></summary>
                 <div class="nav-dropdown">
                     <a href="/aliases.php"><?= h(t('menu.distribute_alias')) ?></a>
                     <a href="/alias_overview.php"><?= h(t('menu.alias_overview')) ?></a>
-                </div>
-            </details>
-
-            <details class="nav-menu">
-                <summary><?= h(t('menu.categories')) ?></summary>
-                <div class="nav-dropdown">
+                    <div class="dropdown-separator" aria-hidden="true"></div>
                     <a href="/categories.php"><?= h(t('menu.distribute_category')) ?></a>
                     <a href="/category_overview.php"><?= h(t('menu.category_overview')) ?></a>
                 </div>
             </details>
 
-            <a href="/notifications.php"><?= h(t('menu.notifications')) ?></a>
-
             <span class="nav-separator" aria-hidden="true"></span>
+
             <details class="nav-menu nav-menu-right">
-                <summary><?= h(t('language')) ?></summary>
+                <summary><?= h(t('menu.settings')) ?></summary>
                 <div class="nav-dropdown language-dropdown">
+                    <a href="/notifications.php"><?= h(t('menu.notifications')) ?></a>
+                    <div class="dropdown-separator" aria-hidden="true"></div>
                     <label>
                         <span><?= h(t('language')) ?></span>
                         <select id="language-selector" aria-label="<?= h(t('language')) ?>">
@@ -79,9 +85,9 @@ start_session_secure();
                             <?php endforeach; ?>
                         </select>
                     </label>
-                    <div class="dropdown-separator" aria-hidden="true"></div>
-</div>
+                </div>
             </details>
+
             <a href="/logout.php"><?= h(t('menu.logout')) ?></a>
         </nav>
     <?php endif; ?>

@@ -1,6 +1,9 @@
 <?php
 return [
     'language' => 'Language',
+    'menu.actions' => 'Actions',
+    'menu.settings' => 'Settings',
+    'menu.support' => 'Support me',
     'menu.dashboard' => 'Dashboard',
     'menu.firewalls' => 'Firewalls',
     'menu.overview' => 'Overview',

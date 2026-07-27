@@ -93,6 +93,16 @@ require __DIR__ . '/inc/header.php';
 .version-box{padding:10px;border-radius:8px;background:rgba(127,127,127,.08)}
 .version-box strong{display:block;margin-bottom:4px}
 .hidden{display:none!important}
+.vpn-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.vpn-panel{padding:14px;border-radius:9px;background:rgba(127,127,127,.07)}
+.vpn-panel h3{margin:0 0 10px}
+.vpn-summary{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.vpn-list{display:grid;gap:8px}
+.vpn-row{padding:9px;border-radius:7px;background:rgba(127,127,127,.08)}
+.vpn-row strong{display:block;margin-bottom:3px}
+.vpn-meta{font-size:.88rem;opacity:.78;word-break:break-word}
+.vpn-empty{opacity:.7}
+.vpn-raw{margin-top:10px}
 @keyframes pulse{0%,100%{opacity:.25}50%{opacity:1}}
 </style>
 
@@ -152,6 +162,55 @@ require __DIR__ . '/inc/header.php';
         <div id="firmware-message">Loading…</div>
         <pre id="firmware-output">Loading…</pre>
     </section>
+
+
+    <section class="card live-card wide">
+        <div class="card-head">
+            <div>
+                <h2>Site-to-site VPN</h2>
+                <div id="vpn-state" class="live-status loading">
+                    Loading WireGuard, IPsec and OpenVPN status…
+                </div>
+            </div>
+
+            <button type="button" id="vpn-refresh-button" class="secondary">
+                Refresh VPN status
+            </button>
+        </div>
+
+        <div class="vpn-grid">
+            <div class="vpn-panel">
+                <h3>WireGuard</h3>
+                <div id="wireguard-summary" class="vpn-summary">Loading…</div>
+                <div id="wireguard-list" class="vpn-list"></div>
+                <details class="vpn-raw">
+                    <summary>Raw API data</summary>
+                    <pre id="wireguard-raw">Loading…</pre>
+                </details>
+            </div>
+
+            <div class="vpn-panel">
+                <h3>IPsec</h3>
+                <div id="ipsec-summary" class="vpn-summary">Loading…</div>
+                <div id="ipsec-list" class="vpn-list"></div>
+                <details class="vpn-raw">
+                    <summary>Raw API data</summary>
+                    <pre id="ipsec-raw">Loading…</pre>
+                </details>
+            </div>
+
+            <div class="vpn-panel">
+                <h3>OpenVPN</h3>
+                <div id="openvpn-summary" class="vpn-summary">Loading…</div>
+                <div id="openvpn-list" class="vpn-list"></div>
+                <details class="vpn-raw">
+                    <summary>Raw API data</summary>
+                    <pre id="openvpn-raw">Loading…</pre>
+                </details>
+            </div>
+        </div>
+    </section>
+
 
     <section class="card live-card">
         <h2>Firmware actions</h2>
@@ -419,8 +478,240 @@ require __DIR__ . '/inc/header.php';
         }
     });
 
+
+    function firstArray(value) {
+        if (Array.isArray(value)) {
+            return value;
+        }
+
+        if (!value || typeof value !== 'object') {
+            return [];
+        }
+
+        for (const key of ['rows', 'items', 'data', 'sessions', 'tunnels', 'peers']) {
+            if (Array.isArray(value[key])) {
+                return value[key];
+            }
+        }
+
+        return [];
+    }
+
+    function textValue(row, keys, fallback = '') {
+        for (const key of keys) {
+            if (
+                row &&
+                row[key] !== undefined &&
+                row[key] !== null &&
+                String(row[key]).trim() !== ''
+            ) {
+                return String(row[key]);
+            }
+        }
+
+        return fallback;
+    }
+
+    function isConnected(row) {
+        const combined = [
+            textValue(row, ['status', 'state']),
+            textValue(row, ['connected', 'active', 'running']),
+            textValue(row, ['latest_handshake', 'last_handshake', 'handshake'])
+        ].join(' ').toLowerCase();
+
+        return (
+            combined.includes('up') ||
+            combined.includes('established') ||
+            combined.includes('connected') ||
+            combined.includes('active') ||
+            combined.includes('true') ||
+            combined.includes('running')
+        );
+    }
+
+    function renderRows(containerId, rows, type) {
+        const container = document.getElementById(containerId);
+        container.textContent = '';
+
+        if (!rows.length) {
+            const empty = document.createElement('div');
+            empty.className = 'vpn-empty';
+            empty.textContent = 'No active or configured sessions returned.';
+            container.appendChild(empty);
+            return;
+        }
+
+        rows.forEach(function (row, index) {
+            const box = document.createElement('div');
+            box.className = 'vpn-row';
+
+            const name = textValue(
+                row,
+                ['name', 'description', 'instance', 'id', 'common_name', 'remote'],
+                type + ' tunnel ' + (index + 1)
+            );
+
+            const status = textValue(
+                row,
+                ['status', 'state', 'connected', 'active', 'running'],
+                isConnected(row) ? 'Connected' : 'Status unknown'
+            );
+
+            const endpoint = textValue(
+                row,
+                [
+                    'endpoint',
+                    'remote',
+                    'remote_host',
+                    'remote_address',
+                    'peer',
+                    'src',
+                    'dst'
+                ]
+            );
+
+            const handshake = textValue(
+                row,
+                [
+                    'latest_handshake',
+                    'last_handshake',
+                    'handshake',
+                    'established'
+                ]
+            );
+
+            const title = document.createElement('strong');
+            title.textContent = name;
+
+            const badge = document.createElement('span');
+            badge.className = 'badge ' + (isConnected(row) ? 'good' : 'bad');
+            badge.textContent = status;
+
+            const meta = document.createElement('div');
+            meta.className = 'vpn-meta';
+            meta.textContent = [
+                endpoint ? 'Endpoint: ' + endpoint : '',
+                handshake ? 'Handshake/established: ' + handshake : ''
+            ].filter(Boolean).join(' · ');
+
+            box.appendChild(title);
+            box.appendChild(badge);
+
+            if (meta.textContent) {
+                box.appendChild(meta);
+            }
+
+            container.appendChild(box);
+        });
+    }
+
+    function renderVpnType(type, payload) {
+        const summary = document.getElementById(type + '-summary');
+        const raw = document.getElementById(type + '-raw');
+
+        raw.textContent = JSON.stringify(payload, null, 2);
+
+        let rows = [];
+        let errors = [];
+
+        Object.entries(payload || {}).forEach(function ([key, result]) {
+            if (!result || result.ok !== true) {
+                if (result?.error) {
+                    errors.push(key + ': ' + result.error);
+                }
+                return;
+            }
+
+            rows = rows.concat(firstArray(result.value));
+        });
+
+        const connected = rows.filter(isConnected).length;
+
+        summary.textContent = '';
+
+        const statusBadge = document.createElement('span');
+        statusBadge.className = 'badge ' + (
+            errors.length && !rows.length ? 'bad' : 'good'
+        );
+        statusBadge.textContent = rows.length
+            ? connected + ' connected / ' + rows.length + ' returned'
+            : (errors.length ? 'Unavailable' : 'No sessions');
+
+        summary.appendChild(statusBadge);
+
+        if (errors.length) {
+            const errorText = document.createElement('span');
+            errorText.className = 'vpn-meta';
+            errorText.textContent = errors.join(' | ');
+            summary.appendChild(errorText);
+        }
+
+        renderRows(type + '-list', rows, type);
+    }
+
+    async function loadVpn() {
+        const state = document.getElementById('vpn-state');
+        const button = document.getElementById('vpn-refresh-button');
+
+        state.className = 'live-status loading';
+        state.textContent = 'Loading WireGuard, IPsec and OpenVPN status…';
+        button.disabled = true;
+
+        try {
+            const response = await fetch(
+                '/vpn_status.php?id=' + encodeURIComponent(firewallId) +
+                '&type=all',
+                {
+                    credentials: 'same-origin',
+                    cache: 'no-store'
+                }
+            );
+
+            const responseText = await response.text();
+            let result;
+
+            try {
+                result = JSON.parse(responseText);
+            } catch (error) {
+                throw new Error(
+                    'Server returned invalid JSON: ' +
+                    responseText.replace(/\s+/g, ' ').trim().slice(0, 500)
+                );
+            }
+
+            if (!response.ok || result.ok !== true) {
+                throw new Error(result.error || 'HTTP ' + response.status);
+            }
+
+            renderVpnType('wireguard', result.data.wireguard || {});
+            renderVpnType('ipsec', result.data.ipsec || {});
+            renderVpnType('openvpn', result.data.openvpn || {});
+
+            state.className = 'live-status good';
+            state.textContent = 'VPN status loaded.';
+        } catch (error) {
+            state.className = 'live-status bad';
+            state.textContent = error.message;
+
+            ['wireguard', 'ipsec', 'openvpn'].forEach(function (type) {
+                document.getElementById(type + '-summary').textContent =
+                    'Unavailable';
+                document.getElementById(type + '-list').textContent = '';
+                document.getElementById(type + '-raw').textContent =
+                    error.message;
+            });
+        } finally {
+            button.disabled = false;
+        }
+    }
+
+    document.getElementById('vpn-refresh-button')
+        ?.addEventListener('click', loadVpn);
+
+
     loadSystem();
     loadFirmware();
+    loadVpn();
 })();
 </script>
 

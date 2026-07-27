@@ -11,6 +11,9 @@ start_session_secure();
     <link rel="icon" type="image/svg+xml" href="/assets/opncentral-favicon.svg">
     <link rel="stylesheet" href="/assets/style.css">
     <style>
+        .brand-with-icon{display:flex;align-items:center;gap:10px}
+        .brand-icon{width:34px;height:34px;display:block;flex:0 0 auto}
+        .brand-text{display:flex;flex-direction:column;justify-content:center}
         .main-nav{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
         .main-nav>a,.nav-menu>summary{display:inline-flex;align-items:center;min-height:34px;padding:0 10px;border-radius:7px;text-decoration:none;cursor:pointer;list-style:none}
         .main-nav>a:hover,.nav-menu>summary:hover,.nav-menu[open]>summary{background:rgba(127,127,127,.14)}
@@ -26,9 +29,12 @@ start_session_secure();
 </head>
 <body>
 <header>
-    <div class="brand">
-        <div><?= h(app_name()) ?></div>
-        <div class="opncentral-version" style="font-size:11px;line-height:1.2;opacity:.65;margin-top:2px;">v0.4.2.1</div>
+    <div class="brand brand-with-icon">
+        <img src="/assets/opncentral-icon.svg" alt="" class="brand-icon" aria-hidden="true">
+        <div class="brand-text">
+            <div><?= h(app_name()) ?></div>
+            <div class="opncentral-version" style="font-size:11px;line-height:1.2;opacity:.65;margin-top:2px;">v0.4.2.2</div>
+        </div>
     </div>
 
     <?php if (logged_in()): ?>

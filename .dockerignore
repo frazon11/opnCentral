@@ -1,7 +1,12 @@
 .git
 .github
-deploy
-data
-backups
+.gitignore
 .env
+.env.*
+deploy
+backups
+data
 *.zip
+*.tar
+*.tar.gz
+README-UPDATE.txt

@@ -1,5 +1,9 @@
-opnCentral v0.4.2.2 - Header icon
+opnCentral v0.4.2.3 - VPN status parser fix
 
-- Added the opnCentral icon next to the title in the menu bar.
-- Browser favicon remains unchanged.
-- Version updated to v0.4.2.2.
+Changed:
+- WireGuard interface and peer rows are parsed separately.
+- WireGuard peer state uses peer-status and displays handshake and traffic data.
+- IPsec disabled state is shown correctly; Phase 1 and Phase 2 are counted separately.
+- OpenVPN session rows are no longer combined with route rows.
+- Roadwarrior sessions are separated from site-to-site tunnels.
+- OpenVPN route records are informational only and never counted as tunnels.

@@ -33,7 +33,7 @@ start_session_secure();
         <img src="/assets/opncentral-icon.svg" alt="" class="brand-icon" aria-hidden="true">
         <div class="brand-text">
             <div><?= h(app_name()) ?></div>
-            <div class="opncentral-version" style="font-size:11px;line-height:1.2;opacity:.65;margin-top:2px;">v0.4.2.2</div>
+            <div class="opncentral-version" style="font-size:11px;line-height:1.2;opacity:.65;margin-top:2px;">v0.4.2.3</div>
         </div>
     </div>
 

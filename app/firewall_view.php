@@ -513,141 +513,280 @@ require __DIR__ . '/inc/header.php';
         return fallback;
     }
 
-    function isConnected(row) {
-        const combined = [
-            textValue(row, ['status', 'state']),
-            textValue(row, ['connected', 'active', 'running']),
-            textValue(row, ['latest_handshake', 'last_handshake', 'handshake'])
-        ].join(' ').toLowerCase();
-
-        return (
-            combined.includes('up') ||
-            combined.includes('established') ||
-            combined.includes('connected') ||
-            combined.includes('active') ||
-            combined.includes('true') ||
-            combined.includes('running')
-        );
+    function normalisedStatus(value) {
+        return String(value ?? '').trim().toLowerCase();
     }
 
-    function renderRows(containerId, rows, type) {
-        const container = document.getElementById(containerId);
-        container.textContent = '';
+    function rowIsOnline(row) {
+        const peerStatus = normalisedStatus(row?.['peer-status']);
+        if (peerStatus) {
+            return peerStatus === 'online';
+        }
 
-        if (!rows.length) {
-            const empty = document.createElement('div');
-            empty.className = 'vpn-empty';
-            empty.textContent = 'No active or configured sessions returned.';
-            container.appendChild(empty);
+        const status = normalisedStatus(
+            textValue(row, ['status', 'state', 'connected', 'active', 'running'])
+        );
+
+        return ['up', 'online', 'ok', 'established', 'connected', 'active', 'true', 'running']
+            .includes(status);
+    }
+
+    function formatBytes(value) {
+        const bytes = Number(value);
+        if (!Number.isFinite(bytes) || bytes < 0) {
+            return '';
+        }
+
+        const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+        let amount = bytes;
+        let unit = 0;
+        while (amount >= 1024 && unit < units.length - 1) {
+            amount /= 1024;
+            unit += 1;
+        }
+        return (unit === 0 ? amount.toFixed(0) : amount.toFixed(1)) + ' ' + units[unit];
+    }
+
+    function appendVpnRow(container, options) {
+        const box = document.createElement('div');
+        box.className = 'vpn-row';
+
+        const title = document.createElement('strong');
+        title.textContent = options.name;
+
+        const badge = document.createElement('span');
+        badge.className = 'badge ' + (options.online ? 'good' : 'bad');
+        badge.textContent = options.status;
+
+        box.appendChild(title);
+        box.appendChild(badge);
+
+        if (options.meta) {
+            const meta = document.createElement('div');
+            meta.className = 'vpn-meta';
+            meta.textContent = options.meta;
+            box.appendChild(meta);
+        }
+
+        container.appendChild(box);
+    }
+
+    function showVpnErrors(summary, errors) {
+        if (!errors.length) {
             return;
         }
 
-        rows.forEach(function (row, index) {
-            const box = document.createElement('div');
-            box.className = 'vpn-row';
+        const errorText = document.createElement('span');
+        errorText.className = 'vpn-meta';
+        errorText.textContent = errors.join(' | ');
+        summary.appendChild(errorText);
+    }
 
-            const name = textValue(
-                row,
-                ['name', 'description', 'instance', 'id', 'common_name', 'remote'],
-                type + ' tunnel ' + (index + 1)
-            );
+    function apiErrors(payload) {
+        const errors = [];
+        Object.entries(payload || {}).forEach(function ([key, result]) {
+            if (!result || result.ok !== true) {
+                errors.push(key + ': ' + (result?.error || 'Unavailable'));
+            }
+        });
+        return errors;
+    }
 
-            const status = textValue(
-                row,
-                ['status', 'state', 'connected', 'active', 'running'],
-                isConnected(row) ? 'Connected' : 'Status unknown'
-            );
+    function renderWireGuard(payload) {
+        const summary = document.getElementById('wireguard-summary');
+        const list = document.getElementById('wireguard-list');
+        const raw = document.getElementById('wireguard-raw');
+        raw.textContent = JSON.stringify(payload, null, 2);
+        summary.textContent = '';
+        list.textContent = '';
 
-            const endpoint = textValue(
-                row,
-                [
-                    'endpoint',
-                    'remote',
-                    'remote_host',
-                    'remote_address',
-                    'peer',
-                    'src',
-                    'dst'
-                ]
-            );
+        const errors = apiErrors(payload);
+        const rows = payload?.tunnels?.ok === true
+            ? firstArray(payload.tunnels.value)
+            : [];
+        const interfaces = rows.filter(row => row?.type === 'interface');
+        const peers = rows.filter(row => row?.type === 'peer');
+        const onlinePeers = peers.filter(rowIsOnline).length;
+        const interfaceUp = interfaces.some(row => normalisedStatus(row.status) === 'up');
 
-            const handshake = textValue(
-                row,
-                [
-                    'latest_handshake',
-                    'last_handshake',
-                    'handshake',
-                    'established'
-                ]
-            );
+        const badge = document.createElement('span');
+        badge.className = 'badge ' + (interfaceUp || onlinePeers > 0 ? 'good' : 'bad');
+        badge.textContent = peers.length
+            ? onlinePeers + ' online / ' + peers.length + ' peers'
+            : (interfaceUp ? 'Interface up · no peers returned' : 'No peers returned');
+        summary.appendChild(badge);
 
-            const title = document.createElement('strong');
-            title.textContent = name;
+        const interfaceText = document.createElement('span');
+        interfaceText.className = 'vpn-meta';
+        interfaceText.textContent = interfaces.length
+            ? 'Interface: ' + (interfaceUp ? 'Up' : textValue(interfaces[0], ['status'], 'Unknown'))
+            : 'Interface status unavailable';
+        summary.appendChild(interfaceText);
+        showVpnErrors(summary, errors);
 
-            const badge = document.createElement('span');
-            badge.className = 'badge ' + (isConnected(row) ? 'good' : 'bad');
-            badge.textContent = status;
-
-            const meta = document.createElement('div');
-            meta.className = 'vpn-meta';
-            meta.textContent = [
-                endpoint ? 'Endpoint: ' + endpoint : '',
-                handshake ? 'Handshake/established: ' + handshake : ''
+        peers.forEach(function (row, index) {
+            const online = rowIsOnline(row);
+            const handshakeAge = row['latest-handshake-age'];
+            const handshakeTime = row['latest-handshake-epoch'];
+            const rx = formatBytes(row['transfer-rx']);
+            const tx = formatBytes(row['transfer-tx']);
+            const meta = [
+                row.endpoint ? 'Endpoint: ' + row.endpoint : '',
+                row['allowed-ips'] ? 'Networks: ' + row['allowed-ips'] : '',
+                handshakeTime ? 'Last handshake: ' + handshakeTime : '',
+                handshakeAge !== null && handshakeAge !== undefined ? 'Age: ' + handshakeAge + ' s' : '',
+                rx ? 'RX: ' + rx : '',
+                tx ? 'TX: ' + tx : ''
             ].filter(Boolean).join(' · ');
 
-            box.appendChild(title);
-            box.appendChild(badge);
-
-            if (meta.textContent) {
-                box.appendChild(meta);
-            }
-
-            container.appendChild(box);
+            appendVpnRow(list, {
+                name: textValue(row, ['name', 'ifname'], 'WireGuard peer ' + (index + 1)),
+                online: online,
+                status: online ? 'Online' : 'Offline',
+                meta: meta
+            });
         });
+
+        if (!peers.length) {
+            list.textContent = 'No WireGuard peers returned.';
+            list.className = 'vpn-list vpn-empty';
+        } else {
+            list.className = 'vpn-list';
+        }
+    }
+
+    function renderIpsec(payload) {
+        const summary = document.getElementById('ipsec-summary');
+        const list = document.getElementById('ipsec-list');
+        const raw = document.getElementById('ipsec-raw');
+        raw.textContent = JSON.stringify(payload, null, 2);
+        summary.textContent = '';
+        list.textContent = '';
+        list.className = 'vpn-list';
+
+        const errors = apiErrors(payload);
+        const serviceStatus = normalisedStatus(payload?.service?.value?.status);
+        const phase1 = payload?.phase1?.ok === true ? firstArray(payload.phase1.value) : [];
+        const phase2 = payload?.phase2?.ok === true ? firstArray(payload.phase2.value) : [];
+        const disabled = serviceStatus === 'disabled';
+        const establishedP1 = phase1.filter(rowIsOnline).length;
+        const establishedP2 = phase2.filter(rowIsOnline).length;
+
+        const badge = document.createElement('span');
+        badge.className = 'badge ' + (disabled ? 'neutral' : (establishedP1 || establishedP2 ? 'good' : 'bad'));
+        badge.textContent = disabled
+            ? 'Disabled'
+            : 'Phase 1: ' + establishedP1 + '/' + phase1.length +
+              ' · Phase 2: ' + establishedP2 + '/' + phase2.length;
+        summary.appendChild(badge);
+        showVpnErrors(summary, errors);
+
+        const rows = phase1.map(row => ({...row, _phase: 'Phase 1'}))
+            .concat(phase2.map(row => ({...row, _phase: 'Phase 2'})));
+
+        rows.forEach(function (row, index) {
+            const online = rowIsOnline(row);
+            appendVpnRow(list, {
+                name: textValue(row, ['description', 'name', 'connection', 'id'], row._phase + ' ' + (index + 1)),
+                online: online,
+                status: online ? 'Established' : textValue(row, ['status', 'state'], 'Not established'),
+                meta: [
+                    row._phase,
+                    textValue(row, ['remote', 'remote_host', 'remote_address', 'peer'])
+                        ? 'Remote: ' + textValue(row, ['remote', 'remote_host', 'remote_address', 'peer'])
+                        : ''
+                ].filter(Boolean).join(' · ')
+            });
+        });
+
+        if (!rows.length) {
+            list.className = 'vpn-list vpn-empty';
+            list.textContent = disabled
+                ? 'IPsec is disabled and no Phase 1 or Phase 2 sessions are active.'
+                : 'No active IPsec Phase 1 or Phase 2 sessions returned.';
+        }
+    }
+
+    function isRoadwarriorSession(row) {
+        const description = normalisedStatus(row?.description);
+        const username = String(row?.username ?? '').trim();
+        return description.includes('roadwarrior') ||
+            description.includes('road warrior') ||
+            username !== '' ||
+            row?.is_client === true;
+    }
+
+    function renderOpenVpn(payload) {
+        const summary = document.getElementById('openvpn-summary');
+        const list = document.getElementById('openvpn-list');
+        const raw = document.getElementById('openvpn-raw');
+        raw.textContent = JSON.stringify(payload, null, 2);
+        summary.textContent = '';
+        list.textContent = '';
+        list.className = 'vpn-list';
+
+        const errors = apiErrors(payload);
+        const sessions = payload?.sessions?.ok === true
+            ? firstArray(payload.sessions.value)
+            : [];
+        const roadwarriors = sessions.filter(isRoadwarriorSession);
+        const siteToSite = sessions.filter(row => !isRoadwarriorSession(row));
+        const onlineSiteToSite = siteToSite.filter(rowIsOnline).length;
+
+        const badge = document.createElement('span');
+        badge.className = 'badge ' + (onlineSiteToSite > 0 ? 'good' : 'neutral');
+        badge.textContent = 'Site-to-site: ' + onlineSiteToSite + '/' + siteToSite.length +
+            ' · Roadwarriors: ' + roadwarriors.length + ' connected';
+        summary.appendChild(badge);
+        showVpnErrors(summary, errors);
+
+        siteToSite.forEach(function (row, index) {
+            const online = rowIsOnline(row);
+            appendVpnRow(list, {
+                name: textValue(row, ['description', 'common_name', 'id'], 'OpenVPN tunnel ' + (index + 1)),
+                online: online,
+                status: online ? 'Connected' : textValue(row, ['status', 'state'], 'Status unknown'),
+                meta: [
+                    row.real_address ? 'Remote: ' + row.real_address : '',
+                    row.virtual_address ? 'Tunnel address: ' + row.virtual_address : '',
+                    row.connected_since ? 'Connected since: ' + row.connected_since : ''
+                ].filter(Boolean).join(' · ')
+            });
+        });
+
+        if (!siteToSite.length) {
+            const empty = document.createElement('div');
+            empty.className = 'vpn-empty';
+            empty.textContent = 'No OpenVPN site-to-site sessions detected.';
+            list.appendChild(empty);
+        }
+
+        if (roadwarriors.length) {
+            const rw = document.createElement('div');
+            rw.className = 'vpn-row';
+            const title = document.createElement('strong');
+            title.textContent = 'Roadwarrior sessions';
+            const rwBadge = document.createElement('span');
+            rwBadge.className = 'badge good';
+            rwBadge.textContent = roadwarriors.length + ' connected';
+            const meta = document.createElement('div');
+            meta.className = 'vpn-meta';
+            meta.textContent = 'Displayed as a separate count; route records are not counted as tunnels.';
+            rw.appendChild(title);
+            rw.appendChild(rwBadge);
+            rw.appendChild(meta);
+            list.appendChild(rw);
+        }
     }
 
     function renderVpnType(type, payload) {
-        const summary = document.getElementById(type + '-summary');
-        const raw = document.getElementById(type + '-raw');
-
-        raw.textContent = JSON.stringify(payload, null, 2);
-
-        let rows = [];
-        let errors = [];
-
-        Object.entries(payload || {}).forEach(function ([key, result]) {
-            if (!result || result.ok !== true) {
-                if (result?.error) {
-                    errors.push(key + ': ' + result.error);
-                }
-                return;
-            }
-
-            rows = rows.concat(firstArray(result.value));
-        });
-
-        const connected = rows.filter(isConnected).length;
-
-        summary.textContent = '';
-
-        const statusBadge = document.createElement('span');
-        statusBadge.className = 'badge ' + (
-            errors.length && !rows.length ? 'bad' : 'good'
-        );
-        statusBadge.textContent = rows.length
-            ? connected + ' connected / ' + rows.length + ' returned'
-            : (errors.length ? tr['common.unavailable'] : 'No sessions');
-
-        summary.appendChild(statusBadge);
-
-        if (errors.length) {
-            const errorText = document.createElement('span');
-            errorText.className = 'vpn-meta';
-            errorText.textContent = errors.join(' | ');
-            summary.appendChild(errorText);
+        if (type === 'wireguard') {
+            renderWireGuard(payload);
+        } else if (type === 'ipsec') {
+            renderIpsec(payload);
+        } else if (type === 'openvpn') {
+            renderOpenVpn(payload);
         }
-
-        renderRows(type + '-list', rows, type);
     }
 
     async function loadVpn() {

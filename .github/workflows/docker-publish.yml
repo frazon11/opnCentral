@@ -48,12 +48,3 @@ jobs:
           tags: |
             ghcr.io/frazon11/opncentral:latest
             docker.io/frazon11/opncentral:latest
-
-      - name: Update Docker Hub description
-        uses: peter-evans/dockerhub-description@v4
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-          repository: frazon11/opncentral
-          readme-filepath: ./README.md
-          short-description: Central management and monitoring for multiple OPNsense firewalls

@@ -17,17 +17,34 @@ require __DIR__ . '/inc/header.php';
 .view-switch{display:inline-flex;gap:4px;padding:4px;border:1px solid rgba(127,127,127,.25);border-radius:10px;background:rgba(127,127,127,.08)}
 .view-switch button{border:0;border-radius:7px;padding:8px 12px;cursor:pointer;background:transparent;color:inherit}
 .view-switch button.active{background:rgba(127,127,127,.2);font-weight:700}
-.firewall-list{display:grid;gap:16px}
-.view-cards .firewall-list{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.firewall-list{display:grid;gap:16px;align-items:stretch}
+.view-cards .firewall-list{grid-template-columns:repeat(3,minmax(0,1fr))}
 .view-details .firewall-list{grid-template-columns:1fr}
 .view-compact .firewall-list{display:grid;grid-template-columns:1fr;gap:8px}
 .view-compact .firewall-card{padding:12px}
+.firewall-card{display:flex;flex-direction:column;min-width:0}
+.firewall-card .card-head{align-items:flex-start}
+.firewall-card .card-head>div{min-width:0}
+.firewall-card .card-head h2{overflow-wrap:anywhere}
+.firewall-card .card-head a{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.firewall-card .actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:auto;align-items:stretch}
+.firewall-card .actions button,.firewall-card .actions .button{width:100%;min-width:0;padding:8px 6px;text-align:center;white-space:normal;line-height:1.15}
 .status-loading{opacity:.65}
 .firmware-versions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
-.firmware-versions div{padding:8px;border-radius:7px;background:rgba(127,127,127,.08)}
+.firmware-versions div{padding:8px;border-radius:7px;background:rgba(127,127,127,.08);min-width:0}
 .firmware-versions strong{display:block;font-size:.82rem;margin-bottom:3px}
 .card-update-button.hidden{display:none}
-.card-message{font-size:.9rem;opacity:.78;margin:8px 0}
+.card-message{font-size:.9rem;opacity:.78;margin:8px 0 14px;min-height:3.4em}
+@media(min-width:2100px){
+    .view-cards .firewall-list{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+@media(max-width:1250px){
+    .view-cards .firewall-list{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:760px){
+    .view-cards .firewall-list{grid-template-columns:1fr}
+    .firewall-card .actions{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
 </style>
 
 <div class="page-title">

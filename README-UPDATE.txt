@@ -1,9 +1,11 @@
-opnCentral v0.4.3.5
+opnCentral v0.4.3.6
 
-- Moved Language from the sidebar into a dedicated Settings page.
-- Added Light and Dark themes.
-- Theme changes apply immediately without reloading.
-- Theme preference is stored in the browser using localStorage.
-- Added early theme initialization to avoid a light-theme flash when dark mode is selected.
-- Added translated Settings labels for English, German, French and Dutch.
-- Retains the complete favicon fix from v0.4.3.4.
+Ultrawide dashboard corrections:
+- Increased usable content width from 1500px to 2200px.
+- Uses three dashboard columns on normal desktop widths.
+- Uses four columns only on screens at least 2100px wide.
+- Uses two columns on narrower desktops and one on phones.
+- Firewall cards now stretch consistently and keep their action area at the bottom.
+- Card actions use an internal responsive grid and can no longer overflow the card.
+- Long URLs are truncated visually instead of widening cards.
+- Firmware messages reserve consistent vertical space.

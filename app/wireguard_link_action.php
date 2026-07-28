@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/inc/config.php';
 require_once __DIR__ . '/inc/opnsense.php';
+require_once __DIR__ . '/inc/backups.php';
 
 require_login();
 require_csrf();
@@ -72,6 +73,10 @@ try {
 
     $localOriginal = action_enabled($localBefore['enabled'] ?? '1');
     $remoteOriginal = action_enabled($remoteBefore['enabled'] ?? '1');
+
+    backup_before_change($local, $enable ? 'wireguard-enable' : 'wireguard-disable');
+    backup_before_change($remote, $enable ? 'wireguard-enable' : 'wireguard-disable');
+
     $localChanged = false;
 
     try {

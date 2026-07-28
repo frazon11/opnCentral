@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/inc/config.php';
 require_once __DIR__ . '/inc/opnsense.php';
+require_once __DIR__ . '/inc/backups.php';
 
 require_login();
 
@@ -18,44 +19,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $action = (string) ($_POST['action'] ?? '');
 
         if ($action === 'backup') {
-            if (
-                !is_dir(BACKUP_DIR)
-                && !mkdir(BACKUP_DIR, 0770, true)
-                && !is_dir(BACKUP_DIR)
-            ) {
-                throw new RuntimeException('Cannot create the backup directory.');
-            }
-
-            $safeName = preg_replace(
-                '/[^A-Za-z0-9._-]+/',
-                '_',
-                (string) $firewall['name']
-            );
-
-            $filename =
-                BACKUP_DIR . '/' .
-                $safeName . '-' .
-                gmdate('Ymd-His') .
-                '.xml';
-
-            $backupData = opn_download(
-                $firewall,
-                'core/backup/download/this'
-            );
-
-            if ($backupData === '') {
-                throw new RuntimeException(
-                    'OPNsense returned an empty configuration backup.'
-                );
-            }
-
-            if (file_put_contents($filename, $backupData, LOCK_EX) === false) {
-                throw new RuntimeException(
-                    'The configuration backup could not be saved.'
-                );
-            }
-
-            $message = 'Backup saved: ' . basename($filename);
+            $created = backup_create($firewall, 'manual', 'single-firewall');
+            $message = 'Backup saved: ' . $created['filename'];
         } elseif ($action === 'reboot') {
             opn_request(
                 $firewall,

@@ -1,9 +1,17 @@
-opnCentral v0.4.2.8
+opnCentral v0.4.3.0
 
-Performance changes:
-- OPNsense VPN API requests are now executed concurrently with curl_multi.
-- WireGuard client/server inventories for all managed firewalls are fetched concurrently.
-- Managed WireGuard inventory is cached for 30 seconds.
-- The cache is invalidated immediately after a peer-pair enable/disable action.
-- Browser requests for VPN runtime status and managed-peer matching now start in parallel.
-- System, firmware and VPN panels still load independently, so a slow panel does not block the others.
+Major changes:
+- OPNsense-inspired fixed sidebar and top toolbar.
+- Compact OPNsense-style panels, tables, buttons and navigation.
+- New persistent Backups page and backup history.
+- Backup all managed firewalls in parallel.
+- Download all successful backups as one ZIP.
+- Automatic verified pre-change backups before:
+  * WireGuard peer-pair enable/disable on both affected firewalls
+  * alias distribution
+  * category distribution
+  * firmware update and major upgrade
+- Configuration changes are cancelled when the required backup fails.
+- SHA-256 and minimum-size integrity checks.
+- Configurable pre-change retention, default 20 per firewall.
+- Backup metadata stored in SQLite.

@@ -17,6 +17,21 @@ function db(): PDO {
  notes TEXT NOT NULL DEFAULT "",created_at TEXT NOT NULL,updated_at TEXT NOT NULL)');
  $p->exec('CREATE TABLE IF NOT EXISTS alert_states (state_key TEXT PRIMARY KEY,state_value TEXT NOT NULL,failure_count INTEGER NOT NULL DEFAULT 0,details TEXT NOT NULL DEFAULT "",updated_at TEXT NOT NULL)');
  $p->exec('CREATE TABLE IF NOT EXISTS alert_log (id INTEGER PRIMARY KEY AUTOINCREMENT,state_key TEXT NOT NULL,event_type TEXT NOT NULL,subject TEXT NOT NULL,message TEXT NOT NULL,sent_ok INTEGER NOT NULL DEFAULT 0,error TEXT NOT NULL DEFAULT "",created_at TEXT NOT NULL)');
+ $p->exec('CREATE TABLE IF NOT EXISTS backups (
+ id INTEGER PRIMARY KEY AUTOINCREMENT,
+ firewall_id INTEGER NOT NULL,
+ firewall_name TEXT NOT NULL,
+ filename TEXT NOT NULL,
+ backup_type TEXT NOT NULL DEFAULT "manual",
+ reason TEXT NOT NULL DEFAULT "",
+ byte_size INTEGER NOT NULL DEFAULT 0,
+ sha256 TEXT NOT NULL DEFAULT "",
+ created_by TEXT NOT NULL DEFAULT "",
+ created_at TEXT NOT NULL,
+ status TEXT NOT NULL DEFAULT "ok",
+ error TEXT NOT NULL DEFAULT ""
+ )');
+ $p->exec('CREATE INDEX IF NOT EXISTS idx_backups_firewall_created ON backups(firewall_id,created_at DESC)');
  return $p;
 }
 function crypto_key(): string {

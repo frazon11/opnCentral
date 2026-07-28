@@ -26,6 +26,7 @@ services:
       SMTP_FROM: ${SMTP_FROM}
       SMTP_FROM_NAME: ${SMTP_FROM_NAME}
       NOTIFY_TO: ${NOTIFY_TO}
+      PRECHANGE_BACKUP_RETENTION: ${PRECHANGE_BACKUP_RETENTION:-20}
 
     volumes:
       - /volume1/docker/opncentral/data:/var/www/data

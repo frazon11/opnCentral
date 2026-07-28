@@ -16,11 +16,12 @@ RUN set -eux; \
         libcurl4t64 \
         libsqlite3-0 \
         libcurl4-openssl-dev \
-        libsqlite3-dev; \
-    docker-php-ext-install -j"$(nproc)" curl pdo_sqlite; \
+        libsqlite3-dev \
+        libzip-dev; \
+    docker-php-ext-install -j"$(nproc)" curl pdo_sqlite zip; \
     a2enmod rewrite headers; \
     apt-mark manual ca-certificates curl libcurl4t64 libsqlite3-0; \
-    apt-get purge -y --auto-remove libcurl4-openssl-dev libsqlite3-dev; \
+    apt-get purge -y --auto-remove libcurl4-openssl-dev libsqlite3-dev libzip-dev; \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 COPY app/ /var/www/html/

@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/inc/config.php';
 require_once __DIR__ . '/inc/opnsense.php';
+require_once __DIR__ . '/inc/backups.php';
 require_once __DIR__ . '/inc/category_central.php';
 require_login();
 central_category_init();
@@ -43,6 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         foreach ($statement->fetchAll() as $firewall) {
             try {
+                backup_before_change($firewall, 'category-distribution');
                 $existing = central_category_search($firewall, $name);
 
                 if ($existing === null) {

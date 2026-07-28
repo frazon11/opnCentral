@@ -46,6 +46,7 @@ register_shutdown_function(static function (): void {
 require_once __DIR__ . '/inc/config.php';
 require_once __DIR__ . '/inc/opnsense.php';
 require_once __DIR__ . '/inc/firmware.php';
+require_once __DIR__ . '/inc/backups.php';
 
 require_login();
 
@@ -115,6 +116,8 @@ try {
     $endpoint = $action === 'firmware_upgrade'
         ? 'core/firmware/upgrade'
         : 'core/firmware/update';
+
+    $backup = backup_before_change($firewall, $action);
 
     $value = opn_request(
         $firewall,

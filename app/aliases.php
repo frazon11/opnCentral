@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/inc/config.php';
 require_once __DIR__ . '/inc/opnsense.php';
+require_once __DIR__ . '/inc/backups.php';
 require_once __DIR__ . '/inc/alias_central.php';
 require_login();
 central_alias_init();
@@ -43,6 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         foreach ($statement->fetchAll() as $firewall) {
             try {
+                backup_before_change($firewall, 'alias-distribution');
                 $categoryUuid = central_alias_category_uuid($firewall);
                 if ($categoryUuid === null) {
                     throw new RuntimeException('Category opnCentral is missing on this firewall. Create it under Firewall > Categories.');

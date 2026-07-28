@@ -258,3 +258,66 @@ function invalidate_wireguard_inventory_cache(): void
         @unlink($path);
     }
 }
+
+
+function opn_downloads_parallel(array $requests): array
+{
+    if ($requests === []) return [];
+    $multi = curl_multi_init();
+    $handles = [];
+    $results = [];
+
+    try {
+        foreach ($requests as $key => $request) {
+            try {
+                $firewall = $request['firewall'];
+                $handle = curl_init(
+                    rtrim((string) $firewall['base_url'], '/') . '/api/' .
+                    ltrim((string) $request['path'], '/')
+                );
+                if (!$handle instanceof CurlHandle) {
+                    throw new RuntimeException('Could not initialize cURL.');
+                }
+                curl_setopt_array($handle, [
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_USERPWD => decrypt_value((string)$firewall['api_key_enc']) . ':' . decrypt_value((string)$firewall['api_secret_enc']),
+                    CURLOPT_HTTPAUTH => CURLAUTH_BASIC,
+                    CURLOPT_CONNECTTIMEOUT => 8,
+                    CURLOPT_TIMEOUT => (int)($request['timeout'] ?? 60),
+                    CURLOPT_FOLLOWLOCATION => false,
+                    CURLOPT_SSL_VERIFYPEER => (bool)$firewall['verify_tls'],
+                    CURLOPT_SSL_VERIFYHOST => (bool)$firewall['verify_tls'] ? 2 : 0,
+                ]);
+                curl_multi_add_handle($multi, $handle);
+                $handles[(int)$handle] = ['key'=>$key,'handle'=>$handle];
+            } catch (Throwable $e) {
+                $results[$key] = ['ok'=>false,'error'=>$e->getMessage()];
+            }
+        }
+
+        do {
+            $status = curl_multi_exec($multi, $running);
+            if ($status !== CURLM_OK) {
+                throw new RuntimeException('Parallel backup execution failed: '.curl_multi_strerror($status));
+            }
+            if ($running > 0 && curl_multi_select($multi, 1.0) === -1) usleep(10000);
+        } while ($running > 0);
+
+        foreach ($handles as $item) {
+            $key=$item['key']; $handle=$item['handle'];
+            $body=curl_multi_getcontent($handle);
+            $error=curl_error($handle);
+            $status=(int)curl_getinfo($handle,CURLINFO_RESPONSE_CODE);
+            if ($body===false) $results[$key]=['ok'=>false,'error'=>'Connection failed: '.$error];
+            elseif ($status<200||$status>=300) $results[$key]=['ok'=>false,'error'=>'OPNsense API HTTP '.$status];
+            else $results[$key]=['ok'=>true,'value'=>$body];
+        }
+    } finally {
+        foreach ($handles as $item) curl_multi_remove_handle($multi,$item['handle']);
+        curl_multi_close($multi);
+    }
+
+    $ordered=[];
+    foreach($requests as $key=>$_) $ordered[$key]=$results[$key]??['ok'=>false,'error'=>'No result'];
+    return $ordered;
+}

@@ -36,36 +36,117 @@ try {
     $firewalls = db()->query('SELECT * FROM firewalls ORDER BY name')->fetchAll();
     $inventory = [];
     $errors = [];
+    $cacheHit = false;
+    $cacheTtl = 30;
+    $cachePath = wireguard_inventory_cache_path();
 
-    foreach ($firewalls as $firewall) {
-        try {
-            $clients = wg_rows(opn_request($firewall, 'wireguard/client/search_client', 'GET', [], 12));
-            $servers = wg_rows(opn_request($firewall, 'wireguard/server/search_server', 'GET', [], 12));
-            $inventory[(int) $firewall['id']] = [
+    if (
+        is_file($cachePath) &&
+        filemtime($cachePath) !== false &&
+        (time() - (int) filemtime($cachePath)) < $cacheTtl
+    ) {
+        $cached = json_decode((string) file_get_contents($cachePath), true);
+
+        if (
+            is_array($cached) &&
+            isset($cached['inventory']) &&
+            is_array($cached['inventory'])
+        ) {
+            $inventory = $cached['inventory'];
+            $errors = is_array($cached['errors'] ?? null)
+                ? $cached['errors']
+                : [];
+            $cacheHit = true;
+        }
+    }
+
+    if (!$cacheHit) {
+        $requests = [];
+
+        foreach ($firewalls as $firewall) {
+            $id = (int) $firewall['id'];
+            $requests[$id . '.clients'] = [
+                'firewall' => $firewall,
+                'path' => 'wireguard/client/search_client',
+                'timeout' => 12,
+            ];
+            $requests[$id . '.servers'] = [
+                'firewall' => $firewall,
+                'path' => 'wireguard/server/search_server',
+                'timeout' => 12,
+            ];
+
+            $inventory[$id] = [
                 'firewall' => [
-                    'id' => (int) $firewall['id'],
+                    'id' => $id,
                     'name' => (string) $firewall['name'],
                 ],
-                'clients' => array_values(array_map(static function (array $row): array {
-                    return [
-                        'uuid' => (string) ($row['uuid'] ?? $row['id'] ?? ''),
-                        'name' => (string) ($row['name'] ?? $row['description'] ?? ''),
-                        'pubkey' => (string) ($row['pubkey'] ?? $row['public-key'] ?? $row['public_key'] ?? ''),
-                        'enabled' => wg_enabled($row['enabled'] ?? '1'),
-                    ];
-                }, $clients)),
-                'servers' => array_values(array_map(static function (array $row): array {
-                    return [
-                        'uuid' => (string) ($row['uuid'] ?? $row['id'] ?? ''),
-                        'name' => (string) ($row['name'] ?? $row['description'] ?? ''),
-                        'pubkey' => (string) ($row['pubkey'] ?? $row['public-key'] ?? $row['public_key'] ?? ''),
-                        'enabled' => wg_enabled($row['enabled'] ?? '1'),
-                    ];
-                }, $servers)),
+                'clients' => [],
+                'servers' => [],
             ];
-        } catch (Throwable $exception) {
-            $errors[] = (string) $firewall['name'] . ': ' . $exception->getMessage();
         }
+
+        $parallel = opn_requests_parallel($requests);
+
+        foreach ($firewalls as $firewall) {
+            $id = (int) $firewall['id'];
+            $clientResult = $parallel[$id . '.clients'] ?? null;
+            $serverResult = $parallel[$id . '.servers'] ?? null;
+
+            if (($clientResult['ok'] ?? false) !== true) {
+                $errors[] =
+                    (string) $firewall['name'] .
+                    ' clients: ' .
+                    (string) ($clientResult['error'] ?? 'Unavailable');
+            }
+
+            if (($serverResult['ok'] ?? false) !== true) {
+                $errors[] =
+                    (string) $firewall['name'] .
+                    ' servers: ' .
+                    (string) ($serverResult['error'] ?? 'Unavailable');
+            }
+
+            $clients = ($clientResult['ok'] ?? false) === true
+                ? wg_rows($clientResult['value'])
+                : [];
+            $servers = ($serverResult['ok'] ?? false) === true
+                ? wg_rows($serverResult['value'])
+                : [];
+
+            $inventory[$id]['clients'] = array_values(array_map(
+                static function (array $row): array {
+                    return [
+                        'uuid' => (string) ($row['uuid'] ?? $row['id'] ?? ''),
+                        'name' => (string) ($row['name'] ?? $row['description'] ?? ''),
+                        'pubkey' => (string) ($row['pubkey'] ?? $row['public-key'] ?? $row['public_key'] ?? ''),
+                        'enabled' => wg_enabled($row['enabled'] ?? '1'),
+                    ];
+                },
+                $clients
+            ));
+
+            $inventory[$id]['servers'] = array_values(array_map(
+                static function (array $row): array {
+                    return [
+                        'uuid' => (string) ($row['uuid'] ?? $row['id'] ?? ''),
+                        'name' => (string) ($row['name'] ?? $row['description'] ?? ''),
+                        'pubkey' => (string) ($row['pubkey'] ?? $row['public-key'] ?? $row['public_key'] ?? ''),
+                        'enabled' => wg_enabled($row['enabled'] ?? '1'),
+                    ];
+                },
+                $servers
+            ));
+        }
+
+        @file_put_contents(
+            $cachePath,
+            json_encode(
+                ['inventory' => $inventory, 'errors' => $errors],
+                JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
+            ),
+            LOCK_EX
+        );
     }
 
     $links = [];
@@ -125,6 +206,7 @@ try {
         'ok' => true,
         'links' => $links,
         'errors' => $errors,
+        'cache' => ['hit' => $cacheHit, 'ttl' => $cacheTtl],
     ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
 } catch (Throwable $exception) {
     http_response_code(500);

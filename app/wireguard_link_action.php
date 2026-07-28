@@ -89,6 +89,8 @@ try {
         throw new RuntimeException($exception->getMessage() . $rollbackError);
     }
 
+    invalidate_wireguard_inventory_cache();
+
     echo json_encode([
         'ok' => true,
         'enabled' => $enable,

@@ -47,30 +47,6 @@ header('Cache-Control: no-store, no-cache, must-revalidate');
 $id = (int) ($_GET['id'] ?? 0);
 $type = (string) ($_GET['type'] ?? 'all');
 
-function vpn_try_request(
-    array $firewall,
-    string $path,
-    int $timeout = 20
-): array {
-    try {
-        return [
-            'ok' => true,
-            'value' => opn_request(
-                $firewall,
-                $path,
-                'GET',
-                [],
-                $timeout
-            ),
-        ];
-    } catch (Throwable $exception) {
-        return [
-            'ok' => false,
-            'error' => $exception->getMessage(),
-        ];
-    }
-}
-
 try {
     $firewall = firewall_by_id($id);
 
@@ -80,54 +56,57 @@ try {
         'data' => [],
     ];
 
+    $requests = [];
+
     if ($type === 'wireguard' || $type === 'all') {
-        $result['data']['wireguard'] = [
-            'service' => vpn_try_request(
-                $firewall,
-                'wireguard/service/status',
-                15
-            ),
-            'tunnels' => vpn_try_request(
-                $firewall,
-                'wireguard/service/show',
-                20
-            ),
+        $requests['wireguard.service'] = [
+            'firewall' => $firewall,
+            'path' => 'wireguard/service/status',
+            'timeout' => 15,
+        ];
+        $requests['wireguard.tunnels'] = [
+            'firewall' => $firewall,
+            'path' => 'wireguard/service/show',
+            'timeout' => 20,
         ];
     }
 
     if ($type === 'ipsec' || $type === 'all') {
-        $result['data']['ipsec'] = [
-            'service' => vpn_try_request(
-                $firewall,
-                'ipsec/service/status',
-                15
-            ),
-            'phase1' => vpn_try_request(
-                $firewall,
-                'ipsec/sessions/search_phase1',
-                20
-            ),
-            'phase2' => vpn_try_request(
-                $firewall,
-                'ipsec/sessions/search_phase2',
-                20
-            ),
+        $requests['ipsec.service'] = [
+            'firewall' => $firewall,
+            'path' => 'ipsec/service/status',
+            'timeout' => 15,
+        ];
+        $requests['ipsec.phase1'] = [
+            'firewall' => $firewall,
+            'path' => 'ipsec/sessions/search_phase1',
+            'timeout' => 20,
+        ];
+        $requests['ipsec.phase2'] = [
+            'firewall' => $firewall,
+            'path' => 'ipsec/sessions/search_phase2',
+            'timeout' => 20,
         ];
     }
 
     if ($type === 'openvpn' || $type === 'all') {
-        $result['data']['openvpn'] = [
-            'sessions' => vpn_try_request(
-                $firewall,
-                'openvpn/service/search_sessions',
-                20
-            ),
-            'routes' => vpn_try_request(
-                $firewall,
-                'openvpn/service/search_routes',
-                20
-            ),
+        $requests['openvpn.sessions'] = [
+            'firewall' => $firewall,
+            'path' => 'openvpn/service/search_sessions',
+            'timeout' => 20,
         ];
+        $requests['openvpn.routes'] = [
+            'firewall' => $firewall,
+            'path' => 'openvpn/service/search_routes',
+            'timeout' => 20,
+        ];
+    }
+
+    $parallel = opn_requests_parallel($requests);
+
+    foreach ($parallel as $requestKey => $requestResult) {
+        [$vpnType, $part] = explode('.', (string) $requestKey, 2);
+        $result['data'][$vpnType][$part] = $requestResult;
     }
 
     while (ob_get_level() > 0) {

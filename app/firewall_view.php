@@ -967,8 +967,8 @@ Other WireGuard peers and instances will remain unchanged.`)) return;
         button.disabled = true;
 
         try {
-            await loadManagedWireGuardLinks();
-            const response = await fetch(
+            const linksPromise = loadManagedWireGuardLinks();
+            const responsePromise = fetch(
                 '/vpn_status.php?id=' + encodeURIComponent(firewallId) +
                 '&type=all',
                 {
@@ -976,6 +976,11 @@ Other WireGuard peers and instances will remain unchanged.`)) return;
                     cache: 'no-store'
                 }
             );
+
+            const [, response] = await Promise.all([
+                linksPromise,
+                responsePromise
+            ]);
 
             const responseText = await response.text();
             let result;

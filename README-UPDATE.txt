@@ -1,8 +1,9 @@
-opnCentral v0.4.2.7
+opnCentral v0.4.2.8
 
-Changes:
-- Added a Disabled peers section for reciprocally matched managed WireGuard peers.
-- Disabled peer pairs can be enabled again with Enable both sides.
-- Active and disabled peers are counted separately.
-- Added a Needs attention section for mismatched one-sided states.
-- Other WireGuard peers and instances remain unchanged.
+Performance changes:
+- OPNsense VPN API requests are now executed concurrently with curl_multi.
+- WireGuard client/server inventories for all managed firewalls are fetched concurrently.
+- Managed WireGuard inventory is cached for 30 seconds.
+- The cache is invalidated immediately after a peer-pair enable/disable action.
+- Browser requests for VPN runtime status and managed-peer matching now start in parallel.
+- System, firmware and VPN panels still load independently, so a slow panel does not block the others.

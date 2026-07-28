@@ -11,6 +11,28 @@ header('Cache-Control: no-store');
 
 try {
     $action = (string) ($_POST['action'] ?? '');
+
+    if ($action === 'backup_one') {
+        $firewallId = (int) ($_POST['firewall_id'] ?? 0);
+        if ($firewallId < 1) {
+            throw new RuntimeException('Invalid firewall ID.');
+        }
+
+        $firewall = firewall_by_id($firewallId);
+        $created = backup_create($firewall, 'manual', 'dashboard-backup');
+
+        echo json_encode([
+            'ok' => true,
+            'firewall' => (string) $firewall['name'],
+            'backup_id' => $created['id'],
+            'filename' => $created['filename'],
+            'size' => $created['size'],
+            'download_url' => '/backup_download.php?id=' . $created['id'],
+            'message' => 'Backup completed: ' . $created['filename'],
+        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+        exit;
+    }
+
     if ($action !== 'backup_all') {
         throw new RuntimeException('Unsupported backup action.');
     }
@@ -21,7 +43,7 @@ try {
     }
 
     if (!class_exists('ZipArchive')) {
-        throw new RuntimeException('PHP ZIP extension is not installed in this container image. Rebuild or pull opnCentral v0.4.3.2 and recreate the container.');
+        throw new RuntimeException('PHP ZIP extension is not installed in this container image. Rebuild or pull opnCentral v0.4.3.3 and recreate the container.');
     }
 
     $requests = [];

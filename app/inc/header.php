@@ -24,7 +24,7 @@ function nav_active(array $paths): string {
         <div>
             <strong><?= h(app_name()) ?></strong>
             <div class="sidebar-meta">
-                <span>v0.4.3.2</span><span>·</span>
+                <span>v0.4.3.3</span><span>·</span>
                 <a href="https://www.paypal.com/paypalme/FrazoN11" target="_blank" rel="noopener noreferrer">♥ <?= h(t('menu.support')) ?></a>
             </div>
         </div>
@@ -37,7 +37,7 @@ function nav_active(array $paths): string {
         <a class="<?= nav_active(['/firewall_edit.php']) ?>" href="/firewall_edit.php">＋ <span><?= h(t('menu.add_firewall')) ?></span></a>
 
         <div class="nav-group">VPN</div>
-        <a class="<?= nav_active(['/wireguard_links.php']) ?>" href="/?view=vpn">⇄ <span>Managed WireGuard</span></a>
+        <a class="<?= nav_active(['/wireguard_overview.php']) ?>" href="/wireguard_overview.php">⇄ <span>Managed WireGuard</span></a>
 
         <div class="nav-group"><?= h(t('menu.actions')) ?></div>
         <a class="<?= nav_active(['/aliases.php','/alias_overview.php']) ?>" href="/alias_overview.php">≡ <span><?= h(t('menu.aliases')) ?></span></a>

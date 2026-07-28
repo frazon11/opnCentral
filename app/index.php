@@ -104,6 +104,10 @@ require __DIR__ . '/inc/header.php';
                         Refresh
                     </button>
 
+                    <button type="button" class="button secondary backup-one">
+                        Backup now
+                    </button>
+
                     <button
                         type="button"
                         class="warning card-update-button hidden"
@@ -294,6 +298,65 @@ require __DIR__ . '/inc/header.php';
         }
     }
 
+    async function backupFromCard(card) {
+        const id = card.dataset.firewallId;
+        const button = card.querySelector('.backup-one');
+
+        if (!confirm('Create a configuration backup for this firewall now?')) {
+            return;
+        }
+
+        const originalText = button.textContent;
+        button.disabled = true;
+        button.textContent = 'Backing up…';
+
+        try {
+            const body = new URLSearchParams();
+            body.set('csrf', csrfToken);
+            body.set('action', 'backup_one');
+            body.set('firewall_id', String(id));
+
+            const response = await fetch('/backups_action.php', {
+                method: 'POST',
+                credentials: 'same-origin',
+                cache: 'no-store',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+                },
+                body
+            });
+
+            const responseText = await response.text();
+            let result;
+
+            try {
+                result = JSON.parse(responseText);
+            } catch (error) {
+                throw new Error(
+                    'Server returned invalid JSON: ' +
+                    responseText.replace(/\s+/g, ' ').trim().slice(0, 500)
+                );
+            }
+
+            if (!response.ok || result.ok !== true) {
+                throw new Error(result.error || 'Backup failed.');
+            }
+
+            const download = confirm(
+                result.message + '\n\nDownload this backup now?'
+            );
+
+            if (download && result.download_url) {
+                window.location.href = result.download_url;
+            }
+        } catch (error) {
+            alert(error.message);
+        } finally {
+            button.disabled = false;
+            button.textContent = originalText;
+        }
+    }
+
     async function installFromCard(card) {
         const id = card.dataset.firewallId;
         const action = card.dataset.firmwareAction;
@@ -345,6 +408,11 @@ require __DIR__ . '/inc/header.php';
         card.querySelector('.refresh-one')
             ?.addEventListener('click', function () {
                 loadCard(card);
+            });
+
+        card.querySelector('.backup-one')
+            ?.addEventListener('click', function () {
+                backupFromCard(card);
             });
 
         card.querySelector('.card-update-button')

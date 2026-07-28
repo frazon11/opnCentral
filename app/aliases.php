@@ -19,6 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $lines = central_alias_lines((string) ($_POST['content'] ?? ''));
         $description = trim((string) ($_POST['description'] ?? ''));
         $mode = (string) ($_POST['mode'] ?? 'create');
+        $takeOverExisting = isset($_POST['take_over_existing']);
         $enabled = isset($_POST['enabled']) ? 1 : 0;
         $targetIds = array_values(array_unique(array_map('intval', (array) ($_POST['targets'] ?? []))));
 
@@ -59,8 +60,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         throw new RuntimeException('Alias already exists; create-only mode made no change.');
                     }
 
-                    if (!central_alias_has_category($existing, $categoryUuid)) {
-                        throw new RuntimeException('Existing alias is not in category opnCentral and was protected.');
+                    $alreadyManaged = central_alias_has_category(
+                        $existing,
+                        $categoryUuid
+                    );
+
+                    if (!$alreadyManaged && !$takeOverExisting) {
+                        throw new RuntimeException(
+                            'Existing alias is not in category opnCentral and was protected. ' .
+                            'Enable “Take over existing alias” to preserve its current categories and add opnCentral.'
+                        );
                     }
 
                     if ($mode === 'merge') {
@@ -81,7 +90,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $payload['type'] = $type;
                     $payload['content'] = implode("\n", $finalLines);
                     $payload['description'] = $description;
-                    $payload['categories'] = $categoryUuid;
+                    $payload['categories'] = central_alias_merge_category(
+                        $existing['categories'] ?? '',
+                        $categoryUuid
+                    );
+
+                    if (!$alreadyManaged) {
+                        $action .= ' and taken over';
+                    }
 
                     opn_request(
                         $firewall,
@@ -123,7 +139,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 require __DIR__ . '/inc/header.php';
 ?>
 <style>
-.alias-grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(280px,.8fr);gap:20px}.alias-form label{display:block;font-weight:700;margin:14px 0 6px}.alias-form input[type=text],.alias-form select,.alias-form textarea{width:100%;box-sizing:border-box}.alias-form textarea{min-height:180px;font-family:monospace}.targets,.results{display:grid;gap:8px}.target,.result{padding:10px;border-radius:8px;background:rgba(127,127,127,.08)}.result.good{border-left:4px solid #2aa84a}.result.bad{border-left:4px solid #d74747}@media(max-width:850px){.alias-grid{grid-template-columns:1fr}}
+.alias-grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(280px,.8fr);gap:20px}.alias-form label{display:block;font-weight:700;margin:14px 0 6px}.alias-form input[type=text],.alias-form select,.alias-form textarea{width:100%;box-sizing:border-box}.alias-form textarea{min-height:180px;font-family:monospace}.targets,.results{display:grid;gap:8px}.target,.result{padding:10px;border-radius:8px;background:rgba(127,127,127,.08)}.result.good{border-left:4px solid #2aa84a}.result.bad{border-left:4px solid #d74747}.takeover-option{display:flex!important;align-items:flex-start;gap:9px;padding:10px;border:1px solid #d6b56a;background:#fff8e7;border-radius:3px}.takeover-option input{width:auto;margin:3px 0 0}@media(max-width:850px){.alias-grid{grid-template-columns:1fr}}
 </style>
 <div class="page-title"><div><h1><?= h(t('aliases.distribute')) ?></h1><p>Category opnCentral protects centrally managed aliases.</p></div><a class="button secondary" href="/alias_overview.php">Overview</a></div>
 <?php if ($error): ?><div class="alert error"><?= h($error) ?></div><?php endif; ?>
@@ -133,11 +149,34 @@ require __DIR__ . '/inc/header.php';
 <label><?= h(t('aliases.type')) ?></label><select name="type"><?php foreach (['host'=>'Host(s)','network'=>'Network(s)','port'=>'Port(s)','url'=>'URL','urltable'=>'URL table','networkgroup'=>'Network group','mac'=>'MAC','asn'=>'ASN'] as $value=>$label): ?><option value="<?= h($value) ?>" <?= (($_POST['type'] ?? 'host') === $value) ? 'selected' : '' ?>><?= h($label) ?></option><?php endforeach; ?></select>
 <label><?= h(t('aliases.content')) ?></label><textarea name="content" required placeholder="One value per line"><?= h((string)($_POST['content'] ?? '')) ?></textarea>
 <label><?= h(t('aliases.description')) ?></label><input type="text" name="description" value="<?= h((string)($_POST['description'] ?? '')) ?>">
-<label>Existing alias</label><select name="mode"><option value="create"><?= h(t('aliases.create_only')) ?></option><option value="replace">Replace</option><option value="merge">Merge</option></select>
-<label><input type="checkbox" name="enabled" value="1" checked> Enabled</label>
+<label>Existing alias</label>
+<select name="mode">
+    <option value="create" <?= (($_POST['mode'] ?? 'create') === 'create') ? 'selected' : '' ?>><?= h(t('aliases.create_only')) ?></option>
+    <option value="replace" <?= (($_POST['mode'] ?? '') === 'replace') ? 'selected' : '' ?>>Replace</option>
+    <option value="merge" <?= (($_POST['mode'] ?? '') === 'merge') ? 'selected' : '' ?>>Merge</option>
+</select>
+<label class="takeover-option">
+    <input type="checkbox" name="take_over_existing" value="1" <?= isset($_POST['take_over_existing']) ? 'checked' : '' ?>>
+    <span>
+        <strong>Take over existing alias</strong><br>
+        <span class="muted">Keep all current categories, add opnCentral, then apply the selected replace or merge mode.</span>
+    </span>
+</label>
+<label><input type="checkbox" name="enabled" value="1" <?= !isset($_POST['enabled']) && $_SERVER['REQUEST_METHOD'] !== 'POST' || isset($_POST['enabled']) ? 'checked' : '' ?>> Enabled</label>
 <label><?= h(t('categories.targets')) ?></label><div class="targets"><?php foreach ($firewalls as $firewall): ?><label class="target"><input type="checkbox" name="targets[]" value="<?= (int)$firewall['id'] ?>"> <strong><?= h($firewall['name']) ?></strong><br><span class="muted"><?= h($firewall['base_url']) ?></span></label><?php endforeach; ?></div>
-<div class="actions"><button type="button" id="all"><?= h(t('common.select_all')) ?></button><button type="submit" onclick="return confirm('Distribute this alias?')">Distribute</button></div></form></section>
+<div class="actions"><button type="button" id="all"><?= h(t('common.select_all')) ?></button><button type="submit" onclick="return confirmAliasDistribution()">Distribute</button></div></form></section>
 <section class="card"><h2>Results</h2><?php if (!$results): ?><div class="empty">No distribution performed yet.</div><?php else: ?><div class="results"><?php foreach ($results as $result): ?><div class="result <?= $result['ok'] ? 'good' : 'bad' ?>"><strong><?= h($result['name']) ?></strong><br><?= h($result['message']) ?></div><?php endforeach; ?></div><?php endif; ?></section>
 </div>
-<script>document.getElementById('all')?.addEventListener('click',()=>document.querySelectorAll('input[name="targets[]"]').forEach(x=>x.checked=true));</script>
+<script>
+document.getElementById('all')?.addEventListener('click',()=>document.querySelectorAll('input[name="targets[]"]').forEach(x=>x.checked=true));
+function confirmAliasDistribution(){
+    const mode=document.querySelector('select[name="mode"]')?.value||'create';
+    const takeover=document.querySelector('input[name="take_over_existing"]')?.checked===true;
+    let message='Distribute this alias using '+mode+' mode?';
+    if(takeover){
+        message+='\n\nExisting aliases not yet managed by opnCentral will keep their current categories, receive the opnCentral category, and then be '+(mode==='merge'?'merged':'replaced')+'.';
+    }
+    return confirm(message);
+}
+</script>
 <?php require __DIR__ . '/inc/footer.php'; ?>

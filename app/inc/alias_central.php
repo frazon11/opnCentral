@@ -154,6 +154,36 @@ function central_alias_has_category(array $alias, string $categoryUuid): bool
     return in_array($categoryUuid, $parts, true);
 }
 
+function central_alias_merge_category(
+    mixed $categories,
+    string $categoryUuid
+): array|string {
+    if (is_array($categories)) {
+        $result = array_values(array_unique(array_filter(
+            array_map('strval', $categories),
+            static fn (string $value): bool => trim($value) !== ''
+        )));
+
+        if (!in_array($categoryUuid, $result, true)) {
+            $result[] = $categoryUuid;
+        }
+
+        return $result;
+    }
+
+    $parts = preg_split('/[\s,;]+/', trim((string) $categories)) ?: [];
+    $parts = array_values(array_unique(array_filter(
+        array_map('trim', $parts),
+        static fn (string $value): bool => $value !== ''
+    )));
+
+    if (!in_array($categoryUuid, $parts, true)) {
+        $parts[] = $categoryUuid;
+    }
+
+    return implode(',', $parts);
+}
+
 function central_alias_save_definition(
     string $name,
     string $type,

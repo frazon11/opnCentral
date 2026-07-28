@@ -24,7 +24,7 @@ function nav_active(array $paths): string {
         <div>
             <strong><?= h(app_name()) ?></strong>
             <div class="sidebar-meta">
-                <span>v0.4.3.1</span><span>·</span>
+                <span>v0.4.3.2</span><span>·</span>
                 <a href="https://www.paypal.com/paypalme/FrazoN11" target="_blank" rel="noopener noreferrer">♥ <?= h(t('menu.support')) ?></a>
             </div>
         </div>

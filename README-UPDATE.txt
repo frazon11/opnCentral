@@ -1,8 +1,11 @@
-opnCentral v0.4.3.1
+opnCentral v0.4.3.2
 
-Fix:
-- Keeps Debian trixie libzip5 as an explicit runtime dependency.
-- Explicitly configures, installs and enables the PHP zip extension.
-- Verifies ZipArchive before and after removing build dependencies.
-- Docker image build now fails if ZipArchive is unavailable.
-- Health check reports unhealthy if the ZIP extension is missing.
+Changes:
+- Added explicit 'Take over existing alias' option.
+- Existing categories are preserved when an alias is taken over.
+- The opnCentral category is added without removing other categories.
+- Merge mode keeps existing alias entries and adds centrally supplied entries.
+- Replace mode replaces alias content but preserves all existing categories.
+- Takeover remains disabled by default.
+- Automatic pre-change backup remains mandatory before alias distribution.
+- Managed aliases now also preserve any additional non-opnCentral categories.

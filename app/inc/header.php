@@ -13,8 +13,21 @@ function nav_active(array $paths): string {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>opnCentral</title>
-<link rel="icon" type="image/svg+xml" href="/assets/opncentral-favicon.svg">
-<link rel="stylesheet" href="/assets/style.css">
+<link rel="icon" href="/assets/favicon.ico?v=0435" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/assets/opncentral-icon.svg?v=0435">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png?v=0435">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png?v=0435">
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png?v=0435">
+<link rel="manifest" href="/assets/site.webmanifest?v=0435">
+<meta name="theme-color" content="#26313a" id="browser-theme-color">
+<script>
+(function(){
+    const saved=localStorage.getItem('opncentral-theme');
+    const theme=saved==='dark'?'dark':'light';
+    document.documentElement.dataset.theme=theme;
+})();
+</script>
+<link rel="stylesheet" href="/assets/style.css?v=0435">
 </head>
 <body class="<?= logged_in() ? 'app-shell' : 'login-shell' ?>">
 <?php if (logged_in()): ?>
@@ -24,7 +37,7 @@ function nav_active(array $paths): string {
         <div>
             <strong><?= h(app_name()) ?></strong>
             <div class="sidebar-meta">
-                <span>v0.4.3.3</span><span>·</span>
+                <span>v0.4.3.5</span><span>·</span>
                 <a href="https://www.paypal.com/paypalme/FrazoN11" target="_blank" rel="noopener noreferrer">♥ <?= h(t('menu.support')) ?></a>
             </div>
         </div>
@@ -45,15 +58,8 @@ function nav_active(array $paths): string {
         <a class="<?= nav_active(['/backups.php']) ?>" href="/backups.php">⬇ <span>Backups</span></a>
 
         <div class="nav-group"><?= h(t('menu.settings')) ?></div>
+        <a class="<?= nav_active(['/settings.php']) ?>" href="/settings.php">⚙ <span><?= h(t('menu.settings')) ?></span></a>
         <a class="<?= nav_active(['/notifications.php']) ?>" href="/notifications.php">● <span><?= h(t('menu.notifications')) ?></span></a>
-        <label class="sidebar-language">
-            <span><?= h(t('language')) ?></span>
-            <select id="language-selector">
-                <?php foreach (supported_languages() as $code => $label): ?>
-                    <option value="<?= h($code) ?>" <?= current_language()===$code?'selected':'' ?>><?= h($label) ?></option>
-                <?php endforeach; ?>
-            </select>
-        </label>
     </nav>
 
     <a class="sidebar-logout" href="/logout.php">⇥ <?= h(t('menu.logout')) ?></a>
@@ -70,10 +76,15 @@ function nav_active(array $paths): string {
 <main class="content login-content">
 <?php endif; ?>
 <script>
-document.getElementById('language-selector')?.addEventListener('change',function(){
- const url=new URL(window.location.href);url.searchParams.set('lang',this.value);window.location.href=url.toString();
-});
+window.opnCentralSetTheme=function(theme){
+    const selected=theme==='dark'?'dark':'light';
+    document.documentElement.dataset.theme=selected;
+    localStorage.setItem('opncentral-theme',selected);
+    const meta=document.getElementById('browser-theme-color');
+    if(meta) meta.setAttribute('content',selected==='dark'?'#1b2228':'#26313a');
+};
+window.opnCentralSetTheme(document.documentElement.dataset.theme||'light');
 document.getElementById('sidebar-toggle')?.addEventListener('click',function(){
- document.body.classList.toggle('sidebar-open');
+    document.body.classList.toggle('sidebar-open');
 });
 </script>

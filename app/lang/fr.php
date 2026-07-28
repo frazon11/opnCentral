@@ -1,5 +1,14 @@
 <?php
 return [
+    'settings.title' => 'Paramètres',
+    'settings.subtitle' => 'Langue, apparence et préférences de l’application.',
+    'settings.language_help' => 'Choisissez la langue de l’interface opnCentral.',
+    'settings.theme' => 'Thème',
+    'settings.theme_help' => 'Choisissez une interface claire ou sombre. Le choix est enregistré dans ce navigateur.',
+    'settings.theme_light' => 'Clair',
+    'settings.theme_dark' => 'Sombre',
+    'settings.notifications_help' => 'Configurer les notifications par e-mail et les alertes.',
+    'settings.open_notifications' => 'Ouvrir les paramètres de notification',
     'language' => 'Langue',
     'menu.actions' => 'Actions',
     'menu.settings' => 'Paramètres',

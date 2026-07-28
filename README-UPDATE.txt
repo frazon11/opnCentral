@@ -1,9 +1,9 @@
-opnCentral v0.4.3.3
+opnCentral v0.4.3.5
 
-- Managed WireGuard now opens a dedicated overview page.
-- Dashboard and VPN navigation no longer point to the same firewall overview.
-- Managed connections are deduplicated and shown once per paired site-to-site link.
-- Enable both sides and Disable both sides are available from the overview.
-- Partial states remain clearly marked.
-- Added Backup now to every firewall dashboard card.
-- Single-card backups are verified, stored in backup history, and can be downloaded immediately.
+- Moved Language from the sidebar into a dedicated Settings page.
+- Added Light and Dark themes.
+- Theme changes apply immediately without reloading.
+- Theme preference is stored in the browser using localStorage.
+- Added early theme initialization to avoid a light-theme flash when dark mode is selected.
+- Added translated Settings labels for English, German, French and Dutch.
+- Retains the complete favicon fix from v0.4.3.4.

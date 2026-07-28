@@ -1,5 +1,14 @@
 <?php
 return [
+    'settings.title' => 'Instellingen',
+    'settings.subtitle' => 'Taal, weergave en toepassingsvoorkeuren.',
+    'settings.language_help' => 'Kies de taal van de opnCentral-interface.',
+    'settings.theme' => 'Thema',
+    'settings.theme_help' => 'Kies een lichte of donkere interface. De keuze wordt in deze browser opgeslagen.',
+    'settings.theme_light' => 'Licht',
+    'settings.theme_dark' => 'Donker',
+    'settings.notifications_help' => 'Configureer e-mailmeldingen en waarschuwingen.',
+    'settings.open_notifications' => 'Meldingsinstellingen openen',
     'language' => 'Taal',
     'menu.actions' => 'Acties',
     'menu.settings' => 'Instellingen',

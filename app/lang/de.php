@@ -1,5 +1,14 @@
 <?php
 return [
+    'settings.title' => 'Einstellungen',
+    'settings.subtitle' => 'Sprache, Darstellung und Anwendungseinstellungen.',
+    'settings.language_help' => 'Sprache der opnCentral-Oberfläche auswählen.',
+    'settings.theme' => 'Design',
+    'settings.theme_help' => 'Helles oder dunkles Design auswählen. Die Auswahl wird in diesem Browser gespeichert.',
+    'settings.theme_light' => 'Hell',
+    'settings.theme_dark' => 'Dunkel',
+    'settings.notifications_help' => 'E-Mail-Benachrichtigungen und Alarmverhalten konfigurieren.',
+    'settings.open_notifications' => 'Benachrichtigungseinstellungen öffnen',
     'language' => 'Sprache',
     'menu.actions' => 'Aktionen',
     'menu.settings' => 'Einstellungen',

@@ -1,17 +1,8 @@
-opnCentral v0.4.3.0
+opnCentral v0.4.3.1
 
-Major changes:
-- OPNsense-inspired fixed sidebar and top toolbar.
-- Compact OPNsense-style panels, tables, buttons and navigation.
-- New persistent Backups page and backup history.
-- Backup all managed firewalls in parallel.
-- Download all successful backups as one ZIP.
-- Automatic verified pre-change backups before:
-  * WireGuard peer-pair enable/disable on both affected firewalls
-  * alias distribution
-  * category distribution
-  * firmware update and major upgrade
-- Configuration changes are cancelled when the required backup fails.
-- SHA-256 and minimum-size integrity checks.
-- Configurable pre-change retention, default 20 per firewall.
-- Backup metadata stored in SQLite.
+Fix:
+- Keeps Debian trixie libzip5 as an explicit runtime dependency.
+- Explicitly configures, installs and enables the PHP zip extension.
+- Verifies ZipArchive before and after removing build dependencies.
+- Docker image build now fails if ZipArchive is unavailable.
+- Health check reports unhealthy if the ZIP extension is missing.

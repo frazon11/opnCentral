@@ -17,11 +17,17 @@ RUN set -eux; \
         libsqlite3-0 \
         libcurl4-openssl-dev \
         libsqlite3-dev \
-        libzip-dev; \
+        libzip-dev \
+        libzip5; \
+    docker-php-ext-configure zip; \
     docker-php-ext-install -j"$(nproc)" curl pdo_sqlite zip; \
+    docker-php-ext-enable zip; \
+    php -r 'if (!class_exists("ZipArchive")) { fwrite(STDERR, "ZipArchive unavailable\\n"); exit(1); }'; \
+    php -m | grep -Fx zip; \
     a2enmod rewrite headers; \
-    apt-mark manual ca-certificates curl libcurl4t64 libsqlite3-0; \
+    apt-mark manual ca-certificates curl libcurl4t64 libsqlite3-0 libzip5; \
     apt-get purge -y --auto-remove libcurl4-openssl-dev libsqlite3-dev libzip-dev; \
+    php -r 'if (!class_exists("ZipArchive")) { fwrite(STDERR, "ZipArchive lost after cleanup\\n"); exit(1); }'; \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 COPY app/ /var/www/html/

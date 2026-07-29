@@ -64,7 +64,7 @@ require __DIR__ . '/inc/header.php';
         </label>
 
         <div class="update-status-grid">
-            <div><strong>Installed version</strong><span id="installed-version">v0.4.4.1</span></div>
+            <div><strong>Installed version</strong><span id="installed-version">v0.4.4.2</span></div>
             <div><strong>Latest version</strong><span id="latest-version">Loading…</span></div>
             <div><strong>Last checked</strong><span id="last-update-check">Loading…</span></div>
             <div><strong>Status</strong><span id="update-check-status">Loading…</span></div>
@@ -125,7 +125,11 @@ require __DIR__ . '/inc/header.php';
         const state=result.state||{};
         automatic.checked=state.enabled!==false;
         latest.textContent=state.latest_version?'v'+state.latest_version:'Unknown';
-        lastChecked.textContent=formatDate(state.last_checked);
+        lastChecked.textContent=state.last_checked
+            ? formatDate(state.last_checked)
+            : (state.last_attempt
+                ? 'No successful check; last attempt ' + formatDate(state.last_attempt)
+                : 'Never');
 
         releaseLink.classList.add('hidden');
         releaseLink.removeAttribute('href');

@@ -15,6 +15,7 @@ function update_check_defaults(): array
 {
     return [
         'enabled' => true,
+        'last_attempt' => null,
         'last_checked' => null,
         'latest_version' => null,
         'latest_tag' => null,
@@ -63,13 +64,30 @@ function update_check_normalize_version(string $version): string
 
 function update_check_is_stale(array $state): bool
 {
-    $last = trim((string) ($state['last_checked'] ?? ''));
-    if ($last === '') {
-        return true;
+    $lastSuccess = trim((string) ($state['last_checked'] ?? ''));
+    if ($lastSuccess !== '') {
+        $successTimestamp = strtotime($lastSuccess);
+        if (
+            $successTimestamp !== false &&
+            (time() - $successTimestamp) < OPNCENTRAL_UPDATE_INTERVAL
+        ) {
+            return false;
+        }
     }
 
-    $timestamp = strtotime($last);
-    return $timestamp === false || (time() - $timestamp) >= OPNCENTRAL_UPDATE_INTERVAL;
+    // Failed checks may retry after 15 minutes instead of being suppressed for 24 hours.
+    $lastAttempt = trim((string) ($state['last_attempt'] ?? ''));
+    if ($lastAttempt !== '') {
+        $attemptTimestamp = strtotime($lastAttempt);
+        if (
+            $attemptTimestamp !== false &&
+            (time() - $attemptTimestamp) < 900
+        ) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 function update_check_run(bool $force = false): array
@@ -96,8 +114,8 @@ function update_check_run(bool $force = false): array
     curl_setopt_array($curl, [
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_CONNECTTIMEOUT => 4,
-        CURLOPT_TIMEOUT => 8,
+        CURLOPT_CONNECTTIMEOUT => 12,
+        CURLOPT_TIMEOUT => 20,
         CURLOPT_HTTPHEADER => [
             'Accept: application/vnd.github+json',
             'X-GitHub-Api-Version: 2026-03-10',
@@ -110,10 +128,18 @@ function update_check_run(bool $force = false): array
     $curlError = curl_error($curl);
     curl_close($curl);
 
-    $state['last_checked'] = gmdate('c');
+    $state['last_attempt'] = gmdate('c');
 
     if ($body === false || $curlError !== '') {
-        $state['error'] = 'GitHub request failed: ' . ($curlError ?: 'unknown error');
+        $errorText = $curlError ?: 'unknown error';
+        if (
+            stripos($errorText, 'resolv') !== false ||
+            stripos($errorText, 'name') !== false ||
+            stripos($errorText, 'host') !== false
+        ) {
+            $errorText .= ' Check the Docker container DNS configuration and verify that api.github.com resolves from inside the container.';
+        }
+        $state['error'] = 'GitHub request failed: ' . $errorText;
         update_check_save($state);
         return $state;
     }
@@ -140,6 +166,7 @@ function update_check_run(bool $force = false): array
         return $state;
     }
 
+    $state['last_checked'] = gmdate('c');
     $state['latest_version'] = $latest;
     $state['latest_tag'] = $tag;
     $state['release_name'] = trim((string) ($release['name'] ?? $tag));

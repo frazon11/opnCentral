@@ -34,3 +34,9 @@
 .update-privacy-note{margin-top:16px}
 @media(max-width:1000px){.update-status-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){.update-status-grid{grid-template-columns:1fr}}
+
+.backup-restore-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:14px}
+.settings-subpanel{border:1px solid var(--border);background:var(--soft);padding:16px;min-width:0}
+.settings-subpanel h3{margin-top:0}
+.settings-subpanel input[type=file]{background:var(--input)}
+@media(max-width:900px){.backup-restore-grid{grid-template-columns:1fr}}

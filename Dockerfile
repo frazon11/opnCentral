@@ -24,6 +24,12 @@ RUN set -eux; \
     docker-php-ext-enable zip; \
     php -r 'if (!class_exists("ZipArchive")) { fwrite(STDERR, "ZipArchive unavailable\\n"); exit(1); }'; \
     php -m | grep -Fx zip; \
+    printf '%s\n' \
+        'upload_max_filesize=1024M' \
+        'post_max_size=1024M' \
+        'max_execution_time=600' \
+        'max_input_time=600' \
+        > /usr/local/etc/php/conf.d/opncentral-uploads.ini; \
     a2enmod rewrite headers; \
     apt-mark manual ca-certificates curl libcurl4t64 libsqlite3-0 libzip5; \
     apt-get purge -y --auto-remove libcurl4-openssl-dev libsqlite3-dev libzip-dev; \

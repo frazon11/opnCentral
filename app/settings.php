@@ -64,7 +64,7 @@ require __DIR__ . '/inc/header.php';
         </label>
 
         <div class="update-status-grid">
-            <div><strong>Installed version</strong><span id="installed-version">v0.4.4.2</span></div>
+            <div><strong>Installed version</strong><span id="installed-version">v0.4.5.0</span></div>
             <div><strong>Latest version</strong><span id="latest-version">Loading…</span></div>
             <div><strong>Last checked</strong><span id="last-update-check">Loading…</span></div>
             <div><strong>Status</strong><span id="update-check-status">Loading…</span></div>
@@ -77,6 +77,76 @@ require __DIR__ . '/inc/header.php';
             This reads public release information from GitHub. No installation ID,
             firewall details, credentials, networks or VPN data are sent.
         </p>
+    </section>
+
+
+    <section class="card wide" id="self-backup-settings">
+        <h2>Backup &amp; Restore</h2>
+        <p class="muted">
+            Back up opnCentral's database, application state and optionally all stored
+            OPNsense configuration backups.
+        </p>
+
+        <div class="backup-restore-grid">
+            <div class="settings-subpanel">
+                <h3>Create opnCentral backup</h3>
+                <form method="post" action="/self_backup_download.php">
+                    <input type="hidden" name="csrf" value="<?= h(csrf_token()) ?>">
+
+                    <label class="checkbox">
+                        <input
+                            type="checkbox"
+                            name="include_stored_backups"
+                            value="1"
+                            checked
+                        >
+                        Include stored OPNsense configuration backups
+                    </label>
+
+                    <p class="alert warningbox">
+                        <strong>APP_KEY is not included.</strong>
+                        Preserve the exact APP_KEY from your compose file, environment or
+                        Portainer stack. Encrypted firewall credentials cannot be restored
+                        with a different key.
+                    </p>
+
+                    <button type="submit">Download backup now</button>
+                </form>
+            </div>
+
+            <div class="settings-subpanel">
+                <h3>Restore opnCentral</h3>
+                <form id="self-restore-form" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf" value="<?= h(csrf_token()) ?>">
+
+                    <label>
+                        opnCentral backup ZIP
+                        <input
+                            type="file"
+                            name="backup_file"
+                            accept=".zip,application/zip"
+                            required
+                        >
+                    </label>
+
+                    <label class="checkbox">
+                        <input type="checkbox" id="restore-confirmation" required>
+                        I understand that current opnCentral data will be replaced
+                    </label>
+
+                    <p class="muted">
+                        The archive and every included file are verified first.
+                        opnCentral creates a persistent safety backup before replacing data.
+                    </p>
+
+                    <button type="submit" class="danger" id="restore-button">
+                        Validate and restore
+                    </button>
+                </form>
+
+                <div id="restore-result" class="alert hidden"></div>
+            </div>
+        </div>
     </section>
 
     <section class="card wide">
@@ -203,6 +273,83 @@ require __DIR__ . '/inc/header.php';
 
     checkNow.addEventListener('click',()=>loadUpdate(true));
     loadUpdate(false);
+
+
+    const restoreForm=document.getElementById('self-restore-form');
+    const restoreButton=document.getElementById('restore-button');
+    const restoreResult=document.getElementById('restore-result');
+
+    restoreForm?.addEventListener('submit',async function(event){
+        event.preventDefault();
+
+        if(!document.getElementById('restore-confirmation').checked){
+            return;
+        }
+
+        const file=this.elements.backup_file.files[0];
+        if(!file){
+            alert('Select an opnCentral backup ZIP.');
+            return;
+        }
+
+        if(!confirm(
+            'Restore this opnCentral backup now?\n\n'+
+            'Current application data will be replaced. A safety backup is created first. '+
+            'The container must be restarted after the restore.'
+        )){
+            return;
+        }
+
+        restoreButton.disabled=true;
+        restoreButton.textContent='Validating and restoring…';
+        restoreResult.className='alert';
+        restoreResult.textContent='Uploading and validating the archive…';
+
+        try{
+            const response=await fetch('/self_restore.php',{
+                method:'POST',
+                credentials:'same-origin',
+                cache:'no-store',
+                body:new FormData(this)
+            });
+
+            const raw=await response.text();
+            let result;
+
+            try{
+                result=JSON.parse(raw);
+            }catch(error){
+                throw new Error(
+                    'Server returned invalid JSON: '+
+                    raw.replace(/\s+/g,' ').trim().slice(0,500)
+                );
+            }
+
+            if(!response.ok||result.ok!==true){
+                throw new Error(result.error||'Restore failed.');
+            }
+
+            restoreResult.className='alert goodbox';
+            restoreResult.innerHTML=
+                '<strong>Restore completed.</strong><br>'+
+                'Safety backup: '+escapeHtml(result.safety_backup)+'<br>'+
+                'Restored archive version: '+escapeHtml(result.restored_version)+'<br><br>'+
+                '<strong>Restart or recreate the opnCentral container now.</strong>';
+            restoreForm.reset();
+        }catch(error){
+            restoreResult.className='alert error';
+            restoreResult.textContent=error.message;
+        }finally{
+            restoreButton.disabled=false;
+            restoreButton.textContent='Validate and restore';
+        }
+    });
+
+    function escapeHtml(value){
+        const node=document.createElement('div');
+        node.textContent=String(value??'');
+        return node.innerHTML;
+    }
 })();
 </script>
 <?php require __DIR__ . '/inc/footer.php'; ?>

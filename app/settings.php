@@ -64,7 +64,7 @@ require __DIR__ . '/inc/header.php';
         </label>
 
         <div class="update-status-grid">
-            <div><strong>Installed version</strong><span id="installed-version">v0.4.5.0</span></div>
+            <div><strong>Installed version</strong><span id="installed-version">Loading…</span></div>
             <div><strong>Latest version</strong><span id="latest-version">Loading…</span></div>
             <div><strong>Last checked</strong><span id="last-update-check">Loading…</span></div>
             <div><strong>Status</strong><span id="update-check-status">Loading…</span></div>
@@ -193,6 +193,8 @@ require __DIR__ . '/inc/header.php';
 
     function renderUpdate(result){
         const state=result.state||{};
+        document.getElementById('installed-version').textContent =
+            result.installed_version ? 'v' + result.installed_version : 'Unknown';
         automatic.checked=state.enabled!==false;
         latest.textContent=state.latest_version?'v'+state.latest_version:'Unknown';
         lastChecked.textContent=state.last_checked

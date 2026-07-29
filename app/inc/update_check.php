@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-const OPNCENTRAL_VERSION = '0.4.4.1';
+const OPNCENTRAL_VERSION = '0.4.5.1';
 const OPNCENTRAL_GITHUB_REPOSITORY = 'frazon11/opnCentral';
 const OPNCENTRAL_UPDATE_INTERVAL = 86400;
 
@@ -37,7 +37,20 @@ function update_check_load(): array
     }
 
     $decoded = json_decode((string) file_get_contents($path), true);
-    return is_array($decoded) ? array_replace($defaults, $decoded) : $defaults;
+    $state = is_array($decoded)
+        ? array_replace($defaults, $decoded)
+        : $defaults;
+
+    // Never trust a cached comparison result from an older opnCentral version.
+    $latest = update_check_normalize_version(
+        (string) ($state['latest_version'] ?? '')
+    );
+
+    $state['update_available'] =
+        $latest !== '' &&
+        version_compare($latest, OPNCENTRAL_VERSION, '>');
+
+    return $state;
 }
 
 function update_check_save(array $state): void
@@ -99,6 +112,12 @@ function update_check_run(bool $force = false): array
     }
 
     if (!$force && !update_check_is_stale($state)) {
+        $latest = update_check_normalize_version(
+            (string) ($state['latest_version'] ?? '')
+        );
+        $state['update_available'] =
+            $latest !== '' &&
+            version_compare($latest, OPNCENTRAL_VERSION, '>');
         return $state;
     }
 

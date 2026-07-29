@@ -1,80 +1,84 @@
-# OpnCentral
+# opnCentral
 
-Lightweight, self-hosted central management interface for multiple OPNsense firewalls.
+Self-hosted central management for multiple OPNsense firewalls.
 
+## Main features
 
-## Languages
+- central firewall status and firmware information
+- encrypted OPNsense API credential storage
+- configuration backup history and one-click backups
+- automatic backups before managed changes
+- central aliases and categories
+- managed WireGuard pair overview
+- experimental WireGuard site-to-site tunnel wizard
+- email notifications
+- light and dark themes
+- English, German, French and Dutch interface
+- opnCentral self-backup and restore
+- optional anonymous active-installation statistics
+- AMD64 and ARM64 Docker images
 
-opnCentral supports English, German, French and Dutch. English is the default and fallback language. Use the language selector in the top-right menu. The selection is stored in the session and in a cookie.
+## Quick start
 
-Optional environment variable:
-
-```dotenv
-DEFAULT_LANGUAGE=en
+```bash
+cp .env.example .env
 ```
 
-## Features
-
-- Multiple OPNsense systems
-- Encrypted API key storage
-- Central status display
-- Firmware and service information
-- Configuration backup download
-- Remote reboot
-- Direct WebGUI links
-- SQLite storage
-- Multi-platform Docker image for AMD64 and ARM64
-- Synology DSM / Container Manager compatible
-
-## Synology deployment
-
-Copy only these files from `deploy/` to:
-
-```text
-/volume1/docker/opncentral/
-├── docker-compose.yml
-└── .env
-```
-
-Edit `.env`:
-
-```dotenv
-GHCR_OWNER=frazon11
-ADMIN_PASSWORD=YOUR_SECURE_PASSWORD
-APP_KEY=YOUR_64_CHARACTER_HEX_KEY
-```
-
-Generate APP_KEY:
+Set a strong administrator password and generate `APP_KEY`:
 
 ```bash
 openssl rand -hex 32
 ```
 
-Start:
+Then start:
 
 ```bash
-cd /volume1/docker/opncentral
 docker compose pull
 docker compose up -d
 ```
 
-Open:
+Default web port:
 
 ```text
-http://SYNOLOGY-IP:8788
+http://DOCKER-HOST:8788
 ```
 
-Persistent data:
+Detailed instructions:
+
+- [Installation](docs/installation.md)
+- [Configuration](docs/configuration.md)
+- [Backup and restore](docs/backup-restore.md)
+- [Managed WireGuard](docs/wireguard.md)
+- [Anonymous telemetry](docs/telemetry.md)
+- [Troubleshooting](docs/troubleshooting.md)
+- [Changelog](CHANGELOG.md)
+
+## Persistent data
 
 ```text
-/volume1/docker/opncentral/data
-/volume1/docker/opncentral/backups
+/var/www/data
+/var/www/backups
 ```
 
-Do not change `APP_KEY` after saving API credentials.
+Preserve the exact `APP_KEY`; otherwise encrypted OPNsense API credentials cannot be restored.
 
-__________________________________________________________________________________________
+## Container images
 
-if you like my ideas and /or projects, feel free to support me:
+```text
+ghcr.io/frazon11/opncentral
+docker.io/frazon11/opncentral
+```
 
-paypal.me/FrazoN11
+Release tags publish:
+
+- exact version, such as `0.4.6.1`
+- minor version, such as `0.4`
+- `latest`
+
+## Support
+
+Project support: `paypal.me/FrazoN11`
+
+## License
+
+MIT

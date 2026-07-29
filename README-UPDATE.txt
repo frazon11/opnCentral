@@ -1,13 +1,11 @@
-opnCentral v0.4.4.0 - Experimental managed WireGuard tunnel creator
+opnCentral v0.4.4.1
 
-- Added Create WG tunnel wizard.
-- Creates a dedicated WireGuard instance on each selected managed OPNsense.
-- Uses OPNsense-generated keypairs and reciprocal peers.
-- Creates both sides disabled first, attaches peers, then enables and reconfigures.
-- Creates verified automatic backups of both firewalls before any changes.
-- Creates/reuses firewall category WireGuard.
-- Creates optional WAN UDP rules and LAN/WireGuard traffic rules.
-- Every generated firewall rule includes managed by opnCentral [WG-xxxxxx].
-- Attempts rollback of generated rules, peers and instances if any stage fails.
-- Requires explicit confirmation of networks, endpoints, ports and interface keys.
-- MSS normalization is not automated in this first version because it uses a different OPNsense subsystem.
+- Added Settings → Updates.
+- Public GitHub latest-release check for frazon11/opnCentral.
+- Automatic checks enabled by default and limited to once every 24 hours.
+- Manual Check now button bypasses the cache.
+- Shows installed version, latest published version, last check time and update status.
+- Links to the published GitHub release when available.
+- State is persisted in /var/www/data/update-check.json.
+- Uses short connection/request timeouts and never blocks normal page rendering.
+- Sends no installation ID, firewall details, credentials, networks or VPN data.

@@ -13,12 +13,12 @@ function nav_active(array $paths): string {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>opnCentral</title>
-<link rel="icon" href="/assets/favicon.ico?v=0440" sizes="any">
-<link rel="icon" type="image/svg+xml" href="/assets/opncentral-icon.svg?v=0440">
-<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png?v=0440">
-<link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png?v=0440">
-<link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png?v=0440">
-<link rel="manifest" href="/assets/site.webmanifest?v=0440">
+<link rel="icon" href="/assets/favicon.ico?v=0441" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/assets/opncentral-icon.svg?v=0441">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png?v=0441">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png?v=0441">
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png?v=0441">
+<link rel="manifest" href="/assets/site.webmanifest?v=0441">
 <meta name="theme-color" content="#26313a" id="browser-theme-color">
 <script>
 (function(){
@@ -27,7 +27,7 @@ function nav_active(array $paths): string {
     document.documentElement.dataset.theme=theme;
 })();
 </script>
-<link rel="stylesheet" href="/assets/style.css?v=0440">
+<link rel="stylesheet" href="/assets/style.css?v=0441">
 </head>
 <body class="<?= logged_in() ? 'app-shell' : 'login-shell' ?>">
 <?php if (logged_in()): ?>
@@ -37,7 +37,7 @@ function nav_active(array $paths): string {
         <div>
             <strong><?= h(app_name()) ?></strong>
             <div class="sidebar-meta">
-                <span>v0.4.4.0</span><span>·</span>
+                <span>v0.4.4.1</span><span>·</span>
                 <a href="https://www.paypal.com/paypalme/FrazoN11" target="_blank" rel="noopener noreferrer">♥ <?= h(t('menu.support')) ?></a>
             </div>
         </div>
@@ -88,4 +88,10 @@ window.opnCentralSetTheme(document.documentElement.dataset.theme||'light');
 document.getElementById('sidebar-toggle')?.addEventListener('click',function(){
     document.body.classList.toggle('sidebar-open');
 });
+
+if(document.body.classList.contains('app-shell')){
+    window.setTimeout(function(){
+        fetch('/update_check.php',{credentials:'same-origin',cache:'no-store'}).catch(function(){});
+    },1500);
+}
 </script>

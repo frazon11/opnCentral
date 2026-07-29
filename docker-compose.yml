@@ -27,6 +27,8 @@ services:
       SMTP_FROM_NAME: ${SMTP_FROM_NAME}
       NOTIFY_TO: ${NOTIFY_TO}
       PRECHANGE_BACKUP_RETENTION: ${PRECHANGE_BACKUP_RETENTION:-20}
+      TELEMETRY_URL: ${TELEMETRY_URL:-}
+      TELEMETRY_WRITE_TOKEN: ${TELEMETRY_WRITE_TOKEN:-}
 
     volumes:
       - /volume1/docker/opncentral/data:/var/www/data

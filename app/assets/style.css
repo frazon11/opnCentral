@@ -40,3 +40,9 @@
 .settings-subpanel h3{margin-top:0}
 .settings-subpanel input[type=file]{background:var(--input)}
 @media(max-width:900px){.backup-restore-grid{grid-template-columns:1fr}}
+
+.telemetry-status-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:16px 0}
+.telemetry-status-grid>div{background:var(--soft);border:1px solid var(--border);padding:12px;min-width:0}
+.telemetry-status-grid strong,.telemetry-status-grid span{display:block}
+.telemetry-status-grid strong{font-size:.8rem;color:var(--muted);margin-bottom:5px}
+@media(max-width:850px){.telemetry-status-grid{grid-template-columns:1fr}}

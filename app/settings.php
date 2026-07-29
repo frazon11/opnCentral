@@ -80,6 +80,53 @@ require __DIR__ . '/inc/header.php';
     </section>
 
 
+
+    <section class="card wide" id="telemetry-settings-card">
+        <div class="card-head">
+            <div>
+                <h2>Anonymous installation statistics</h2>
+                <p class="muted">
+                    Optionally report that this opnCentral installation is active.
+                </p>
+            </div>
+            <button type="button" class="button secondary" id="telemetry-send-now">
+                Send now
+            </button>
+        </div>
+
+        <label class="checkbox">
+            <input type="checkbox" id="telemetry-enabled">
+            Share anonymous installation statistics once every 24 hours
+        </label>
+
+        <div class="telemetry-status-grid">
+            <div>
+                <strong>Endpoint</strong>
+                <span id="telemetry-endpoint">Loading…</span>
+            </div>
+            <div>
+                <strong>Last sent</strong>
+                <span id="telemetry-last-sent">Never</span>
+            </div>
+            <div>
+                <strong>Status</strong>
+                <span id="telemetry-status">Loading…</span>
+            </div>
+        </div>
+
+        <div id="telemetry-message" class="card-message"></div>
+
+        <p class="muted">
+            Sent: random anonymous installation hash, opnCentral version, CPU
+            architecture and platform “docker”.
+        </p>
+        <p class="muted">
+            Never sent: firewall names or addresses, API credentials, usernames,
+            LAN networks, VPN configuration, email addresses or the APP_KEY.
+            The receiving service is configured through TELEMETRY_URL.
+        </p>
+    </section>
+
     <section class="card wide" id="self-backup-settings">
         <h2>Backup &amp; Restore</h2>
         <p class="muted">
@@ -276,6 +323,101 @@ require __DIR__ . '/inc/header.php';
     checkNow.addEventListener('click',()=>loadUpdate(true));
     loadUpdate(false);
 
+
+
+    const telemetryEnabled=document.getElementById('telemetry-enabled');
+    const telemetrySendNow=document.getElementById('telemetry-send-now');
+    const telemetryEndpoint=document.getElementById('telemetry-endpoint');
+    const telemetryLastSent=document.getElementById('telemetry-last-sent');
+    const telemetryStatus=document.getElementById('telemetry-status');
+    const telemetryMessage=document.getElementById('telemetry-message');
+
+    function renderTelemetry(result){
+        const state=result.state||{};
+        telemetryEnabled.checked=state.enabled===true;
+        telemetryEndpoint.textContent=result.configured
+            ? (result.endpoint||'Configured')
+            : 'Not configured';
+        telemetryLastSent.textContent=state.last_sent
+            ? formatDate(state.last_sent)
+            : 'Never';
+
+        telemetrySendNow.disabled=!state.enabled;
+
+        if(!state.enabled){
+            telemetryStatus.innerHTML='<span class="badge neutral">Disabled</span>';
+            telemetryMessage.textContent=
+                'Anonymous installation statistics are disabled.';
+        }else if(!result.configured){
+            telemetryStatus.innerHTML='<span class="badge bad">Not configured</span>';
+            telemetryMessage.textContent=
+                'Set TELEMETRY_URL in the opnCentral container environment.';
+        }else if(state.last_status==='sent'){
+            telemetryStatus.innerHTML='<span class="badge good">Sent</span>';
+            telemetryMessage.textContent=
+                'The anonymous active-installation check was accepted.';
+        }else if(state.last_error){
+            telemetryStatus.innerHTML='<span class="badge bad">Failed</span>';
+            telemetryMessage.textContent=state.last_error;
+        }else{
+            telemetryStatus.innerHTML='<span class="badge neutral">Waiting</span>';
+            telemetryMessage.textContent=
+                'The next anonymous check will run in the background.';
+        }
+    }
+
+    async function loadTelemetry(force){
+        telemetrySendNow.disabled=true;
+        if(force) telemetrySendNow.textContent='Sending…';
+
+        try{
+            const response=await fetch(
+                '/telemetry_status.php'+(force?'?force=1':''),
+                {credentials:'same-origin',cache:'no-store'}
+            );
+            const result=await response.json();
+            if(!response.ok||result.ok!==true){
+                throw new Error(result.error||'Could not load telemetry status.');
+            }
+            renderTelemetry(result);
+        }catch(error){
+            telemetryStatus.innerHTML='<span class="badge bad">Failed</span>';
+            telemetryMessage.textContent=error.message;
+        }finally{
+            telemetrySendNow.textContent='Send now';
+            if(telemetryEnabled.checked) telemetrySendNow.disabled=false;
+        }
+    }
+
+    telemetryEnabled?.addEventListener('change',async function(){
+        const requested=this.checked;
+        const body=new URLSearchParams();
+        body.set('csrf',<?= json_encode(csrf_token(), JSON_UNESCAPED_SLASHES) ?>);
+        body.set('enabled',requested?'1':'0');
+
+        try{
+            const response=await fetch('/telemetry_settings_action.php',{
+                method:'POST',
+                credentials:'same-origin',
+                cache:'no-store',
+                headers:{
+                    'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'
+                },
+                body
+            });
+            const result=await response.json();
+            if(!response.ok||result.ok!==true){
+                throw new Error(result.error||'Could not save telemetry setting.');
+            }
+            await loadTelemetry(false);
+        }catch(error){
+            this.checked=!requested;
+            alert(error.message);
+        }
+    });
+
+    telemetrySendNow?.addEventListener('click',()=>loadTelemetry(true));
+    loadTelemetry(false);
 
     const restoreForm=document.getElementById('self-restore-form');
     const restoreButton=document.getElementById('restore-button');

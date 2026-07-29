@@ -1,11 +1,13 @@
-opnCentral v0.4.3.6
+opnCentral v0.4.4.0 - Experimental managed WireGuard tunnel creator
 
-Ultrawide dashboard corrections:
-- Increased usable content width from 1500px to 2200px.
-- Uses three dashboard columns on normal desktop widths.
-- Uses four columns only on screens at least 2100px wide.
-- Uses two columns on narrower desktops and one on phones.
-- Firewall cards now stretch consistently and keep their action area at the bottom.
-- Card actions use an internal responsive grid and can no longer overflow the card.
-- Long URLs are truncated visually instead of widening cards.
-- Firmware messages reserve consistent vertical space.
+- Added Create WG tunnel wizard.
+- Creates a dedicated WireGuard instance on each selected managed OPNsense.
+- Uses OPNsense-generated keypairs and reciprocal peers.
+- Creates both sides disabled first, attaches peers, then enables and reconfigures.
+- Creates verified automatic backups of both firewalls before any changes.
+- Creates/reuses firewall category WireGuard.
+- Creates optional WAN UDP rules and LAN/WireGuard traffic rules.
+- Every generated firewall rule includes managed by opnCentral [WG-xxxxxx].
+- Attempts rollback of generated rules, peers and instances if any stage fails.
+- Requires explicit confirmation of networks, endpoints, ports and interface keys.
+- MSS normalization is not automated in this first version because it uses a different OPNsense subsystem.

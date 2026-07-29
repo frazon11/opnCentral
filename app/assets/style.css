@@ -25,3 +25,4 @@
 @media(max-width:700px){
     .content{padding-left:14px;padding-right:14px}
 }
+.wg-create-form{max-width:none}.wizard-section{border-bottom:1px solid var(--border);padding-bottom:16px;margin-bottom:18px}.wizard-section:last-of-type{border-bottom:0}.field-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 18px}.warningbox{background:#fff1cc;color:#704d00;border:1px solid #e0bd62}:root[data-theme="dark"] .warningbox{background:#493b1d;color:#ffe5a1;border-color:#80692f}@media(max-width:800px){.field-grid{grid-template-columns:1fr}}

@@ -8,7 +8,10 @@ require __DIR__ . '/inc/header.php';
         <h1>Managed WireGuard</h1>
         <p>Paired site-to-site connections between OPNsense firewalls managed by opnCentral.</p>
     </div>
-    <button type="button" id="refresh-links" class="button secondary">Refresh</button>
+    <div class="actions">
+        <a class="button" href="/wireguard_create.php">Create site-to-site tunnel</a>
+        <button type="button" id="refresh-links" class="button secondary">Refresh</button>
+    </div>
 </div>
 
 <div id="wg-overview-error" class="alert error hidden"></div>

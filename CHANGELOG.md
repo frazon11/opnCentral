@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.7.1
+
+- Fixed the DNS-resolution regression introduced in 0.4.7.0.
+- Normal OPNsense API requests may now use up to ten seconds for DNS resolution and connection establishment.
+- WireGuard inventory requests remain limited to five seconds total.
+- Preserved the session-lock and persistent-cache performance improvements from 0.4.7.0.
+
 ## 0.4.7.0
 
 - Removed PHP session-lock blocking from long-running update, telemetry, firewall-status and WireGuard API requests.

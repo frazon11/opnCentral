@@ -41,7 +41,9 @@ function opn_curl_handle(
             ':' .
             decrypt_value((string) $firewall['api_secret_enc']),
         CURLOPT_HTTPAUTH => CURLAUTH_BASIC,
-        CURLOPT_CONNECTTIMEOUT => min(4, max(1, $timeout)),
+        // DNS resolution is included in cURL's connect timeout.
+        // Normal firewall calls may use up to ten seconds to connect.
+        CURLOPT_CONNECTTIMEOUT => min(10, max(1, $timeout)),
         CURLOPT_TIMEOUT => $timeout,
         CURLOPT_FOLLOWLOCATION => false,
         CURLOPT_SSL_VERIFYPEER => (bool) $firewall['verify_tls'],

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.6.2
+
+- Reorganized the VPN sidebar into WireGuard and OpenVPN sections.
+- Renamed the WireGuard entries to Manage and Create Site-to-Site VPN.
+- Added disabled OpenVPN placeholders for Manage, Site-to-Site VPN creation, and Roadwarrior server creation.
+
 ## 0.4.6.1
 
 - Cleaned and standardized the repository structure.

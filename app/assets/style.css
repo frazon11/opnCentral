@@ -46,3 +46,48 @@
 .telemetry-status-grid strong,.telemetry-status-grid span{display:block}
 .telemetry-status-grid strong{font-size:.8rem;color:var(--muted);margin-bottom:5px}
 @media(max-width:850px){.telemetry-status-grid{grid-template-columns:1fr}}
+
+.nav-section-label{
+    margin:8px 10px 3px;
+    padding:5px 10px;
+    font-size:.86rem;
+    font-weight:700;
+    color:var(--text);
+}
+.side-nav .nav-child{
+    margin-left:18px;
+    padding-left:18px;
+    font-size:.9rem;
+}
+.side-nav .nav-child::before{
+    content:"—";
+    margin-right:7px;
+    color:var(--muted);
+}
+.nav-coming-soon{
+    color:var(--muted);
+}
+.coming-soon-label{
+    font-size:.7rem;
+    font-weight:600;
+    opacity:.8;
+}
+.side-nav .nav-disabled{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    color:var(--muted);
+    opacity:.58;
+    cursor:not-allowed;
+    user-select:none;
+    text-decoration:none;
+}
+.side-nav .nav-disabled:hover{
+    background:transparent;
+    color:var(--muted);
+}
+.side-nav .nav-disabled small{
+    margin-left:auto;
+    font-size:.68rem;
+    white-space:nowrap;
+}

@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.6.0.0
+
+- Added Create OpenVPN Roadwarrior Server under VPN → OpenVPN.
+- Added target-firewall discovery for CAs, certificates, TLS static keys and authentication providers.
+- Added automatic selection of the next available OpenVPN instance ID.
+- Added server settings for protocol, port, bind address, tunnel network and maximum clients.
+- Added trust, authentication, pushed local networks, DNS, redirect-gateway and cipher settings.
+- Added duplicate instance-ID and listener-collision checks.
+- Added CIDR, IP, port and option validation.
+- Added mandatory pre-change configuration backup.
+- Added OpenVPN instance creation through the official Instances API.
+- Added service reconfiguration and rollback attempt if applying the instance fails.
+- Firewall rules, certificate creation and client export remain manual in this first release.
+
 ## 0.5.1.4
 
 - Removed the redundant dashboard Details view selector.

@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.5.0.0
+
+- Added the first minimal `os-opncentral-agent` source tree.
+- Added signed outbound HTTPS heartbeats with per-agent credentials.
+- Added timestamp and nonce replay protection.
+- Added the opnCentral agent receiver API.
+- Added registration, enable/disable, deletion and last-seen overview.
+- Reports hostname, OPNsense version and running services.
+- Added a prototype installer for controlled testing.
+- Agent is read-only; production package distribution is not included yet.
+
 ## 0.4.8.0
 
 - Added a Services menu and central active-services overview.

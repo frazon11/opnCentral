@@ -32,6 +32,29 @@ function db(): PDO {
  error TEXT NOT NULL DEFAULT ""
  )');
  $p->exec('CREATE INDEX IF NOT EXISTS idx_backups_firewall_created ON backups(firewall_id,created_at DESC)');
+ $p->exec('CREATE TABLE IF NOT EXISTS agents (
+ id INTEGER PRIMARY KEY AUTOINCREMENT,
+ firewall_id INTEGER,
+ agent_id TEXT NOT NULL UNIQUE,
+ secret_enc TEXT NOT NULL,
+ name TEXT NOT NULL DEFAULT "",
+ enabled INTEGER NOT NULL DEFAULT 1,
+ created_at TEXT NOT NULL,
+ last_seen_at TEXT,
+ last_remote_ip TEXT NOT NULL DEFAULT "",
+ last_version TEXT NOT NULL DEFAULT "",
+ last_hostname TEXT NOT NULL DEFAULT "",
+ last_opnsense_version TEXT NOT NULL DEFAULT "",
+ last_payload TEXT NOT NULL DEFAULT ""
+ )');
+ $p->exec('CREATE INDEX IF NOT EXISTS idx_agents_firewall ON agents(firewall_id)');
+ $p->exec('CREATE TABLE IF NOT EXISTS agent_nonces (
+ agent_id TEXT NOT NULL,
+ nonce TEXT NOT NULL,
+ seen_at INTEGER NOT NULL,
+ PRIMARY KEY(agent_id,nonce)
+ )');
+ $p->exec('CREATE INDEX IF NOT EXISTS idx_agent_nonces_seen ON agent_nonces(seen_at)');
  return $p;
 }
 function crypto_key(): string {

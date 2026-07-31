@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.4.8.0
+
+- Added a Services menu and central active-services overview.
+- Uses the OPNsense core/service/search API for every managed firewall.
+- Fetches all firewalls in parallel.
+- Shows only services reported as running.
+- Displays service description and technical service name.
+- Added persistent five-minute service caching and background refresh.
+- Keeps cached service data visible during manual and automatic refreshes.
+- Shows per-firewall errors without blocking results from other firewalls.
+
 ## 0.4.7.3
 
 - Simplified firewall dashboard cards.

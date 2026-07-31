@@ -1,6 +1,11 @@
 # Changelog
 
-## 0.6.0.0
+## 0.6.0.1
+
+- Released the OpenVPN Roadwarrior server wizard as version 0.6.0.1.
+- No functional changes from the prepared 0.6.0.0 build.
+
+## 0.6.0.1
 
 - Added Create OpenVPN Roadwarrior Server under VPN → OpenVPN.
 - Added target-firewall discovery for CAs, certificates, TLS static keys and authentication providers.

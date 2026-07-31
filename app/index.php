@@ -135,6 +135,13 @@ require __DIR__ . '/inc/header.php';
 
                     <a
                         class="button secondary"
+                        href="/plugins.php?firewall_id=<?= (int) $firewall['id'] ?>"
+                    >
+                        Plugins
+                    </a>
+
+                    <a
+                        class="button secondary"
                         href="/firewall_edit.php?id=<?= (int) $firewall['id'] ?>"
                     >
                         Edit

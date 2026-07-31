@@ -11,10 +11,6 @@ $firewalls = db()
 
 $firewallId = (int) ($_GET['firewall_id'] ?? 0);
 
-if ($firewallId < 1 && $firewalls) {
-    $firewallId = (int) $firewalls[0]['id'];
-}
-
 $selectedFirewall = null;
 foreach ($firewalls as $firewall) {
     if ((int) $firewall['id'] === $firewallId) {
@@ -41,19 +37,14 @@ require __DIR__ . '/inc/header.php';
     </div>
 
     <div class="plugin-toolbar">
-        <label>
-            <span class="sr-only">Firewall</span>
-            <select id="firewall-select">
-                <?php foreach ($firewalls as $firewall): ?>
-                    <option
-                        value="<?= (int) $firewall['id'] ?>"
-                        <?= (int) $firewall['id'] === $firewallId ? 'selected' : '' ?>
-                    >
-                        <?= h((string) $firewall['name']) ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-        </label>
+        <?php if ($selectedFirewall): ?>
+            <a
+                class="button secondary"
+                href="/firewall_view.php?id=<?= (int) $selectedFirewall['id'] ?>"
+            >
+                Back to details
+            </a>
+        <?php endif; ?>
 
         <button type="button" class="button secondary" id="refresh">
             Check for plugins
@@ -64,12 +55,6 @@ require __DIR__ . '/inc/header.php';
 <?php if (!$selectedFirewall): ?>
     <div class="empty">No firewall configured.</div>
 <?php else: ?>
-
-<div class="firmware-tabs" aria-label="Firmware navigation">
-    <span>Status</span>
-    <strong>Plugins</strong>
-    <span>Packages</span>
-</div>
 
 <div class="plugin-list-card card">
     <div class="plugin-list-toolbar">
@@ -135,7 +120,6 @@ require __DIR__ . '/inc/header.php';
     const refresh = document.getElementById('refresh');
     const search = document.getElementById('plugin-search');
     const jobs = document.getElementById('jobs');
-    const firewallSelect = document.getElementById('firewall-select');
 
     let plugins = [];
 
@@ -437,12 +421,6 @@ require __DIR__ . '/inc/header.php';
             jobs.textContent = error.message;
         }
     }
-
-    firewallSelect?.addEventListener('change', function(){
-        window.location.href =
-            '/plugins.php?firewall_id=' +
-            encodeURIComponent(firewallSelect.value);
-    });
 
     search.addEventListener('input', render);
     refresh.addEventListener('click', function(){

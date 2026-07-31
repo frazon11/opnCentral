@@ -72,6 +72,7 @@ require __DIR__ . '/inc/header.php';
 .vpn-actions button{padding:6px 9px;font-size:.84rem}
 .vpn-managed{font-size:.82rem;opacity:.82}
 .vpn-section-title{margin:16px 0 7px;padding-top:10px;border-top:1px solid #dce1e5;font-size:.92rem}
+.page-title-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 @keyframes pulse{0%,100%{opacity:.25}50%{opacity:1}}
 </style>
 
@@ -81,14 +82,23 @@ require __DIR__ . '/inc/header.php';
         <p><?= h((string) $firewall['base_url']) ?></p>
     </div>
 
-    <a
-        class="button secondary"
-        target="_blank"
-        rel="noopener"
-        href="<?= h((string) $firewall['base_url']) ?>"
-    >
-        Open WebGUI
-    </a>
+    <div class="page-title-actions">
+        <a
+            class="button secondary"
+            href="/plugins.php?firewall_id=<?= (int) $firewall['id'] ?>"
+        >
+            Plugins
+        </a>
+
+        <a
+            class="button secondary"
+            target="_blank"
+            rel="noopener"
+            href="<?= h((string) $firewall['base_url']) ?>"
+        >
+            Open WebGUI
+        </a>
+    </div>
 </div>
 
 <?php if ($message): ?>
@@ -132,6 +142,29 @@ require __DIR__ . '/inc/header.php';
         <pre id="firmware-output"><?= h(t('common.loading')) ?></pre>
     </section>
 
+
+    <section class="card live-card">
+        <div class="card-head">
+            <div>
+                <h2>Plugins</h2>
+                <div class="live-status">
+                    Manage installed and available OPNsense plugins.
+                </div>
+            </div>
+        </div>
+
+        <p class="muted">
+            Install, reinstall, remove, lock and unlock plugins for this
+            firewall. Configuration-changing operations create a backup first.
+        </p>
+
+        <a
+            class="button secondary"
+            href="/plugins.php?firewall_id=<?= (int) $firewall['id'] ?>"
+        >
+            Manage plugins
+        </a>
+    </section>
 
     <section class="card live-card wide">
         <div class="card-head">

@@ -183,31 +183,6 @@
     align-items:center;
     flex-wrap:wrap;
 }
-.plugin-toolbar select{
-    min-width:220px;
-}
-.firmware-tabs{
-    display:flex;
-    gap:0;
-    border-bottom:1px solid var(--border);
-    margin-bottom:14px;
-}
-.firmware-tabs span,
-.firmware-tabs strong{
-    display:block;
-    padding:10px 16px;
-    font-size:.92rem;
-}
-.firmware-tabs span{
-    color:var(--muted);
-}
-.firmware-tabs strong{
-    border:1px solid var(--border);
-    border-bottom-color:var(--card);
-    margin-bottom:-1px;
-    border-radius:5px 5px 0 0;
-    background:var(--card);
-}
 .plugin-list-card{
     padding:0;
     overflow:hidden;

@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.5.1.3
+
+- Removed all firewall names and plugin links from the sidebar.
+- Restored a static navigation menu.
+- Added a Plugins button to every firewall dashboard card.
+- Added Plugins access and a dedicated plugin-management card to firewall details.
+- Plugin pages now require an explicitly selected firewall.
+- Removed the firewall selector and artificial firmware tabs from the plugin page.
+- Added a direct Back to details action.
+- Preserved plugin inventory, actions, backups and job history.
+
 ## 0.5.1.2
 
 - Moved Plugins from the global menu below each managed firewall.

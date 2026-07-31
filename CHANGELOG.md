@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.5.1.4
+
+- Removed the redundant dashboard Details view selector.
+- Kept the per-firewall Details button for the actual detailed page.
+- Rebuilt Compact as a true condensed row layout.
+- Compact shows firewall identity, online state, system version, update status, Details and Plugins.
+- Compact hides Refresh, Backup and Edit to reduce clutter; those remain available in Cards and Details pages.
+- Saved Details view preferences automatically fall back to Cards.
+
 ## 0.5.1.3
 
 - Removed all firewall names and plugin links from the sidebar.

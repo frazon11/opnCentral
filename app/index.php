@@ -19,9 +19,31 @@ require __DIR__ . '/inc/header.php';
 .view-switch button.active{background:rgba(127,127,127,.2);font-weight:700}
 .firewall-list{display:grid;gap:16px;align-items:stretch}
 .view-cards .firewall-list{grid-template-columns:repeat(3,minmax(0,1fr))}
-.view-details .firewall-list{grid-template-columns:1fr}
-.view-compact .firewall-list{display:grid;grid-template-columns:1fr;gap:8px}
-.view-compact .firewall-card{padding:12px}
+.view-compact .firewall-list{display:grid;grid-template-columns:1fr;gap:7px}
+.view-compact .firewall-card{
+    display:grid;
+    grid-template-columns:minmax(260px,1.5fr) minmax(190px,.9fr) minmax(220px,1fr) auto;
+    gap:14px;
+    align-items:center;
+    padding:10px 12px;
+}
+.view-compact .firewall-card .card-head{margin:0;align-items:center}
+.view-compact .firewall-card .card-head h2{margin:0 0 2px;font-size:1.05rem}
+.view-compact .firewall-card .card-head a{font-size:.82rem}
+.view-compact .firewall-card .status-badge{margin-left:8px}
+.view-compact .firewall-card dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:center}
+.view-compact .firewall-card dl dt{margin:0;font-size:.78rem;color:var(--muted)}
+.view-compact .firewall-card dl dd{margin:0}
+.view-compact .firewall-card .update-status-panel{margin:0;padding:7px 9px}
+.view-compact .firewall-card .update-status-panel strong{font-size:.72rem;margin-bottom:2px;color:var(--muted)}
+.view-compact .firewall-card .firmware-message{display:none}
+.view-compact .firewall-card .actions{display:flex;margin:0;gap:5px;justify-content:flex-end;align-items:center}
+.view-compact .firewall-card .actions button,
+.view-compact .firewall-card .actions .button{width:auto;min-width:auto;padding:6px 8px;white-space:nowrap;font-size:.78rem}
+.view-compact .firewall-card .refresh-one,
+.view-compact .firewall-card .backup-one,
+.view-compact .firewall-card .card-update-button,
+.view-compact .firewall-card a[href^="/firewall_edit.php"]{display:none!important}
 .firewall-card{display:flex;flex-direction:column;min-width:0}
 .firewall-card .card-head{align-items:flex-start}
 .firewall-card .card-head>div{min-width:0}
@@ -41,9 +63,15 @@ require __DIR__ . '/inc/header.php';
 @media(max-width:1250px){
     .view-cards .firewall-list{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
+@media(max-width:1250px){
+    .view-compact .firewall-card{grid-template-columns:minmax(220px,1fr) minmax(180px,1fr)}
+    .view-compact .firewall-card .actions{justify-content:flex-start}
+}
 @media(max-width:760px){
     .view-cards .firewall-list{grid-template-columns:1fr}
     .firewall-card .actions{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .view-compact .firewall-card{display:flex;flex-direction:column;align-items:stretch}
+    .view-compact .firewall-card .actions{display:flex;justify-content:flex-start}
 }
 </style>
 
@@ -57,7 +85,6 @@ require __DIR__ . '/inc/header.php';
         <div class="view-switch">
             <button type="button" data-view="cards"><?= h(t('common.cards')) ?></button>
             <button type="button" data-view="compact"><?= h(t('common.compact')) ?></button>
-            <button type="button" data-view="details"><?= h(t('common.details')) ?></button>
         </div>
 
         <button type="button" class="button secondary" id="refresh-all">
@@ -163,7 +190,7 @@ require __DIR__ . '/inc/header.php';
     const viewKey = 'opncentral-dashboard-view';
 
     function applyView(view) {
-        if (!['cards', 'compact', 'details'].includes(view)) {
+        if (!['cards', 'compact'].includes(view)) {
             view = 'cards';
         }
 

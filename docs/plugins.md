@@ -16,3 +16,10 @@ backup. OPNsense returns an asynchronous firmware message UUID for package jobs.
 The first release records this UUID and displays submitted jobs; detailed final
 job-result interpretation should be verified against real OPNsense responses
 before bulk operations are added.
+
+
+## Per-firewall navigation
+
+Each managed firewall appears in the sidebar under **Firewalls**, with its own
+**Plugins** entry. The page shows one firewall at a time and uses a compact
+firmware-style table with search, version, comment, status and row actions.

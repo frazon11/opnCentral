@@ -6,7 +6,11 @@ require_login();
 if(session_status()===PHP_SESSION_ACTIVE)session_write_close();
 header('Content-Type: application/json; charset=utf-8');
 try{
- $jobs=db()->query('SELECT * FROM plugin_jobs ORDER BY created_at DESC LIMIT 50')->fetchAll();
+ $firewallId=(int)($_GET['firewall_id']??0);
+ if($firewallId<1)throw new RuntimeException('Select a firewall.');
+ $stmt=db()->prepare('SELECT * FROM plugin_jobs WHERE firewall_id=? ORDER BY created_at DESC LIMIT 50');
+ $stmt->execute([$firewallId]);
+ $jobs=$stmt->fetchAll();
  foreach($jobs as &$job){
   if($job['status']==='started'&&$job['message_uuid']!==''){
    try{

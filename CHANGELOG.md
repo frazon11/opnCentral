@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.5.1.2
+
+- Moved Plugins from the global menu below each managed firewall.
+- Added one dedicated plugin page per firewall.
+- Added a firewall selector for quick switching.
+- Redesigned the plugin inventory similar to the OPNsense Firmware Plugins page.
+- Added compact columns for name, version, comment, status and row actions.
+- Added client-side plugin search.
+- Filtered recent plugin jobs to the selected firewall.
+- Preserved automatic backups and all existing plugin operations.
+
+## 0.5.1.1
+
+- Fixed the Plugins page returning HTML instead of JSON.
+- Replaced the invalid combined `ksort()` flags with case-insensitive natural sorting using `uksort()`.
+- Added fatal-error and output-buffer protection to the plugin inventory endpoint.
+- Hardened package-field normalization for varying OPNsense firmware responses.
+- Improved frontend diagnostics when a server response is not valid JSON.
+
 ## 0.5.1.0
 
 - Added central plugin inventory across all managed firewalls.

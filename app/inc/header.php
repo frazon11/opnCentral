@@ -2,6 +2,9 @@
 require_once __DIR__ . '/config.php';
 start_session_secure();
 $currentPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
+$navFirewalls = logged_in()
+    ? db()->query('SELECT id,name FROM firewalls ORDER BY name')->fetchAll()
+    : [];
 function nav_active(array $paths): string {
     global $currentPath;
     return in_array($currentPath, $paths, true) ? ' active' : '';
@@ -13,12 +16,12 @@ function nav_active(array $paths): string {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>opnCentral</title>
-<link rel="icon" href="/assets/favicon.ico?v=0510" sizes="any">
-<link rel="icon" type="image/svg+xml" href="/assets/opncentral-icon.svg?v=0510">
-<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png?v=0510">
-<link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png?v=0510">
-<link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png?v=0510">
-<link rel="manifest" href="/assets/site.webmanifest?v=0510">
+<link rel="icon" href="/assets/favicon.ico?v=0512" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/assets/opncentral-icon.svg?v=0512">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png?v=0512">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png?v=0512">
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png?v=0512">
+<link rel="manifest" href="/assets/site.webmanifest?v=0512">
 <meta name="theme-color" content="#26313a" id="browser-theme-color">
 <script>
 (function(){
@@ -27,7 +30,7 @@ function nav_active(array $paths): string {
     document.documentElement.dataset.theme=theme;
 })();
 </script>
-<link rel="stylesheet" href="/assets/style.css?v=0510">
+<link rel="stylesheet" href="/assets/style.css?v=0512">
 </head>
 <body class="<?= logged_in() ? 'app-shell' : 'login-shell' ?>">
 <?php if (logged_in()): ?>
@@ -37,7 +40,7 @@ function nav_active(array $paths): string {
         <div>
             <strong><?= h(app_name()) ?></strong>
             <div class="sidebar-meta">
-                <span>v0.5.1.0</span><span>·</span>
+                <span>v0.5.1.2</span><span>·</span>
                 <a href="https://www.paypal.com/paypalme/FrazoN11" target="_blank" rel="noopener noreferrer">♥ <?= h(t('menu.support')) ?></a>
             </div>
         </div>
@@ -49,9 +52,18 @@ function nav_active(array $paths): string {
         <div class="nav-group">Firewalls</div>
         <a class="<?= nav_active(['/firewall_edit.php']) ?>" href="/firewall_edit.php">＋ <span><?= h(t('menu.add_firewall')) ?></span></a>
 
+        <?php foreach ($navFirewalls as $navFirewall): ?>
+            <div class="nav-section-label"><?= h((string) $navFirewall['name']) ?></div>
+            <a
+                class="nav-child<?= $currentPath === '/plugins.php' && (int) ($_GET['firewall_id'] ?? 0) === (int) $navFirewall['id'] ? ' active' : '' ?>"
+                href="/plugins.php?firewall_id=<?= (int) $navFirewall['id'] ?>"
+            >
+                <span>Plugins</span>
+            </a>
+        <?php endforeach; ?>
+
         <a class="<?= nav_active(['/services.php']) ?>" href="/services.php">⚙ <span>Services</span></a>
         <a class="<?= nav_active(['/agents.php']) ?>" href="/agents.php">⇄ <span>Agents</span></a>
-        <a class="<?= nav_active(['/plugins.php']) ?>" href="/plugins.php">▣ <span>Plugins</span></a>
 
         <div class="nav-group">VPN</div>
 

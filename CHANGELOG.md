@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.6.3
+
+- Improved VPN menu contrast in dark mode.
+- Made WireGuard section labels clearly visible.
+- Increased contrast for normal submenu entries.
+- Kept OpenVPN placeholders visibly disabled without making them unreadable.
+- Improved active-item and hierarchy colors.
+
 ## 0.4.6.2
 
 - Reorganized the VPN sidebar into WireGuard and OpenVPN sections.

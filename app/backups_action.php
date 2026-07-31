@@ -43,7 +43,7 @@ try {
     }
 
     if (!class_exists('ZipArchive')) {
-        throw new RuntimeException('PHP ZIP extension is not installed in this container image. Rebuild or pull opnCentral v0.4.7.2 and recreate the container.');
+        throw new RuntimeException('PHP ZIP extension is not installed in this container image. Rebuild or pull opnCentral v0.4.7.3 and recreate the container.');
     }
 
     $requests = [];

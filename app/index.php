@@ -30,9 +30,9 @@ require __DIR__ . '/inc/header.php';
 .firewall-card .actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:auto;align-items:stretch}
 .firewall-card .actions button,.firewall-card .actions .button{width:100%;min-width:0;padding:8px 6px;text-align:center;white-space:normal;line-height:1.15}
 .status-loading{opacity:.65}
-.firmware-versions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
-.firmware-versions div{padding:8px;border-radius:7px;background:rgba(127,127,127,.08);min-width:0}
-.firmware-versions strong{display:block;font-size:.82rem;margin-bottom:3px}
+.update-status-panel{padding:10px;border-radius:7px;background:rgba(127,127,127,.08);min-width:0;margin:10px 0}
+.update-status-panel strong{display:block;font-size:.82rem;margin-bottom:4px}
+.update-status-value{display:block}
 .card-update-button.hidden{display:none}
 .card-message{font-size:.9rem;opacity:.78;margin:8px 0 14px;min-height:3.4em}
 @media(min-width:2100px){
@@ -101,15 +101,9 @@ require __DIR__ . '/inc/header.php';
                     <dd class="system-value status-loading"><?= h(t('common.loading')) ?></dd>
                 </dl>
 
-                <div class="firmware-versions">
-                    <div>
-                        <strong><?= h(t('dashboard.current_version')) ?></strong>
-                        <span class="current-version status-loading"><?= h(t('common.loading')) ?></span>
-                    </div>
-                    <div>
-                        <strong><?= h(t('dashboard.available_version')) ?></strong>
-                        <span class="available-version status-loading"><?= h(t('common.loading')) ?></span>
-                    </div>
+                <div class="update-status-panel">
+                    <strong>Update status</strong>
+                    <span class="update-status-value status-loading"><?= h(t('common.loading')) ?></span>
                 </div>
 
                 <div class="card-message firmware-message">
@@ -242,8 +236,7 @@ require __DIR__ . '/inc/header.php';
         card.querySelector('.status-badge').textContent = tr['common.loading_short'];
         card.querySelector('.status-badge').className = 'badge status-badge';
         card.querySelector('.system-value').textContent = tr['common.loading'];
-        card.querySelector('.current-version').textContent = tr['common.loading'];
-        card.querySelector('.available-version').textContent = tr['common.loading'];
+        card.querySelector('.update-status-value').textContent = tr['common.loading'];
         card.querySelector('.firmware-message').textContent =
             tr['dashboard.loading_firmware'];
         card.querySelector('.card-update-button').classList.add('hidden');
@@ -261,41 +254,39 @@ require __DIR__ . '/inc/header.php';
 
         const badge = card.querySelector('.status-badge');
         const system = card.querySelector('.system-value');
-
-        if (
-            systemResult.status === 'fulfilled' &&
-            systemResult.value?.ok === true
-        ) {
-            const value = systemResult.value.value || {};
-            badge.className = 'badge status-badge good';
-            badge.textContent = tr['common.online'];
-            system.textContent =
-                value.status || value.result || value.message || tr['common.reachable'];
-        } else {
-            const error = systemResult.status === 'rejected'
-                ? systemResult.reason.message
-                : (systemResult.value?.error || tr['common.unavailable']);
-
-            badge.className = 'badge status-badge bad';
-            badge.textContent = tr['common.offline'];
-            system.textContent = error;
-        }
-
-        const current = card.querySelector('.current-version');
-        const available = card.querySelector('.available-version');
+        const updateStatus = card.querySelector('.update-status-value');
         const message = card.querySelector('.firmware-message');
         const updateButton = card.querySelector('.card-update-button');
 
-        if (
-            firmwareResult.status === 'fulfilled' &&
-            firmwareResult.value?.ok === true
-        ) {
-            const summary = firmwareResult.value.summary || {};
+        const systemOk =
+            systemResult.status === 'fulfilled' &&
+            systemResult.value?.ok === true;
 
-            current.textContent = summary.current_version || tr['common.unknown'];
-            available.textContent = summary.update_available
+        const firmwareOk =
+            firmwareResult.status === 'fulfilled' &&
+            firmwareResult.value?.ok === true;
+
+        if (systemOk || firmwareOk) {
+            badge.className = 'badge status-badge good';
+            badge.textContent = tr['common.online'];
+        } else {
+            badge.className = 'badge status-badge bad';
+            badge.textContent = tr['common.offline'];
+        }
+
+        if (firmwareOk) {
+            const summary = firmwareResult.value.summary || {};
+            const currentVersion =
+                summary.current_version || tr['common.unknown'];
+
+            system.textContent = currentVersion === tr['common.unknown']
+                ? 'OPNsense'
+                : 'OPNsense ' + currentVersion;
+
+            updateStatus.textContent = summary.update_available
                 ? (summary.available_version || tr['common.update_available'])
                 : (summary.checked ? tr['common.no_update'] : tr['common.not_checked']);
+
             message.textContent = summary.message || '';
 
             if (summary.update_available && summary.action) {
@@ -305,13 +296,35 @@ require __DIR__ . '/inc/header.php';
                 updateButton.classList.remove('hidden');
             }
         } else {
-            const error = firmwareResult.status === 'rejected'
+            const firmwareError = firmwareResult.status === 'rejected'
                 ? firmwareResult.reason.message
                 : (firmwareResult.value?.error || tr['common.unavailable']);
 
-            current.textContent = tr['common.unknown'];
-            available.textContent = tr['common.unknown'];
-            message.textContent = error;
+            if (systemOk) {
+                const value = systemResult.value.value || {};
+                const rawVersion =
+                    value.version ||
+                    value.product_version ||
+                    value.status ||
+                    value.result ||
+                    value.message ||
+                    'OPNsense';
+
+                system.textContent = String(rawVersion).startsWith('OPNsense')
+                    ? String(rawVersion)
+                    : 'OPNsense ' + rawVersion;
+
+                updateStatus.textContent = tr['common.unavailable'];
+                message.textContent = firmwareError;
+            } else {
+                const systemError = systemResult.status === 'rejected'
+                    ? systemResult.reason.message
+                    : (systemResult.value?.error || tr['common.unavailable']);
+
+                system.textContent = systemError;
+                updateStatus.textContent = tr['common.unavailable'];
+                message.textContent = firmwareError;
+            }
         }
     }
 

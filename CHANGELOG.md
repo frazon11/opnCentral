@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.7.3
+
+- Simplified firewall dashboard cards.
+- Removed the redundant Reachable display.
+- System now displays the OPNsense version directly.
+- Removed the duplicated Current version field.
+- Replaced the two-column firmware block with a single Update status field.
+- A successful system or firmware response marks the firewall Online.
+- Connection failures remain visible under System while the card is marked Offline.
+
 ## 0.4.7.2
 
 - Added explicit update comparison states: behind, equal, ahead and unknown.

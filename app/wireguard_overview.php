@@ -137,23 +137,84 @@ require __DIR__ . '/inc/header.php';
         });
     }
 
-    async function load(){
-        refresh.disabled=true;
-        errorBox.classList.add('hidden');
-        summary.textContent='Loading managed connections…';
-        body.innerHTML='<tr><td colspan="5">Loading…</td></tr>';
+    let hasRendered=false;
+    let backgroundRefreshRunning=false;
 
-        try{
-            const response=await fetch('/wireguard_overview_data.php',{
+    function showErrors(data){
+        if(Array.isArray(data.errors)&&data.errors.length){
+            errorBox.textContent=data.errors.join(' | ');
+            errorBox.classList.remove('hidden');
+        }else{
+            errorBox.classList.add('hidden');
+            errorBox.textContent='';
+        }
+    }
+
+    async function requestData(force){
+        const response=await fetch(
+            '/wireguard_overview_data.php'+(force?'?force=1':''),
+            {
                 credentials:'same-origin',
                 cache:'no-store'
-            });
-            const data=await response.json();
-            if(!response.ok||data.ok!==true) throw new Error(data.error||'Loading failed.');
+            }
+        );
+
+        const raw=await response.text();
+        let data;
+
+        try{
+            data=JSON.parse(raw);
+        }catch(error){
+            throw new Error(
+                'Server returned invalid JSON: '+
+                raw.replace(/\s+/g,' ').trim().slice(0,500)
+            );
+        }
+
+        if(!response.ok||data.ok!==true){
+            throw new Error(data.error||'Loading failed.');
+        }
+
+        return data;
+    }
+
+    async function refreshLive(manual){
+        if(backgroundRefreshRunning) return;
+        backgroundRefreshRunning=true;
+
+        const previousText=refresh.textContent;
+        refresh.disabled=true;
+        refresh.textContent=manual?'Refreshing…':'Updating…';
+
+        try{
+            const data=await requestData(true);
             render(data);
-            if(Array.isArray(data.errors)&&data.errors.length){
-                errorBox.textContent=data.errors.join(' | ');
+            showErrors(data);
+            hasRendered=true;
+        }catch(error){
+            if(manual||!hasRendered){
+                errorBox.textContent=error.message;
                 errorBox.classList.remove('hidden');
+            }
+        }finally{
+            backgroundRefreshRunning=false;
+            refresh.disabled=false;
+            refresh.textContent=previousText;
+        }
+    }
+
+    async function loadInitial(){
+        refresh.disabled=true;
+        errorBox.classList.add('hidden');
+
+        try{
+            const data=await requestData(false);
+            render(data);
+            showErrors(data);
+            hasRendered=true;
+
+            if(data.cache?.refresh_recommended){
+                window.setTimeout(()=>refreshLive(false),150);
             }
         }catch(error){
             summary.textContent='Unavailable';
@@ -165,8 +226,8 @@ require __DIR__ . '/inc/header.php';
         }
     }
 
-    refresh.addEventListener('click',load);
-    load();
+    refresh.addEventListener('click',()=>refreshLive(true));
+    loadInitial();
 })();
 </script>
 <?php require __DIR__ . '/inc/footer.php'; ?>

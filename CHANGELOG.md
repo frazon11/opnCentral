@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.4.7.0
+
+- Removed PHP session-lock blocking from long-running update, telemetry, firewall-status and WireGuard API requests.
+- Changed the WireGuard Manage page to render persistent cached data immediately.
+- Added stale-while-revalidate behavior: old data stays visible while a silent live refresh runs.
+- Manual Refresh no longer clears the table or replaces it with Loading.
+- Increased the automatic WireGuard cache refresh interval to five minutes.
+- Reduced WireGuard API request timeout to five seconds.
+- Moved the WireGuard inventory cache from temporary container storage to persistent application data.
+- Added atomic cache writes to avoid partially written cache files.
+
 ## 0.4.6.3
 
 - Improved VPN menu contrast in dark mode.

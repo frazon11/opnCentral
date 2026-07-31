@@ -41,7 +41,7 @@ function opn_curl_handle(
             ':' .
             decrypt_value((string) $firewall['api_secret_enc']),
         CURLOPT_HTTPAUTH => CURLAUTH_BASIC,
-        CURLOPT_CONNECTTIMEOUT => 8,
+        CURLOPT_CONNECTTIMEOUT => min(4, max(1, $timeout)),
         CURLOPT_TIMEOUT => $timeout,
         CURLOPT_FOLLOWLOCATION => false,
         CURLOPT_SSL_VERIFYPEER => (bool) $firewall['verify_tls'],
@@ -247,7 +247,7 @@ function opn_download(array $firewall, string $path): string
 
 function wireguard_inventory_cache_path(): string
 {
-    return sys_get_temp_dir() . '/opncentral-wireguard-inventory.json';
+    return DATA_DIR . '/wireguard-inventory-cache.json';
 }
 
 function invalidate_wireguard_inventory_cache(): void

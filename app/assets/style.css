@@ -168,3 +168,8 @@
         grid-template-columns:1fr;
     }
 }
+
+.plugin-card{grid-column:1/-1}
+.table-scroll{overflow:auto;margin-top:14px}
+.plugin-actions{display:flex;gap:6px;flex-wrap:wrap;min-width:270px}
+.plugin-actions button{padding:6px 9px}

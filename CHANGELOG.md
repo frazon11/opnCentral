@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.5.1.0
+
+- Added central plugin inventory across all managed firewalls.
+- Added single-firewall install, reinstall, remove, lock and unlock actions.
+- Restricted management actions to OPNsense plugin package names beginning with `os-`.
+- Added mandatory pre-change backups for install, reinstall and remove.
+- Added persistent plugin job records with OPNsense message UUIDs.
+- Added cached, parallel inventory loading.
+- Bulk plugin operations remain disabled pending real-firewall validation.
+
 ## 0.5.0.0
 
 - Added the first minimal `os-opncentral-agent` source tree.

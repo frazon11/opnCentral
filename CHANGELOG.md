@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.7.2
+
+- Added explicit update comparison states: behind, equal, ahead and unknown.
+- Installations newer than the latest published GitHub release now show “Ahead of latest release”.
+- Replaced the misleading latest-release message when the installed version is newer.
+- Kept “Update available” only for installations older than the latest published release.
+
 ## 0.4.7.1
 
 - Fixed the DNS-resolution regression introduced in 0.4.7.0.

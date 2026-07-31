@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-const OPNCENTRAL_VERSION = '0.4.7.1';
+const OPNCENTRAL_VERSION = '0.4.7.2';
 const OPNCENTRAL_GITHUB_REPOSITORY = 'frazon11/opnCentral';
 const OPNCENTRAL_UPDATE_INTERVAL = 86400;
 
@@ -23,6 +23,7 @@ function update_check_defaults(): array
         'release_url' => null,
         'published_at' => null,
         'update_available' => false,
+        'comparison' => 'unknown',
         'error' => null,
     ];
 }
@@ -46,9 +47,19 @@ function update_check_load(): array
         (string) ($state['latest_version'] ?? '')
     );
 
-    $state['update_available'] =
-        $latest !== '' &&
-        version_compare($latest, OPNCENTRAL_VERSION, '>');
+    if ($latest === '') {
+        $state['comparison'] = 'unknown';
+        $state['update_available'] = false;
+    } elseif (version_compare($latest, OPNCENTRAL_VERSION, '>')) {
+        $state['comparison'] = 'behind';
+        $state['update_available'] = true;
+    } elseif (version_compare($latest, OPNCENTRAL_VERSION, '<')) {
+        $state['comparison'] = 'ahead';
+        $state['update_available'] = false;
+    } else {
+        $state['comparison'] = 'equal';
+        $state['update_available'] = false;
+    }
 
     return $state;
 }
@@ -115,9 +126,19 @@ function update_check_run(bool $force = false): array
         $latest = update_check_normalize_version(
             (string) ($state['latest_version'] ?? '')
         );
-        $state['update_available'] =
-            $latest !== '' &&
-            version_compare($latest, OPNCENTRAL_VERSION, '>');
+        if ($latest === '') {
+            $state['comparison'] = 'unknown';
+            $state['update_available'] = false;
+        } elseif (version_compare($latest, OPNCENTRAL_VERSION, '>')) {
+            $state['comparison'] = 'behind';
+            $state['update_available'] = true;
+        } elseif (version_compare($latest, OPNCENTRAL_VERSION, '<')) {
+            $state['comparison'] = 'ahead';
+            $state['update_available'] = false;
+        } else {
+            $state['comparison'] = 'equal';
+            $state['update_available'] = false;
+        }
         return $state;
     }
 
@@ -194,11 +215,16 @@ function update_check_run(bool $force = false): array
         FILTER_VALIDATE_URL
     ) ?: null;
     $state['published_at'] = trim((string) ($release['published_at'] ?? '')) ?: null;
-    $state['update_available'] = version_compare(
-        $latest,
-        OPNCENTRAL_VERSION,
-        '>'
-    );
+    if (version_compare($latest, OPNCENTRAL_VERSION, '>')) {
+        $state['comparison'] = 'behind';
+        $state['update_available'] = true;
+    } elseif (version_compare($latest, OPNCENTRAL_VERSION, '<')) {
+        $state['comparison'] = 'ahead';
+        $state['update_available'] = false;
+    } else {
+        $state['comparison'] = 'equal';
+        $state['update_available'] = false;
+    }
     $state['error'] = null;
 
     update_check_save($state);

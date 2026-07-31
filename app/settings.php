@@ -265,12 +265,20 @@ require __DIR__ . '/inc/header.php';
             return;
         }
 
-        if(state.update_available){
+        if(state.comparison==='behind'){
             status.innerHTML='<span class="badge warning">Update available</span>';
-            message.textContent='A newer opnCentral release is available.';
-        }else{
+            message.textContent='A newer published opnCentral release is available.';
+        }else if(state.comparison==='ahead'){
+            status.innerHTML='<span class="badge neutral">Ahead of latest release</span>';
+            message.textContent=
+                'This installation is newer than the latest published GitHub release.';
+        }else if(state.comparison==='equal'){
             status.innerHTML='<span class="badge good">Up to date</span>';
-            message.textContent='This installation is running the latest published release.';
+            message.textContent=
+                'This installation matches the latest published GitHub release.';
+        }else{
+            status.innerHTML='<span class="badge neutral">Unknown</span>';
+            message.textContent='The installed and published versions could not be compared.';
         }
 
         if(state.release_url){

@@ -1,22 +1,6 @@
 # Changelog
 
-## 0.6.0.3
-
-- Restored the PayPal support link.
-- Moved PayPal directly below the Logout button in the sidebar.
-- Kept “Buy me a coffee” beside the application version.
-
-## 0.6.0.3
-
-- Replaced the sidebar PayPal support link with “Buy me a coffee”.
-- Added the support URL `https://buymeacoffee.com/frazon11`.
-
-## 0.6.0.3
-
-- Released the OpenVPN Roadwarrior server wizard as version 0.6.0.3.
-- No functional changes from the prepared 0.6.0.0 build.
-
-## 0.6.0.3
+## 0.6.0.0
 
 - Added Create OpenVPN Roadwarrior Server under VPN → OpenVPN.
 - Added target-firewall discovery for CAs, certificates, TLS static keys and authentication providers.

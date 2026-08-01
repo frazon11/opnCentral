@@ -13,12 +13,12 @@ function nav_active(array $paths): string {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>opnCentral</title>
-<link rel="icon" href="/assets/favicon.ico?v=0603" sizes="any">
-<link rel="icon" type="image/svg+xml" href="/assets/opncentral-icon.svg?v=0603">
-<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png?v=0603">
-<link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png?v=0603">
-<link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png?v=0603">
-<link rel="manifest" href="/assets/site.webmanifest?v=0603">
+<link rel="icon" href="/assets/favicon.ico?v=0600" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/assets/opncentral-icon.svg?v=0600">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png?v=0600">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png?v=0600">
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png?v=0600">
+<link rel="manifest" href="/assets/site.webmanifest?v=0600">
 <meta name="theme-color" content="#26313a" id="browser-theme-color">
 <script>
 (function(){
@@ -27,7 +27,7 @@ function nav_active(array $paths): string {
     document.documentElement.dataset.theme=theme;
 })();
 </script>
-<link rel="stylesheet" href="/assets/style.css?v=0603">
+<link rel="stylesheet" href="/assets/style.css?v=0600">
 </head>
 <body class="<?= logged_in() ? 'app-shell' : 'login-shell' ?>">
 <?php if (logged_in()): ?>
@@ -37,13 +37,8 @@ function nav_active(array $paths): string {
         <div>
             <strong><?= h(app_name()) ?></strong>
             <div class="sidebar-meta">
-                <span>v0.6.0.3</span><span>·</span>
-                <a
-                    href="https://buymeacoffee.com/frazon11"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    title="Buy me a coffee"
-                >☕ Buy me a coffee</a>
+                <span>v0.6.0.0</span><span>·</span>
+                <a href="https://www.paypal.com/paypalme/FrazoN11" target="_blank" rel="noopener noreferrer">♥ <?= h(t('menu.support')) ?></a>
             </div>
         </div>
     </div>
@@ -93,21 +88,7 @@ function nav_active(array $paths): string {
         <a class="<?= nav_active(['/notifications.php']) ?>" href="/notifications.php">● <span><?= h(t('menu.notifications')) ?></span></a>
     </nav>
 
-    <div class="sidebar-footer-actions">
-        <a class="sidebar-logout" href="/logout.php">
-            ⇥ <?= h(t('menu.logout')) ?>
-        </a>
-
-        <a
-            class="sidebar-paypal"
-            href="https://www.paypal.com/paypalme/FrazoN11"
-            target="_blank"
-            rel="noopener noreferrer"
-            title="Support via PayPal"
-        >
-            ♥ PayPal
-        </a>
-    </div>
+    <a class="sidebar-logout" href="/logout.php">⇥ <?= h(t('menu.logout')) ?></a>
 </aside>
 <div class="page-shell">
 <header class="topbar">

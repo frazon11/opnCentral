@@ -304,3 +304,22 @@
         width:100%;
     }
 }
+
+.sidebar-footer-actions{
+    display:grid;
+    gap:4px;
+    margin-top:auto;
+}
+.sidebar-footer-actions .sidebar-logout{
+    margin-top:0;
+}
+.sidebar-paypal{
+    display:block;
+    padding:10px 18px 14px;
+    color:var(--sidebar-muted);
+    text-decoration:none;
+    font-size:.88rem;
+}
+.sidebar-paypal:hover{
+    color:#ffffff;
+}

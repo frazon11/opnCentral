@@ -1,22 +1,32 @@
 # Changelog
 
-## 0.6.0.3
+## 0.6.1.0
+
+- Enabled VPN → OpenVPN → Manage.
+- Added per-firewall OpenVPN instance inventory.
+- Added active-session overview.
+- Added enable, disable, start, stop, restart and delete actions.
+- Added automatic backups before enable, disable and delete.
+- Added OpenVPN service reconfiguration after instance state changes.
+- Added direct access to the Roadwarrior server wizard.
+
+## 0.6.1.0
 
 - Restored the PayPal support link.
 - Moved PayPal directly below the Logout button in the sidebar.
 - Kept “Buy me a coffee” beside the application version.
 
-## 0.6.0.3
+## 0.6.1.0
 
 - Replaced the sidebar PayPal support link with “Buy me a coffee”.
 - Added the support URL `https://buymeacoffee.com/frazon11`.
 
-## 0.6.0.3
+## 0.6.1.0
 
-- Released the OpenVPN Roadwarrior server wizard as version 0.6.0.3.
+- Released the OpenVPN Roadwarrior server wizard as version 0.6.1.0.
 - No functional changes from the prepared 0.6.0.0 build.
 
-## 0.6.0.3
+## 0.6.1.0
 
 - Added Create OpenVPN Roadwarrior Server under VPN → OpenVPN.
 - Added target-firewall discovery for CAs, certificates, TLS static keys and authentication providers.

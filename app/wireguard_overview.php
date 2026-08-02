@@ -3,12 +3,12 @@ require_once __DIR__ . '/inc/config.php';
 require_login();
 require __DIR__ . '/inc/header.php';
 ?>
-<div class="page-title">
+<div class="page-title management-page-title">
     <div>
         <h1>Managed WireGuard</h1>
         <p>Paired site-to-site connections between OPNsense firewalls managed by opnCentral.</p>
     </div>
-    <div class="actions">
+    <div class="management-toolbar">
         <a class="button" href="/wireguard_create.php">Create site-to-site tunnel</a>
         <button type="button" id="refresh-links" class="button secondary">Refresh</button>
     </div>
@@ -16,10 +16,15 @@ require __DIR__ . '/inc/header.php';
 
 <div id="wg-overview-error" class="alert error hidden"></div>
 
-<section class="card">
-    <div id="wg-overview-summary" class="vpn-summary">Loading managed connections…</div>
-    <div class="table-wrap">
-        <table class="opn-table">
+<section class="card management-card">
+    <div class="management-card-header">
+        <div>
+            <h2>WireGuard connections</h2>
+            <div id="wg-overview-summary" class="management-summary">Loading managed connections…</div>
+        </div>
+    </div>
+    <div class="table-scroll management-table-wrap">
+        <table class="management-table">
             <thead>
                 <tr>
                     <th>Connection</th>

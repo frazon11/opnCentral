@@ -7,23 +7,36 @@ $selectedId=(int)($_GET['firewall_id']??0);
 if($selectedId<1&&$firewalls)$selectedId=(int)$firewalls[0]['id'];
 require __DIR__.'/inc/header.php';
 ?>
-<div class="page-title">
+<div class="page-title management-page-title">
  <div><h1>Manage OpenVPN</h1><p>Instances and active sessions on one managed OPNsense.</p></div>
- <div class="plugin-toolbar">
+ <div class="management-toolbar">
   <select id="firewall-select"><?php foreach($firewalls as $fw):?><option value="<?=(int)$fw['id']?>" <?=$selectedId===(int)$fw['id']?'selected':''?>><?=h((string)$fw['name'])?></option><?php endforeach;?></select>
   <button class="button secondary" id="refresh">Refresh</button>
   <a class="button" href="/openvpn_roadwarrior_create.php">Create Roadwarrior Server</a>
  </div>
 </div>
 <div id="ovpn-error" class="alert error hidden"></div>
-<div id="ovpn-summary" class="muted">Loading OpenVPN instances…</div>
-<div class="card">
- <div class="table-scroll"><table>
+<div class="card management-card">
+ <div class="management-card-header">
+  <div>
+   <h2>OpenVPN instances</h2>
+   <div id="ovpn-summary" class="management-summary">Loading OpenVPN instances…</div>
+  </div>
+ </div>
+ <div class="table-scroll management-table-wrap"><table class="management-table">
  <thead><tr><th>Instance</th><th>Role</th><th>Listener / Remote</th><th>Tunnel</th><th>Status</th><th>Actions</th></tr></thead>
  <tbody id="ovpn-body"><tr><td colspan="6">Loading…</td></tr></tbody>
  </table></div>
 </div>
-<div class="card"><h2>Active sessions</h2><div id="session-summary" class="muted">Loading…</div><div id="session-table"></div></div>
+<div class="card management-card">
+ <div class="management-card-header">
+  <div>
+   <h2>Active sessions</h2>
+   <div id="session-summary" class="management-summary">Loading…</div>
+  </div>
+ </div>
+ <div id="session-table"></div>
+</div>
 <script>
 (function(){
  const firewallId=()=>document.getElementById('firewall-select').value;
@@ -33,7 +46,7 @@ require __DIR__.'/inc/header.php';
  async function readJson(r){const raw=await r.text();try{return JSON.parse(raw)}catch(_){throw new Error('Invalid JSON: '+raw.replace(/\s+/g,' ').slice(0,700))}}
  function actions(i){
   const toggle=i.enabled?`<button data-action="disable">Disable</button>`:`<button data-action="enable">Enable</button>`;
-  return `<div class="plugin-row-actions" data-uuid="${e(i.uuid)}" data-vpnid="${e(i.vpnid)}">${toggle}<button data-action="start">Start</button><button data-action="stop">Stop</button><button data-action="restart">Restart</button><button class="danger" data-action="delete">Delete</button></div>`;
+  return `<div class="management-row-actions" data-uuid="${e(i.uuid)}" data-vpnid="${e(i.vpnid)}">${toggle}<button data-action="start">Start</button><button data-action="stop">Stop</button><button data-action="restart">Restart</button><button class="danger" data-action="delete">Delete</button></div>`;
  }
  function render(data){
   const list=data.instances||[];
@@ -42,7 +55,7 @@ require __DIR__.'/inc/header.php';
   body.querySelectorAll('[data-action]').forEach(b=>b.addEventListener('click',()=>runAction(b)));
   const sessions=Array.isArray(data.sessions)?data.sessions:[];
   sessionSummary.textContent=data.sessions_error?data.sessions_error:`${sessions.length} active session${sessions.length===1?'':'s'}`;
-  sessionTable.innerHTML=sessions.length?`<div class="table-scroll"><table><thead><tr><th>User / Common Name</th><th>Virtual address</th><th>Remote address</th><th>Connected</th></tr></thead><tbody>${sessions.map(s=>`<tr><td>${e(s.common_name||s.username||s.user_name||'—')}</td><td>${e(s.virtual_address||s.virtual_addr||s.vpn_ip||'—')}</td><td>${e(s.real_address||s.remote_address||s.remote_host||'—')}</td><td>${e(s.connected_since||s.connect_time||s.since||'—')}</td></tr>`).join('')}</tbody></table></div>`:'';
+  sessionTable.innerHTML=sessions.length?`<div class="table-scroll management-table-wrap"><table class="management-table"><thead><tr><th>User / Common Name</th><th>Virtual address</th><th>Remote address</th><th>Connected</th></tr></thead><tbody>${sessions.map(s=>`<tr><td>${e(s.common_name||s.username||s.user_name||'—')}</td><td>${e(s.virtual_address||s.virtual_addr||s.vpn_ip||'—')}</td><td>${e(s.real_address||s.remote_address||s.remote_host||'—')}</td><td>${e(s.connected_since||s.connect_time||s.since||'—')}</td></tr>`).join('')}</tbody></table></div>`:'';
  }
  async function load(){
   refresh.disabled=true;errorBox.classList.add('hidden');

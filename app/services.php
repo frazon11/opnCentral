@@ -7,18 +7,25 @@ require_login();
 require __DIR__ . '/inc/header.php';
 ?>
 
-<div class="page-title">
+<div class="page-title management-page-title">
     <div>
         <h1>Services</h1>
         <p>Active services on all managed OPNsense firewalls.</p>
     </div>
 
-    <button type="button" class="button secondary" id="services-refresh">
-        Refresh
-    </button>
+    <div class="management-toolbar">
+        <button type="button" class="button secondary" id="services-refresh">
+            Refresh
+        </button>
+    </div>
 </div>
 
-<div id="services-summary" class="muted">Loading services…</div>
+<div class="management-overview-bar">
+    <div>
+        <strong>Service overview</strong>
+        <div id="services-summary" class="management-summary">Loading services…</div>
+    </div>
+</div>
 <div id="services-error" class="alert error hidden"></div>
 <div id="services-grid" class="services-grid">
     <section class="card">
@@ -95,8 +102,8 @@ require __DIR__ . '/inc/header.php';
                 )
                 : '<div class="alert error">'+escapeHtml(firewall.error||'Unavailable')+'</div>';
 
-            return '<section class="card service-firewall-card">'+
-                '<div class="card-head">'+
+            return '<section class="card management-card service-firewall-card">'+
+                '<div class="management-card-header">'+
                     '<div><h2>'+escapeHtml(firewall.name)+'</h2>'+
                     '<a class="muted" target="_blank" rel="noopener" href="'+
                         escapeHtml(firewall.base_url)+'">'+

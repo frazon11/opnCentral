@@ -1,6 +1,16 @@
 # Changelog
 
-## 0.6.2.2
+## 0.6.2.3
+
+- Redesigned Manage WireGuard with compact connection summaries.
+- Added expandable WireGuard connection details and controls.
+- Redesigned Manage OpenVPN with compact instance summaries.
+- Added expandable OpenVPN instance details and actions.
+- Added compact active-session summary with expandable session table.
+- Kept VPN details and action controls collapsed by default.
+- Preserved existing API, backup, refresh and action behavior.
+
+## 0.6.2.3
 
 - Redesigned Services to use a dashboard-like compact default view.
 - Added one compact summary row per firewall.
@@ -10,12 +20,12 @@
 - Kept service details collapsed by default.
 - Preserved existing cache and refresh behavior.
 
-## 0.6.2.2
+## 0.6.2.3
 
-- Republished the consistent management-layout release as version 0.6.2.2.
+- Republished the consistent management-layout release as version 0.6.2.3.
 - No functional changes from version 0.6.2.0.
 
-## 0.6.2.2
+## 0.6.2.3
 
 - Standardized the layout of Manage WireGuard, Manage OpenVPN, Services and Agents.
 - Added one shared page-header and toolbar pattern.
@@ -24,7 +34,7 @@
 - Reorganized Agents into inventory, registration and installation sections.
 - Preserved existing functionality and API behavior.
 
-## 0.6.2.2
+## 0.6.2.3
 
 - Enabled VPN → OpenVPN → Manage.
 - Added per-firewall OpenVPN instance inventory.
@@ -34,23 +44,23 @@
 - Added OpenVPN service reconfiguration after instance state changes.
 - Added direct access to the Roadwarrior server wizard.
 
-## 0.6.2.2
+## 0.6.2.3
 
 - Restored the PayPal support link.
 - Moved PayPal directly below the Logout button in the sidebar.
 - Kept “Buy me a coffee” beside the application version.
 
-## 0.6.2.2
+## 0.6.2.3
 
 - Replaced the sidebar PayPal support link with “Buy me a coffee”.
 - Added the support URL `https://buymeacoffee.com/frazon11`.
 
-## 0.6.2.2
+## 0.6.2.3
 
-- Released the OpenVPN Roadwarrior server wizard as version 0.6.2.2.
+- Released the OpenVPN Roadwarrior server wizard as version 0.6.2.3.
 - No functional changes from the prepared 0.6.0.0 build.
 
-## 0.6.2.2
+## 0.6.2.3
 
 - Added Create OpenVPN Roadwarrior Server under VPN → OpenVPN.
 - Added target-firewall discovery for CAs, certificates, TLS static keys and authentication providers.

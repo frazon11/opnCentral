@@ -66,80 +66,8 @@ require __DIR__ . '/inc/header.php';
     const errorBox = document.getElementById('ovpn-error');
     const refresh = document.getElementById('refresh');
 
-    const opnForm = [
-        {header:'General Settings'},
-        {key:'vpnid',label:'VPN ID',type:'text'},
-        {key:'role',label:'Role',type:'dropdown'},
-        {key:'description',label:'Description',type:'text'},
-        {key:'enabled',label:'Enabled',type:'checkbox'},
-        {key:'proto',label:'Protocol',type:'dropdown'},
-        {key:'port',label:'Port number',type:'text'},
-        {key:'local',label:'Bind address',type:'text'},
-        {key:'port-share',label:'Port share',type:'text',advanced:true,roles:['server']},
-        {key:'dev_type',label:'Type',type:'dropdown'},
-        {key:'verb',label:'Verbosity',type:'dropdown',advanced:true},
-        {key:'maxclients',label:'Concurrent connections',type:'text',advanced:true,roles:['server']},
-        {key:'keepalive_interval',label:'Keep alive interval',type:'text',advanced:true},
-        {key:'keepalive_timeout',label:'Keep alive timeout',type:'text',advanced:true},
-        {key:'server',label:'Server (IPv4)',type:'text',roles:['server'],devices:['tun','ovpn']},
-        {key:'server_ipv6',label:'Server (IPv6)',type:'text',roles:['server'],devices:['tun','ovpn']},
-        {key:'nopool',label:'No Pool',type:'checkbox',roles:['server'],devices:['tun','ovpn']},
-        {key:'bridge_gateway',label:'Bridge gateway',type:'text',roles:['server'],devices:['tap']},
-        {key:'bridge_pool',label:'Bridge DHCP pool',type:'text',roles:['server'],devices:['tap']},
-        {key:'topology',label:'Topology',type:'dropdown',roles:['server']},
-        {key:'remote',label:'Remote',type:'select_multiple',roles:['client']},
-        {key:'carp_depend_on',label:'Depend on (CARP)',type:'dropdown',roles:['client']},
-
-        {header:'Trust'},
-        {key:'cert',label:'Certificate',type:'dropdown',reference:'certificates'},
-        {key:'remote_cert_tls',label:'Verify Remote Certificate',type:'checkbox'},
-        {key:'ca',label:'Certificate Authority',type:'dropdown',advanced:true,reference:'cas'},
-        {key:'crl',label:'Certificate Revocation List',type:'dropdown',roles:['server']},
-        {key:'verify_client_cert',label:'Verify Client Certificate',type:'dropdown',roles:['server']},
-        {key:'use_ocsp',label:'Use OCSP (when available)',type:'checkbox',roles:['server']},
-        {key:'cert_depth',label:'Certificate Depth',type:'dropdown',roles:['server']},
-        {key:'tls_key',label:'TLS static key',type:'dropdown',reference:'static_keys'},
-        {key:'auth',label:'Auth',type:'dropdown',advanced:true},
-        {key:'data-ciphers',label:'Data Ciphers',type:'select_multiple',advanced:true},
-        {key:'data-ciphers-fallback',label:'Data Ciphers Fallback',type:'dropdown',advanced:true},
-
-        {header:'Authentication'},
-        {key:'authmode',label:'Authentication',type:'select_multiple',roles:['server'],reference:'providers'},
-        {key:'local_group',label:'Enforce local group',type:'dropdown',roles:['server']},
-        {key:'username_as_common_name',label:'Username as CN',type:'checkbox',advanced:true,roles:['server']},
-        {key:'strictusercn',label:'Strict User/CN Matching',type:'dropdown',roles:['server']},
-        {key:'username',label:'Username',type:'text',roles:['client']},
-        {key:'password',label:'Password',type:'password',roles:['client'],sensitive:true},
-        {key:'reneg-sec',label:'Renegotiate time',type:'text'},
-        {key:'auth-gen-token',label:'Auth Token Lifetime',type:'text',roles:['server']},
-        {key:'auth-gen-token-renewal',label:'Auth Token Renewal',type:'text',advanced:true,roles:['server']},
-        {key:'auth-gen-token-secret',label:'Auth Token secret',type:'textbox',advanced:true,roles:['server'],sensitive:true},
-        {key:'provision_exclusive',label:'Require Client Provisioning',type:'checkbox',advanced:true,roles:['server']},
-
-        {header:'Routing'},
-        {key:'push_route',label:'Local Network',type:'select_multiple'},
-        {key:'route',label:'Remote Network',type:'select_multiple'},
-        {key:'push_excluded_routes',label:'Excluded routes',type:'select_multiple',advanced:true},
-
-        {header:'Miscellaneous'},
-        {key:'various_flags',label:'Options',type:'select_multiple'},
-        {key:'various_push_flags',label:'Push Options',type:'select_multiple',roles:['server']},
-        {key:'push_inactive',label:'Push inactivity timeout',type:'text',advanced:true,roles:['server']},
-        {key:'redirect_gateway',label:'Redirect gateway',type:'select_multiple',roles:['server']},
-        {key:'route_metric',label:'Route-metric (client)',type:'text',advanced:true,roles:['server']},
-        {key:'register_dns',label:'Register DNS',type:'checkbox',roles:['server']},
-        {key:'dns_domain',label:'DNS Domain list',type:'select_multiple',roles:['server']},
-        {key:'dns_domain_search',label:'DNS Domain search list',type:'select_multiple',roles:['server']},
-        {key:'dns_servers',label:'DNS Servers',type:'select_multiple',roles:['server']},
-        {key:'ntp_servers',label:'NTP Servers',type:'select_multiple',roles:['server']},
-        {key:'tun_mtu',label:'TUN device MTU',type:'text',advanced:true},
-        {key:'fragment',label:'Fragment size',type:'text',advanced:true},
-        {key:'mssfix',label:'MSS fix',type:'checkbox',advanced:true},
-        {key:'compress_migrate',label:'Compression migrate',type:'checkbox',advanced:true,roles:['server']},
-        {key:'ifconfig-pool-persist',label:'Persist address pool',type:'checkbox',advanced:true,roles:['server']},
-        {key:'http-proxy',label:'HTTP Proxy',type:'text',roles:['client']},
-        {key:'verify-x509-name',label:'Verify X.509 name',type:'text',advanced:true}
-    ];
+    let opnForm = [];
+    let knownKeys = new Set();
 
     const optionLabels = {
         role:{client:'Client',server:'Server'},
@@ -165,9 +93,6 @@ require __DIR__ . '/inc/header.php';
         }
     };
 
-    const knownKeys = new Set(
-        opnForm.filter(item => item.key).map(item => item.key)
-    );
 
     function escapeHtml(value){
         const node = document.createElement('div');
@@ -397,16 +322,24 @@ require __DIR__ . '/inc/header.php';
 
         const role = String(config.role || 'server');
         const device = String(config.dev_type || 'tun');
+        const classes = String(field.style || '')
+            .split(/\s+/)
+            .filter(Boolean);
 
-        if(field.roles && !field.roles.includes(role)){
-            return false;
+        const roleClasses = classes.filter(
+            value => value.startsWith('role_')
+        );
+
+        if(!roleClasses.length){
+            return true;
         }
 
-        if(field.devices && !field.devices.includes(device)){
-            return false;
-        }
+        const candidates = new Set([
+            'role_' + role,
+            'role_' + role + '_' + device
+        ]);
 
-        return true;
+        return roleClasses.some(value => candidates.has(value));
     }
 
     function renderFormRows(config, references, advanced){
@@ -590,6 +523,33 @@ require __DIR__ . '/inc/header.php';
                     );
             });
         });
+    }
+
+    async function loadFormSchema(){
+        const response = await fetch(
+            '/openvpn_form_schema.php',
+            {
+                credentials: 'same-origin',
+                cache: 'no-store'
+            }
+        );
+        const data = await readJson(response);
+
+        if(!response.ok || data.ok !== true){
+            throw new Error(
+                data.error ||
+                'Could not load the OPNsense OpenVPN form definition.'
+            );
+        }
+
+        opnForm = Array.isArray(data.schema)
+            ? data.schema
+            : [];
+        knownKeys = new Set(
+            opnForm
+                .filter(item => item.key)
+                .map(item => item.key)
+        );
     }
 
     async function loadFirewall(firewall){
@@ -787,8 +747,7 @@ require __DIR__ . '/inc/header.php';
                                 <div>
                                     <strong>OpenVPN instance configuration</strong>
                                     <div class="muted">
-                                        Read-only representation of VPN →
-                                        OpenVPN → Instances on ${
+                                        Read-only OPNsense VPN → OpenVPN → Instances form on ${
                                             escapeHtml(result.firewall.name)
                                         }
                                     </div>
@@ -909,6 +868,8 @@ require __DIR__ . '/inc/header.php';
         errorBox.classList.add('hidden');
 
         try{
+            await loadFormSchema();
+
             const results = await Promise.all(
                 firewalls.map(loadFirewall)
             );

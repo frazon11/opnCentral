@@ -699,3 +699,16 @@
         grid-template-columns:1fr;
     }
 }
+
+.vpn-summary-identity a{
+    display:block;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+.vpn-session-subheader{
+    border-top:1px solid var(--border);
+}
+.vpn-details-error{
+    margin:14px;
+}

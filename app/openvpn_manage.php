@@ -8,35 +8,16 @@ $firewalls = db()
     ->query('SELECT id,name,base_url FROM firewalls ORDER BY name')
     ->fetchAll();
 
-$selectedId = (int)($_GET['firewall_id'] ?? 0);
-
-if($selectedId < 1 && $firewalls){
-    $selectedId = (int)$firewalls[0]['id'];
-}
-
 require __DIR__.'/inc/header.php';
 ?>
 
 <div class="page-title management-page-title">
     <div>
         <h1>Manage OpenVPN</h1>
-        <p>Instances and active sessions on one managed OPNsense.</p>
+        <p>OpenVPN status grouped by managed OPNsense firewall.</p>
     </div>
 
     <div class="management-toolbar">
-        <select id="firewall-select">
-            <?php foreach($firewalls as $firewall): ?>
-                <option
-                    value="<?=(int)$firewall['id']?>"
-                    <?=$selectedId === (int)$firewall['id']
-                        ? 'selected'
-                        : ''?>
-                >
-                    <?=h((string)$firewall['name'])?>
-                </option>
-            <?php endforeach; ?>
-        </select>
-
         <button class="button secondary" id="refresh">
             Refresh
         </button>
@@ -51,7 +32,7 @@ require __DIR__.'/inc/header.php';
     <div>
         <strong>OpenVPN overview</strong>
         <div id="ovpn-summary" class="management-summary">
-            Loading OpenVPN instances…
+            Loading OpenVPN data…
         </div>
     </div>
 </div>
@@ -64,49 +45,20 @@ require __DIR__.'/inc/header.php';
     </section>
 </div>
 
-<section class="card vpn-summary-card openvpn-session-card">
-    <div class="vpn-summary-main">
-        <div class="vpn-summary-identity">
-            <h2>Active sessions</h2>
-            <span id="session-summary" class="muted">
-                Loading…
-            </span>
-        </div>
-
-        <div class="vpn-summary-metric">
-            <span class="vpn-summary-label">Sessions</span>
-            <span id="session-count" class="badge neutral">—</span>
-        </div>
-
-        <div class="vpn-summary-actions">
-            <button
-                type="button"
-                id="session-details-toggle"
-                class="button secondary"
-                aria-expanded="false"
-            >
-                Details
-            </button>
-        </div>
-    </div>
-
-    <div id="session-details-panel" class="vpn-details-panel" hidden>
-        <div class="vpn-details-header">
-            <div>
-                <strong>Connected OpenVPN clients</strong>
-                <div class="muted">
-                    Current sessions reported by the selected firewall.
-                </div>
-            </div>
-        </div>
-        <div id="session-table"></div>
-    </div>
-</section>
-
 <script>
 (function(){
-    const firewallSelect = document.getElementById('firewall-select');
-    const firewallId = () => firewallSelect.value;
+    const firewalls = <?= json_encode(
+        array_map(
+            static fn(array $firewall): array => [
+                'id' => (int) $firewall['id'],
+                'name' => (string) $firewall['name'],
+                'base_url' => (string) $firewall['base_url'],
+            ],
+            $firewalls
+        ),
+        JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
+    ) ?>;
+
     const csrf = <?=json_encode(
         csrf_token(),
         JSON_UNESCAPED_SLASHES
@@ -116,15 +68,6 @@ require __DIR__.'/inc/header.php';
     const summary = document.getElementById('ovpn-summary');
     const errorBox = document.getElementById('ovpn-error');
     const refresh = document.getElementById('refresh');
-    const sessionSummary = document.getElementById('session-summary');
-    const sessionCount = document.getElementById('session-count');
-    const sessionTable = document.getElementById('session-table');
-    const sessionToggle = document.getElementById(
-        'session-details-toggle'
-    );
-    const sessionPanel = document.getElementById(
-        'session-details-panel'
-    );
 
     function escapeHtml(value){
         const node = document.createElement('div');
@@ -150,25 +93,48 @@ require __DIR__.'/inc/header.php';
         return text === '' ? '—' : escapeHtml(text);
     }
 
-    function instanceStatus(instance){
-        return instance.enabled
+    function statusBadge(enabled){
+        return enabled
             ? '<span class="badge good">Enabled</span>'
             : '<span class="badge neutral">Disabled</span>';
     }
 
-    function listenerSummary(instance){
-        const local = instance.local || '*';
-        const port = instance.port
-            ? ':' + instance.port
-            : '';
-        const proto = instance.proto
-            ? ' ' + instance.proto
-            : '';
+    function sessionRows(sessions){
+        if(!sessions.length){
+            return `<tr>
+                <td colspan="4">No active OpenVPN sessions.</td>
+            </tr>`;
+        }
 
-        return escapeHtml(local + port + proto);
+        return sessions.map(function(session){
+            return `
+                <tr>
+                    <td>${detailValue(
+                        session.common_name ||
+                        session.username ||
+                        session.user_name
+                    )}</td>
+                    <td>${detailValue(
+                        session.virtual_address ||
+                        session.virtual_addr ||
+                        session.vpn_ip
+                    )}</td>
+                    <td>${detailValue(
+                        session.real_address ||
+                        session.remote_address ||
+                        session.remote_host
+                    )}</td>
+                    <td>${detailValue(
+                        session.connected_since ||
+                        session.connect_time ||
+                        session.since
+                    )}</td>
+                </tr>
+            `;
+        }).join('');
     }
 
-    function actionButtons(instance, index){
+    function actionButtons(instance, firewallId){
         const toggleAction = instance.enabled
             ? 'disable'
             : 'enable';
@@ -176,45 +142,37 @@ require __DIR__.'/inc/header.php';
         return `
             <div
                 class="management-row-actions"
+                data-firewall-id="${firewallId}"
                 data-uuid="${escapeHtml(instance.uuid)}"
                 data-vpnid="${escapeHtml(instance.vpnid)}"
             >
                 <button
                     class="button secondary"
                     data-action="${toggleAction}"
-                    data-index="${index}"
                 >
-                    ${
-                        instance.enabled
-                            ? 'Disable'
-                            : 'Enable'
-                    }
+                    ${instance.enabled ? 'Disable' : 'Enable'}
                 </button>
                 <button
                     class="button secondary"
                     data-action="start"
-                    data-index="${index}"
                 >
                     Start
                 </button>
                 <button
                     class="button secondary"
                     data-action="stop"
-                    data-index="${index}"
                 >
                     Stop
                 </button>
                 <button
                     class="button secondary"
                     data-action="restart"
-                    data-index="${index}"
                 >
                     Restart
                 </button>
                 <button
                     class="button danger"
                     data-action="delete"
-                    data-index="${index}"
                 >
                     Delete
                 </button>
@@ -222,179 +180,147 @@ require __DIR__.'/inc/header.php';
         `;
     }
 
-    function renderInstanceDetails(instance, index){
-        return `
-            <div class="vpn-details-header">
-                <div>
-                    <strong>OpenVPN instance details</strong>
-                    <div class="muted">
-                        ID ${detailValue(instance.vpnid)}
-                        ·
-                        <code>${detailValue(instance.uuid)}</code>
-                    </div>
-                </div>
-                ${actionButtons(instance, index)}
-            </div>
-
-            <div class="vpn-detail-grid">
-                <div class="vpn-detail-side">
-                    <dl>
-                        <dt>Role</dt>
-                        <dd>${detailValue(instance.role)}</dd>
-                        <dt>Device type</dt>
-                        <dd>${detailValue(instance.dev_type)}</dd>
-                        <dt>Protocol</dt>
-                        <dd>${detailValue(instance.proto)}</dd>
-                        <dt>Port</dt>
-                        <dd>${detailValue(instance.port)}</dd>
-                    </dl>
-                </div>
-
-                <div class="vpn-detail-side">
-                    <dl>
-                        <dt>Bind address</dt>
-                        <dd>${detailValue(instance.local || '*')}</dd>
-                        <dt>Remote endpoint</dt>
-                        <dd>${detailValue(instance.remote)}</dd>
-                        <dt>Tunnel network</dt>
-                        <dd>${detailValue(instance.server)}</dd>
-                        <dt>UUID</dt>
-                        <dd><code>${detailValue(instance.uuid)}</code></dd>
-                    </dl>
-                </div>
-            </div>
-        `;
-    }
-
-    function renderSessions(data){
-        const sessions = Array.isArray(data.sessions)
-            ? data.sessions
-            : [];
-
-        sessionCount.textContent = String(sessions.length);
-
-        sessionSummary.textContent = data.sessions_error
-            ? data.sessions_error
-            : sessions.length +
-                ' active session' +
-                (sessions.length === 1 ? '' : 's');
-
-        if(!sessions.length){
-            sessionTable.innerHTML =
-                '<div class="vpn-details-empty">' +
-                    (
-                        data.sessions_error
-                            ? escapeHtml(data.sessions_error)
-                            : 'No active OpenVPN sessions.'
-                    ) +
-                '</div>';
-            return;
+    function instanceRows(instances, firewallId){
+        if(!instances.length){
+            return `<tr>
+                <td colspan="6">No OpenVPN instances found.</td>
+            </tr>`;
         }
 
-        sessionTable.innerHTML = `
-            <div class="table-scroll management-table-wrap">
-                <table class="management-table">
-                    <thead>
-                        <tr>
-                            <th>User / Common Name</th>
-                            <th>Virtual address</th>
-                            <th>Remote address</th>
-                            <th>Connected</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${sessions.map(function(session){
-                            return `
-                                <tr>
-                                    <td>${detailValue(
-                                        session.common_name ||
-                                        session.username ||
-                                        session.user_name
-                                    )}</td>
-                                    <td>${detailValue(
-                                        session.virtual_address ||
-                                        session.virtual_addr ||
-                                        session.vpn_ip
-                                    )}</td>
-                                    <td>${detailValue(
-                                        session.real_address ||
-                                        session.remote_address ||
-                                        session.remote_host
-                                    )}</td>
-                                    <td>${detailValue(
-                                        session.connected_since ||
-                                        session.connect_time ||
-                                        session.since
-                                    )}</td>
-                                </tr>
-                            `;
-                        }).join('')}
-                    </tbody>
-                </table>
-            </div>
-        `;
+        return instances.map(function(instance){
+            const listener = instance.remote
+                ? instance.remote
+                : (instance.local || '*') +
+                    (instance.port ? ':' + instance.port : '') +
+                    (instance.proto ? ' ' + instance.proto : '');
+
+            return `
+                <tr>
+                    <td>
+                        <strong>${escapeHtml(
+                            instance.description || 'Unnamed'
+                        )}</strong>
+                        <br>
+                        <small>
+                            ID ${detailValue(instance.vpnid)}
+                        </small>
+                    </td>
+                    <td>${detailValue(instance.role)}</td>
+                    <td>${escapeHtml(listener)}</td>
+                    <td>${detailValue(instance.server)}</td>
+                    <td>${statusBadge(instance.enabled)}</td>
+                    <td>${actionButtons(instance, firewallId)}</td>
+                </tr>
+            `;
+        }).join('');
     }
 
-    function render(data){
-        const instances = Array.isArray(data.instances)
-            ? data.instances
-            : [];
+    async function loadFirewall(firewall){
+        try{
+            const response = await fetch(
+                '/openvpn_manage_data.php?firewall_id=' +
+                encodeURIComponent(firewall.id),
+                {
+                    credentials: 'same-origin',
+                    cache: 'no-store'
+                }
+            );
 
-        const enabled = instances.filter(
-            instance => instance.enabled
-        ).length;
-        const disabled = instances.length - enabled;
+            const data = await readJson(response);
 
-        summary.innerHTML =
-            '<span class="badge good">' +
-                enabled + ' enabled</span> ' +
-            '<span class="badge neutral">' +
-                disabled + ' disabled</span> ' +
-            '<span class="muted">on ' +
-                escapeHtml(data.firewall.name) +
-            '</span>';
+            if(!response.ok || data.ok !== true){
+                throw new Error(data.error || 'Load failed.');
+            }
 
-        if(!instances.length){
-            list.innerHTML =
-                '<section class="card vpn-summary-card">' +
-                    '<p class="muted">' +
-                        'No OpenVPN instances found.' +
-                    '</p>' +
-                '</section>';
-        }else{
-            list.innerHTML = instances.map(function(instance, index){
+            return {
+                ok: true,
+                firewall,
+                instances: Array.isArray(data.instances)
+                    ? data.instances
+                    : [],
+                sessions: Array.isArray(data.sessions)
+                    ? data.sessions
+                    : [],
+                sessions_error: data.sessions_error || null
+            };
+        }catch(error){
+            return {
+                ok: false,
+                firewall,
+                error: error.message,
+                instances: [],
+                sessions: []
+            };
+        }
+    }
+
+    function render(results){
+        const available = results.filter(item => item.ok).length;
+        const instanceTotal = results.reduce(
+            (sum, item) => sum + item.instances.length,
+            0
+        );
+        const sessionTotal = results.reduce(
+            (sum, item) => sum + item.sessions.length,
+            0
+        );
+
+        summary.textContent =
+            results.length + ' firewalls · ' +
+            available + ' reachable · ' +
+            instanceTotal + ' OpenVPN instances · ' +
+            sessionTotal + ' active sessions';
+
+        list.innerHTML = results.length
+            ? results.map(function(result){
+                const enabledCount = result.instances.filter(
+                    instance => instance.enabled
+                ).length;
+
                 return `
                     <section class="card vpn-summary-card">
                         <div class="vpn-summary-main">
                             <div class="vpn-summary-identity">
                                 <h2>${escapeHtml(
-                                    instance.description || 'Unnamed'
+                                    result.firewall.name
                                 )}</h2>
-                                <span class="muted">
-                                    ID ${detailValue(instance.vpnid)}
-                                    ·
-                                    ${escapeHtml(
-                                        instance.role || 'unknown role'
-                                    )}
-                                </span>
+                                <a
+                                    class="muted"
+                                    href="${escapeHtml(
+                                        result.firewall.base_url
+                                    )}"
+                                    target="_blank"
+                                    rel="noopener"
+                                >${escapeHtml(
+                                    result.firewall.base_url
+                                )}</a>
                             </div>
 
                             <div class="vpn-summary-metric">
                                 <span class="vpn-summary-label">
-                                    Status
+                                    Instances
                                 </span>
-                                ${instanceStatus(instance)}
+                                ${
+                                    result.ok
+                                        ? `<span class="badge neutral">
+                                            ${result.instances.length}
+                                        </span>`
+                                        : '<span class="badge bad">Unavailable</span>'
+                                }
                             </div>
 
                             <div class="vpn-summary-metric">
                                 <span class="vpn-summary-label">
-                                    Listener / Remote
+                                    Summary
                                 </span>
                                 <span class="muted">
                                     ${
-                                        instance.remote
-                                            ? escapeHtml(instance.remote)
-                                            : listenerSummary(instance)
+                                        result.ok
+                                            ? enabledCount +
+                                                ' enabled · ' +
+                                                result.sessions.length +
+                                                ' sessions'
+                                            : escapeHtml(result.error)
                                     }
                                 </span>
                             </div>
@@ -411,12 +337,86 @@ require __DIR__.'/inc/header.php';
                         </div>
 
                         <div class="vpn-details-panel" hidden>
-                            ${renderInstanceDetails(instance, index)}
+                            ${
+                                result.ok
+                                    ? `
+                                        <div class="vpn-details-header">
+                                            <div>
+                                                <strong>OpenVPN instances</strong>
+                                                <div class="muted">
+                                                    ${escapeHtml(
+                                                        result.firewall.name
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="table-scroll management-table-wrap">
+                                            <table class="management-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Instance</th>
+                                                        <th>Role</th>
+                                                        <th>Listener / Remote</th>
+                                                        <th>Tunnel</th>
+                                                        <th>Status</th>
+                                                        <th>Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    ${instanceRows(
+                                                        result.instances,
+                                                        result.firewall.id
+                                                    )}
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                        <div class="vpn-details-header vpn-session-subheader">
+                                            <div>
+                                                <strong>Active sessions</strong>
+                                                <div class="muted">
+                                                    ${
+                                                        result.sessions_error
+                                                            ? escapeHtml(
+                                                                result.sessions_error
+                                                            )
+                                                            : result.sessions.length +
+                                                                ' active'
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="table-scroll management-table-wrap">
+                                            <table class="management-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>User / Common Name</th>
+                                                        <th>Virtual address</th>
+                                                        <th>Remote address</th>
+                                                        <th>Connected</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    ${sessionRows(
+                                                        result.sessions
+                                                    )}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    `
+                                    : `<div class="alert error vpn-details-error">
+                                        ${escapeHtml(result.error)}
+                                    </div>`
+                            }
                         </div>
                     </section>
                 `;
-            }).join('');
-        }
+            }).join('')
+            : '<section class="card vpn-summary-card">' +
+                '<p class="muted">No firewalls configured.</p>' +
+              '</section>';
 
         list.querySelectorAll('.vpn-details-toggle').forEach(
             function(button){
@@ -452,55 +452,14 @@ require __DIR__.'/inc/header.php';
                 );
             }
         );
-
-        renderSessions(data);
-    }
-
-    async function load(){
-        refresh.disabled = true;
-        errorBox.classList.add('hidden');
-
-        try{
-            const response = await fetch(
-                '/openvpn_manage_data.php?firewall_id=' +
-                encodeURIComponent(firewallId()),
-                {
-                    credentials: 'same-origin',
-                    cache: 'no-store'
-                }
-            );
-
-            const data = await readJson(response);
-
-            if(!response.ok || data.ok !== true){
-                throw new Error(data.error || 'Load failed.');
-            }
-
-            render(data);
-        }catch(error){
-            errorBox.textContent = error.message;
-            errorBox.classList.remove('hidden');
-            summary.textContent = 'OpenVPN unavailable';
-            list.innerHTML =
-                '<section class="card vpn-summary-card">' +
-                    '<p class="muted">' +
-                        'Could not load OpenVPN instances.' +
-                    '</p>' +
-                '</section>';
-            sessionSummary.textContent = 'Unavailable';
-            sessionCount.textContent = '—';
-            sessionTable.innerHTML = '';
-        }finally{
-            refresh.disabled = false;
-        }
     }
 
     async function runAction(button){
-        const action = button.dataset.action;
         const row = button.closest('[data-uuid]');
+        const action = button.dataset.action;
+        const firewallId = row.dataset.firewallId;
         const uuid = row.dataset.uuid;
         const vpnid = row.dataset.vpnid;
-
         const destructive = ['delete', 'disable'].includes(action);
 
         if(!confirm(
@@ -520,7 +479,7 @@ require __DIR__.'/inc/header.php';
         try{
             const form = new URLSearchParams({
                 csrf,
-                firewall_id: firewallId(),
+                firewall_id: firewallId,
                 uuid,
                 vpnid,
                 action
@@ -553,28 +512,44 @@ require __DIR__.'/inc/header.php';
         }
     }
 
-    sessionToggle.addEventListener('click', function(){
-        const expanded =
-            sessionToggle.getAttribute('aria-expanded') === 'true';
+    async function load(){
+        refresh.disabled = true;
+        refresh.textContent = 'Loading…';
+        errorBox.classList.add('hidden');
 
-        sessionToggle.setAttribute(
-            'aria-expanded',
-            expanded ? 'false' : 'true'
-        );
-        sessionToggle.textContent = expanded
-            ? 'Details'
-            : 'Hide details';
-        sessionPanel.hidden = expanded;
-        document.querySelector('.openvpn-session-card')
-            .classList.toggle(
-                'vpn-summary-expanded',
-                !expanded
+        try{
+            const results = await Promise.all(
+                firewalls.map(loadFirewall)
             );
-    });
 
-    firewallSelect.addEventListener('change', load);
+            render(results);
+
+            const failed = results.filter(item => !item.ok);
+
+            if(failed.length){
+                errorBox.textContent = failed.map(
+                    item =>
+                        item.firewall.name + ': ' + item.error
+                ).join(' | ');
+                errorBox.classList.remove('hidden');
+            }
+        }catch(error){
+            summary.textContent = 'OpenVPN unavailable';
+            list.innerHTML =
+                '<section class="card vpn-summary-card">' +
+                    '<p class="muted">' +
+                        'Could not load OpenVPN data.' +
+                    '</p>' +
+                '</section>';
+            errorBox.textContent = error.message;
+            errorBox.classList.remove('hidden');
+        }finally{
+            refresh.disabled = false;
+            refresh.textContent = 'Refresh';
+        }
+    }
+
     refresh.addEventListener('click', load);
-
     load();
 })();
 </script>

@@ -1,12 +1,17 @@
 <?php
 require_once __DIR__ . '/inc/config.php';
 require_login();
+
+$firewalls = db()
+    ->query('SELECT id,name,base_url FROM firewalls ORDER BY name')
+    ->fetchAll();
+
 require __DIR__ . '/inc/header.php';
 ?>
 <div class="page-title management-page-title">
     <div>
         <h1>Managed WireGuard</h1>
-        <p>Paired site-to-site connections between managed OPNsense firewalls.</p>
+        <p>WireGuard status grouped by managed OPNsense firewall.</p>
     </div>
     <div class="management-toolbar">
         <a class="button" href="/wireguard_create.php">
@@ -37,6 +42,18 @@ require __DIR__ . '/inc/header.php';
 
 <script>
 (function(){
+    const configuredFirewalls = <?= json_encode(
+        array_map(
+            static fn(array $firewall): array => [
+                'id' => (int) $firewall['id'],
+                'name' => (string) $firewall['name'],
+                'base_url' => (string) $firewall['base_url'],
+            ],
+            $firewalls
+        ),
+        JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
+    ) ?>;
+
     const csrfToken = <?= json_encode(
         csrf_token(),
         JSON_UNESCAPED_SLASHES
@@ -60,18 +77,51 @@ require __DIR__ . '/inc/header.php';
         if(status === 'disabled'){
             return '<span class="badge neutral">Disabled</span>';
         }
-        return '<span class="badge bad">Partial state</span>';
+        return '<span class="badge bad">Partial</span>';
     }
 
-    function sideState(side){
-        return side.enabled
-            ? '<span class="badge good">Enabled</span>'
-            : '<span class="badge neutral">Disabled</span>';
-    }
+    function firewallGroups(connections){
+        const groups = new Map();
 
-    function detailValue(value){
-        const text = String(value ?? '').trim();
-        return text === '' ? '—' : escapeHtml(text);
+        configuredFirewalls.forEach(function(firewall){
+            groups.set(Number(firewall.id), {
+                firewall,
+                connections: []
+            });
+        });
+
+        connections.forEach(function(connection){
+            [connection.local, connection.remote].forEach(function(side){
+                const firewallId = Number(side.firewall_id);
+
+                if(!groups.has(firewallId)){
+                    groups.set(firewallId, {
+                        firewall: {
+                            id: firewallId,
+                            name: side.firewall_name,
+                            base_url: ''
+                        },
+                        connections: []
+                    });
+                }
+
+                groups.get(firewallId).connections.push({
+                    connection,
+                    side:
+                        Number(connection.local.firewall_id) === firewallId
+                            ? 'local'
+                            : 'remote'
+                });
+            });
+        });
+
+        return Array.from(groups.values()).sort(function(a, b){
+            return String(a.firewall.name).localeCompare(
+                String(b.firewall.name),
+                undefined,
+                {numeric: true, sensitivity: 'base'}
+            );
+        });
     }
 
     async function changeState(connection, enable, button){
@@ -94,33 +144,24 @@ require __DIR__ . '/inc/header.php';
         button.textContent = enable ? 'Enabling…' : 'Disabling…';
 
         try{
-            const params = new URLSearchParams();
-            params.set('csrf', csrfToken);
-            params.set(
-                'local_firewall_id',
-                String(connection.local.firewall_id)
-            );
-            params.set(
-                'remote_firewall_id',
-                String(connection.remote.firewall_id)
-            );
-            params.set(
-                'local_client_uuid',
-                connection.local.client_uuid
-            );
-            params.set(
-                'remote_client_uuid',
-                connection.remote.client_uuid
-            );
-            params.set(
-                'local_expected_peer_key',
-                connection.local.expected_peer_key
-            );
-            params.set(
-                'remote_expected_peer_key',
-                connection.remote.expected_peer_key
-            );
-            params.set('enable', enable ? '1' : '0');
+            const params = new URLSearchParams({
+                csrf: csrfToken,
+                local_firewall_id: String(
+                    connection.local.firewall_id
+                ),
+                remote_firewall_id: String(
+                    connection.remote.firewall_id
+                ),
+                local_client_uuid:
+                    connection.local.client_uuid,
+                remote_client_uuid:
+                    connection.remote.client_uuid,
+                local_expected_peer_key:
+                    connection.local.expected_peer_key,
+                remote_expected_peer_key:
+                    connection.remote.expected_peer_key,
+                enable: enable ? '1' : '0'
+            });
 
             const response = await fetch('/wireguard_link_action.php', {
                 method: 'POST',
@@ -157,55 +198,52 @@ require __DIR__ . '/inc/header.php';
         }
     }
 
-    function renderDetails(connection){
-        return `
-            <div class="vpn-detail-grid">
-                <div class="vpn-detail-side">
-                    <div class="vpn-detail-heading">
-                        <strong>${escapeHtml(
-                            connection.local.firewall_name
-                        )}</strong>
-                        ${sideState(connection.local)}
-                    </div>
-                    <dl>
-                        <dt>Peer</dt>
-                        <dd>${detailValue(
-                            connection.local.client_name || 'peer'
-                        )}</dd>
-                        <dt>Client UUID</dt>
-                        <dd><code>${detailValue(
-                            connection.local.client_uuid
-                        )}</code></dd>
-                        <dt>Expected peer key</dt>
-                        <dd><code>${detailValue(
-                            connection.local.expected_peer_key
-                        )}</code></dd>
-                    </dl>
-                </div>
+    function connectionRow(item, index){
+        const connection = item.connection;
+        const own = connection[item.side];
+        const other = item.side === 'local'
+            ? connection.remote
+            : connection.local;
+        const enable = connection.status !== 'enabled';
 
-                <div class="vpn-detail-side">
-                    <div class="vpn-detail-heading">
-                        <strong>${escapeHtml(
-                            connection.remote.firewall_name
-                        )}</strong>
-                        ${sideState(connection.remote)}
-                    </div>
-                    <dl>
-                        <dt>Peer</dt>
-                        <dd>${detailValue(
-                            connection.remote.client_name || 'peer'
-                        )}</dd>
-                        <dt>Client UUID</dt>
-                        <dd><code>${detailValue(
-                            connection.remote.client_uuid
-                        )}</code></dd>
-                        <dt>Expected peer key</dt>
-                        <dd><code>${detailValue(
-                            connection.remote.expected_peer_key
-                        )}</code></dd>
-                    </dl>
-                </div>
-            </div>
+        return `
+            <tr>
+                <td>
+                    <strong>${escapeHtml(
+                        own.client_name || 'peer'
+                    )}</strong>
+                    <br>
+                    <small>
+                        to ${escapeHtml(other.firewall_name)}
+                    </small>
+                </td>
+                <td>${escapeHtml(
+                    other.client_name || 'peer'
+                )}</td>
+                <td>${statusBadge(connection.status)}</td>
+                <td>
+                    <code>${escapeHtml(
+                        own.client_uuid || '—'
+                    )}</code>
+                </td>
+                <td>
+                    <button
+                        type="button"
+                        class="${
+                            enable
+                                ? 'button secondary'
+                                : 'button warning'
+                        } wg-state-action"
+                        data-connection="${index}"
+                    >
+                        ${
+                            enable
+                                ? 'Enable both sides'
+                                : 'Disable both sides'
+                        }
+                    </button>
+                </td>
+            </tr>
         `;
     }
 
@@ -213,6 +251,7 @@ require __DIR__ . '/inc/header.php';
         const connections = Array.isArray(data.connections)
             ? data.connections
             : [];
+        const groups = firewallGroups(connections);
 
         const enabled = connections.filter(
             connection => connection.status === 'enabled'
@@ -225,113 +264,143 @@ require __DIR__ . '/inc/header.php';
         ).length;
 
         summary.innerHTML =
+            configuredFirewalls.length + ' firewalls · ' +
             '<span class="badge good">' +
-                enabled + ' enabled</span> ' +
+                enabled + ' enabled connections</span> ' +
             '<span class="badge neutral">' +
                 disabled + ' disabled</span> ' +
             '<span class="badge bad">' +
                 partial + ' partial</span>';
 
-        if(!connections.length){
-            list.innerHTML =
-                '<section class="card vpn-summary-card">' +
-                    '<p class="muted">' +
-                        'No reciprocally matched managed WireGuard ' +
-                        'connections found.' +
-                    '</p>' +
-                '</section>';
-            return;
-        }
+        list.innerHTML = groups.length
+            ? groups.map(function(group, groupIndex){
+                const enabledCount = group.connections.filter(
+                    item => item.connection.status === 'enabled'
+                ).length;
+                const partialCount = group.connections.filter(
+                    item => item.connection.status === 'partial'
+                ).length;
 
-        list.innerHTML = connections.map(function(connection, index){
-            const enable = connection.status !== 'enabled';
-            const title =
-                escapeHtml(connection.local.firewall_name) +
-                ' ↔ ' +
-                escapeHtml(connection.remote.firewall_name);
-
-            return `
-                <section class="card vpn-summary-card">
-                    <div class="vpn-summary-main">
-                        <div class="vpn-summary-identity">
-                            <h2>${title}</h2>
-                            <span class="muted">
+                return `
+                    <section class="card vpn-summary-card">
+                        <div class="vpn-summary-main">
+                            <div class="vpn-summary-identity">
+                                <h2>${escapeHtml(
+                                    group.firewall.name
+                                )}</h2>
                                 ${
-                                    escapeHtml(
-                                        connection.local.client_name ||
-                                        'peer'
-                                    )
+                                    group.firewall.base_url
+                                        ? `<a
+                                            class="muted"
+                                            href="${escapeHtml(
+                                                group.firewall.base_url
+                                            )}"
+                                            target="_blank"
+                                            rel="noopener"
+                                        >${escapeHtml(
+                                            group.firewall.base_url
+                                        )}</a>`
+                                        : ''
                                 }
-                                ↔
-                                ${
-                                    escapeHtml(
-                                        connection.remote.client_name ||
-                                        'peer'
-                                    )
-                                }
-                            </span>
-                        </div>
-
-                        <div class="vpn-summary-metric">
-                            <span class="vpn-summary-label">Status</span>
-                            ${statusBadge(connection.status)}
-                        </div>
-
-                        <div class="vpn-summary-metric">
-                            <span class="vpn-summary-label">Sides</span>
-                            <span class="muted">
-                                ${
-                                    connection.local.enabled
-                                        ? 'A enabled'
-                                        : 'A disabled'
-                                }
-                                ·
-                                ${
-                                    connection.remote.enabled
-                                        ? 'B enabled'
-                                        : 'B disabled'
-                                }
-                            </span>
-                        </div>
-
-                        <div class="vpn-summary-actions">
-                            <button
-                                type="button"
-                                class="button secondary vpn-details-toggle"
-                                aria-expanded="false"
-                            >
-                                Details
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="vpn-details-panel" hidden>
-                        <div class="vpn-details-header">
-                            <div>
-                                <strong>WireGuard connection details</strong>
-                                <div class="muted">${title}</div>
                             </div>
-                            <button
-                                type="button"
-                                class="${
-                                    enable
-                                        ? 'button secondary'
-                                        : 'button warning'
-                                } vpn-state-action"
-                                data-index="${index}"
-                            >
-                                ${
-                                    enable
-                                        ? 'Enable both sides'
-                                        : 'Disable both sides'
-                                }
-                            </button>
+
+                            <div class="vpn-summary-metric">
+                                <span class="vpn-summary-label">
+                                    Connections
+                                </span>
+                                <span class="badge neutral">
+                                    ${group.connections.length}
+                                </span>
+                            </div>
+
+                            <div class="vpn-summary-metric">
+                                <span class="vpn-summary-label">
+                                    Summary
+                                </span>
+                                <span class="muted">
+                                    ${enabledCount} enabled
+                                    ${
+                                        partialCount
+                                            ? ' · ' + partialCount + ' partial'
+                                            : ''
+                                    }
+                                </span>
+                            </div>
+
+                            <div class="vpn-summary-actions">
+                                <button
+                                    type="button"
+                                    class="button secondary vpn-details-toggle"
+                                    aria-expanded="false"
+                                >
+                                    Details
+                                </button>
+                            </div>
                         </div>
-                        ${renderDetails(connection)}
-                    </div>
-                </section>
-            `;
-        }).join('');
+
+                        <div class="vpn-details-panel" hidden>
+                            <div class="vpn-details-header">
+                                <div>
+                                    <strong>WireGuard connections</strong>
+                                    <div class="muted">
+                                        ${escapeHtml(
+                                            group.firewall.name
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="table-scroll management-table-wrap">
+                                <table class="management-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Local peer</th>
+                                            <th>Remote peer</th>
+                                            <th>Status</th>
+                                            <th>Client UUID</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${
+                                            group.connections.length
+                                                ? group.connections.map(
+                                                    function(item, itemIndex){
+                                                        item.globalIndex =
+                                                            groupIndex * 10000 +
+                                                            itemIndex;
+                                                        return connectionRow(
+                                                            item,
+                                                            item.globalIndex
+                                                        );
+                                                    }
+                                                ).join('')
+                                                : `<tr>
+                                                    <td colspan="5">
+                                                        No managed connections.
+                                                    </td>
+                                                </tr>`
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+                `;
+            }).join('')
+            : '<section class="card vpn-summary-card">' +
+                '<p class="muted">No firewalls configured.</p>' +
+              '</section>';
+
+        const indexedConnections = new Map();
+        groups.forEach(function(group, groupIndex){
+            group.connections.forEach(function(item, itemIndex){
+                indexedConnections.set(
+                    groupIndex * 10000 + itemIndex,
+                    item.connection
+                );
+            });
+        });
 
         list.querySelectorAll('.vpn-details-toggle').forEach(
             function(button){
@@ -359,12 +428,12 @@ require __DIR__ . '/inc/header.php';
             }
         );
 
-        list.querySelectorAll('.vpn-state-action').forEach(
+        list.querySelectorAll('.wg-state-action').forEach(
             function(button){
                 button.addEventListener('click', function(){
-                    const connection = connections[
-                        Number(button.dataset.index)
-                    ];
+                    const connection = indexedConnections.get(
+                        Number(button.dataset.connection)
+                    );
                     const enable =
                         connection.status !== 'enabled';
                     changeState(connection, enable, button);
@@ -374,7 +443,7 @@ require __DIR__ . '/inc/header.php';
     }
 
     let hasRendered = false;
-    let backgroundRefreshRunning = false;
+    let refreshing = false;
 
     function showErrors(data){
         if(Array.isArray(data.errors) && data.errors.length){
@@ -415,73 +484,50 @@ require __DIR__ . '/inc/header.php';
         return data;
     }
 
-    async function refreshLive(manual){
-        if(backgroundRefreshRunning){
+    async function load(force = false){
+        if(refreshing){
             return;
         }
 
-        backgroundRefreshRunning = true;
-
-        const previousText = refresh.textContent;
+        refreshing = true;
         refresh.disabled = true;
-        refresh.textContent = manual
-            ? 'Refreshing…'
-            : 'Updating…';
+        refresh.textContent = force ? 'Refreshing…' : 'Loading…';
 
         try{
-            const data = await requestData(true);
-            render(data);
-            showErrors(data);
-            hasRendered = true;
-        }catch(error){
-            if(manual || !hasRendered){
-                errorBox.textContent = error.message;
-                errorBox.classList.remove('hidden');
-            }
-        }finally{
-            backgroundRefreshRunning = false;
-            refresh.disabled = false;
-            refresh.textContent = previousText;
-        }
-    }
-
-    async function load(){
-        refresh.disabled = true;
-        errorBox.classList.add('hidden');
-
-        try{
-            const data = await requestData(false);
+            const data = await requestData(force);
             render(data);
             showErrors(data);
             hasRendered = true;
 
-            if(data.cache?.refresh_recommended){
+            if(
+                !force &&
+                data.cache?.refresh_recommended
+            ){
                 window.setTimeout(
-                    () => refreshLive(false),
+                    () => load(true),
                     150
                 );
             }
         }catch(error){
-            summary.textContent = 'Unavailable';
-            list.innerHTML =
-                '<section class="card vpn-summary-card">' +
-                    '<p class="muted">' +
-                        'Could not load managed WireGuard connections.' +
-                    '</p>' +
-                '</section>';
+            if(!hasRendered){
+                list.innerHTML =
+                    '<section class="card vpn-summary-card">' +
+                        '<p class="muted">' +
+                            'Could not load WireGuard data.' +
+                        '</p>' +
+                    '</section>';
+            }
             errorBox.textContent = error.message;
             errorBox.classList.remove('hidden');
         }finally{
+            refreshing = false;
             refresh.disabled = false;
+            refresh.textContent = 'Refresh';
         }
     }
 
-    refresh.addEventListener(
-        'click',
-        () => refreshLive(true)
-    );
-
-    load();
+    refresh.addEventListener('click', () => load(true));
+    load(false);
 })();
 </script>
 

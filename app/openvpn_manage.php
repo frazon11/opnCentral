@@ -268,7 +268,110 @@ require __DIR__ . '/inc/header.php';
         return match ? match.label : value;
     }
 
+    function selectedOptionValues(value){
+        if(
+            value === null ||
+            value === undefined ||
+            typeof value !== 'object' ||
+            Array.isArray(value)
+        ){
+            return null;
+        }
+
+        const selected = [];
+
+        Object.entries(value).forEach(([key, option]) => {
+            if(
+                option === null ||
+                option === undefined
+            ){
+                return;
+            }
+
+            if(typeof option !== 'object'){
+                return;
+            }
+
+            const flag =
+                option.selected ??
+                option.is_selected ??
+                option.checked ??
+                false;
+
+            const isSelected =
+                flag === true ||
+                String(flag) === '1' ||
+                String(flag).toLowerCase() === 'true' ||
+                String(flag).toLowerCase() === 'selected';
+
+            if(!isSelected){
+                return;
+            }
+
+            const label =
+                option.value ??
+                option.label ??
+                option.name ??
+                option.description ??
+                key;
+
+            selected.push(String(label));
+        });
+
+        return selected;
+    }
+
+    function normalizeModelValue(value){
+        const selected = selectedOptionValues(value);
+
+        if(selected !== null){
+            return selected.length <= 1
+                ? (selected[0] ?? '')
+                : selected;
+        }
+
+        if(Array.isArray(value)){
+            return value.map(item => {
+                if(
+                    item !== null &&
+                    typeof item === 'object'
+                ){
+                    return (
+                        item.value ??
+                        item.label ??
+                        item.name ??
+                        item.description ??
+                        JSON.stringify(item)
+                    );
+                }
+
+                return item;
+            });
+        }
+
+        if(
+            value !== null &&
+            typeof value === 'object'
+        ){
+            if('value' in value){
+                return value.value;
+            }
+
+            if('label' in value){
+                return value.label;
+            }
+
+            if('name' in value){
+                return value.name;
+            }
+        }
+
+        return value;
+    }
+
     function mappedValue(field, value, references){
+        value = normalizeModelValue(value);
+
         if(field.sensitive && !empty(value)){
             return '••••••••';
         }
@@ -295,9 +398,12 @@ require __DIR__ . '/inc/header.php';
         }
 
         const map = optionLabels[field.key];
+
         if(map){
             if(Array.isArray(value)){
-                return value.map(item => map[String(item)] ?? item);
+                return value.map(item =>
+                    map[String(item)] ?? item
+                );
             }
 
             const parts = String(value ?? '')
@@ -306,7 +412,9 @@ require __DIR__ . '/inc/header.php';
                 .filter(Boolean);
 
             if(parts.length > 1){
-                return parts.map(item => map[item] ?? item);
+                return parts.map(item =>
+                    map[item] ?? item
+                );
             }
 
             return map[String(value)] ?? value;
@@ -344,10 +452,15 @@ require __DIR__ . '/inc/header.php';
 
     function controlMarkup(field, rawValue, value){
         if(field.type === 'checkbox'){
+            const normalizedRaw = normalizeModelValue(
+                rawValue
+            );
             const checked =
-                rawValue === true ||
-                String(rawValue) === '1' ||
-                String(rawValue).toLowerCase() === 'true';
+                normalizedRaw === true ||
+                String(normalizedRaw) === '1' ||
+                String(normalizedRaw).toLowerCase() === 'true' ||
+                String(normalizedRaw).toLowerCase() === 'yes' ||
+                String(normalizedRaw).toLowerCase() === 'enabled';
 
             return `
                 <label class="opn-readonly-checkbox">

@@ -794,3 +794,85 @@
     background:#514224;
     color:#ffe2a1;
 }
+
+/* Read-only OpenVPN instance configuration */
+.ovpn-summary-actions{
+    gap:6px;
+}
+.ovpn-config-panel{
+    background:var(--page);
+}
+.ovpn-instance-config{
+    margin:14px;
+    border:1px solid var(--border);
+    background:var(--panel);
+}
+.ovpn-instance-config-head{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:12px;
+    padding:14px 16px;
+    border-bottom:1px solid var(--border);
+}
+.ovpn-instance-config-head h3{
+    margin:0 0 3px;
+}
+.ovpn-config-section{
+    padding:14px 16px;
+    border-bottom:1px solid var(--border);
+}
+.ovpn-config-section:last-child{
+    border-bottom:0;
+}
+.ovpn-config-section h4{
+    margin:0 0 12px;
+    font-size:.9rem;
+    text-transform:uppercase;
+    letter-spacing:.04em;
+    color:var(--muted);
+}
+.ovpn-config-grid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:10px 16px;
+}
+.ovpn-config-field{
+    min-width:0;
+    padding:10px;
+    border:1px solid var(--border);
+    background:var(--soft);
+}
+.ovpn-config-label{
+    margin-bottom:5px;
+    color:var(--muted);
+    font-size:.78rem;
+    font-weight:700;
+}
+.ovpn-config-value{
+    overflow-wrap:anywhere;
+}
+.ovpn-config-values{
+    display:flex;
+    flex-wrap:wrap;
+    gap:5px;
+}
+.ovpn-config-values code{
+    display:inline-block;
+}
+.ovpn-config-json{
+    margin:0;
+    max-height:240px;
+}
+.ovpn-config-empty{
+    padding:16px;
+    color:var(--muted);
+}
+.ovpn-config-error{
+    margin:14px;
+}
+@media(max-width:850px){
+    .ovpn-config-grid{
+        grid-template-columns:1fr;
+    }
+}

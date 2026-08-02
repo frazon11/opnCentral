@@ -167,7 +167,7 @@ require __DIR__ . '/inc/header.php';
 <fieldset class="distribution-targets">
     <legend><?= h(t('categories.targets')) ?></legend>
 
-    <?php $targetScope = (string)($_POST['target_scope'] ?? 'one');
+    <?php $targetScope = (string)($_POST['target_scope'] ?? ($_GET['scope'] ?? 'one'));
 $requestedFirewallId = (int)($_POST['target_firewall_id'] ?? $_GET['firewall_id'] ?? 0); ?>
     <label class="distribution-scope-option">
         <input

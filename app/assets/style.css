@@ -770,3 +770,27 @@
         margin-left:0!important;
     }
 }
+
+/* Complete remote alias/category inventory */
+.badge.unmanaged{
+    background:#efe0bf;
+    color:#79500b;
+}
+.badge.warning-status{
+    background:#f4e6c7;
+    color:#80570b;
+}
+.inventory-table td{
+    vertical-align:top;
+}
+.inventory-table td:nth-child(5){
+    min-width:250px;
+}
+.inventory-error{
+    margin:14px;
+}
+:root[data-theme="dark"] .badge.unmanaged,
+:root[data-theme="dark"] .badge.warning-status{
+    background:#514224;
+    color:#ffe2a1;
+}

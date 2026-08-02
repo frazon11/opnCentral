@@ -3,6 +3,7 @@ require_once __DIR__ . '/inc/config.php';
 require_once __DIR__ . '/inc/opnsense.php';
 require_once __DIR__ . '/inc/backups.php';
 require_once __DIR__ . '/inc/category_central.php';
+require_once __DIR__ . '/inc/distribution_targets.php';
 require_login();
 central_category_init();
 
@@ -18,10 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $color = central_category_normalize_color((string) ($_POST['color'] ?? ''));
         $automatic = isset($_POST['automatic']) ? 1 : 0;
         $mode = (string) ($_POST['mode'] ?? 'create');
-        $targetIds = array_values(array_unique(array_map(
-            'intval',
-            (array) ($_POST['targets'] ?? [])
-        )));
+        $targetIds = distribution_target_ids($firewalls);
 
         if ($name === '' || mb_strlen($name) > 255) {
             throw new RuntimeException('Enter a category name with at most 255 characters.');
@@ -159,21 +157,34 @@ require __DIR__ . '/inc/header.php';
 <label><input type="checkbox" name="automatic" value="1" <?= isset($_POST['automatic']) ? 'checked' : '' ?>> <?= h(t('categories.automatic')) ?></label>
 <div class="help">Automatic categories may be removed by OPNsense when no longer used. Leave this disabled for centrally managed categories.</div>
 
-<label><?= h(t('categories.targets')) ?></label>
-<div class="target-list">
-<?php $selectedTargets = array_map('intval', (array)($_POST['targets'] ?? [])); ?>
-<?php if (!$firewalls): ?><div class="empty"><?= h(t('dashboard.none')) ?></div><?php endif; ?>
-<?php foreach ($firewalls as $firewall): ?>
-<label class="target-item">
-<input type="checkbox" name="targets[]" value="<?= (int)$firewall['id'] ?>" <?= in_array((int)$firewall['id'], $selectedTargets, true) ? 'checked' : '' ?>>
-<span><strong><?= h((string)$firewall['name']) ?></strong><br><span class="muted"><?= h((string)$firewall['base_url']) ?></span></span>
+<fieldset class="distribution-targets">
+<legend><?= h(t('categories.targets')) ?></legend>
+
+<?php $targetScope = (string)($_POST['target_scope'] ?? 'one');
+$requestedFirewallId = (int)($_POST['target_firewall_id'] ?? $_GET['firewall_id'] ?? 0); ?>
+<label class="distribution-scope-option">
+<input type="radio" name="target_scope" value="one" <?= $targetScope === 'one' ? 'checked' : '' ?>>
+<span><strong>One OPNsense</strong><small>Distribute only to the selected firewall.</small></span>
 </label>
+
+<label class="distribution-firewall-select">
+OPNsense
+<select name="target_firewall_id" id="category-target-firewall">
+<option value="">Select firewall</option>
+<?php foreach ($firewalls as $firewall): ?>
+<option value="<?= (int)$firewall['id'] ?>" <?= $requestedFirewallId === (int)$firewall['id'] ? 'selected' : '' ?>><?= h((string)$firewall['name']) ?></option>
 <?php endforeach; ?>
-</div>
+</select>
+</label>
+
+<label class="distribution-scope-option">
+<input type="radio" name="target_scope" value="all" <?= $targetScope === 'all' ? 'checked' : '' ?>>
+<span><strong>All OPNsense firewalls</strong><small>Distribute to every currently managed firewall.</small></span>
+</label>
+</fieldset>
 
 <div class="actions">
-<button type="button" class="secondary" id="select-all-firewalls"><?= h(t('common.select_all')) ?></button>
-<button type="submit" onclick="return confirm('Distribute this category to the selected firewalls?')"><?= h(t('categories.distribute')) ?></button>
+<button type="submit" onclick="return confirm('Distribute this category using the selected target scope?')"><?= h(t('categories.distribute')) ?></button>
 </div>
 </form>
 </section>
@@ -191,6 +202,12 @@ require __DIR__ . '/inc/header.php';
 </div>
 
 <script>
-document.getElementById('select-all-firewalls')?.addEventListener('click',function(){document.querySelectorAll('input[name="targets[]"]').forEach(function(box){box.checked=true;});});
+document.querySelectorAll('input[name="target_scope"]').forEach(function(radio){
+radio.addEventListener('change',function(){
+const select=document.getElementById('category-target-firewall');
+select.disabled=document.querySelector('input[name="target_scope"]:checked')?.value==='all';
+});
+});
+document.querySelector('input[name="target_scope"]:checked')?.dispatchEvent(new Event('change'));
 </script>
 <?php require __DIR__ . '/inc/footer.php'; ?>

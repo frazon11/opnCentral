@@ -3,6 +3,7 @@ require_once __DIR__ . '/inc/config.php';
 require_once __DIR__ . '/inc/opnsense.php';
 require_once __DIR__ . '/inc/backups.php';
 require_once __DIR__ . '/inc/alias_central.php';
+require_once __DIR__ . '/inc/distribution_targets.php';
 require_login();
 central_alias_init();
 
@@ -21,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $mode = (string) ($_POST['mode'] ?? 'create');
         $takeOverExisting = isset($_POST['take_over_existing']);
         $enabled = isset($_POST['enabled']) ? 1 : 0;
-        $targetIds = array_values(array_unique(array_map('intval', (array) ($_POST['targets'] ?? []))));
+        $targetIds = distribution_target_ids($firewalls);
 
         if (!preg_match('/^[A-Za-z0-9_]+$/', $name)) {
             throw new RuntimeException('Alias name may contain only letters, numbers and underscores.');
@@ -163,12 +164,77 @@ require __DIR__ . '/inc/header.php';
     </span>
 </label>
 <label><input type="checkbox" name="enabled" value="1" <?= !isset($_POST['enabled']) && $_SERVER['REQUEST_METHOD'] !== 'POST' || isset($_POST['enabled']) ? 'checked' : '' ?>> Enabled</label>
-<label><?= h(t('categories.targets')) ?></label><div class="targets"><?php foreach ($firewalls as $firewall): ?><label class="target"><input type="checkbox" name="targets[]" value="<?= (int)$firewall['id'] ?>"> <strong><?= h($firewall['name']) ?></strong><br><span class="muted"><?= h($firewall['base_url']) ?></span></label><?php endforeach; ?></div>
-<div class="actions"><button type="button" id="all"><?= h(t('common.select_all')) ?></button><button type="submit" onclick="return confirmAliasDistribution()">Distribute</button></div></form></section>
+<fieldset class="distribution-targets">
+    <legend><?= h(t('categories.targets')) ?></legend>
+
+    <?php $targetScope = (string)($_POST['target_scope'] ?? 'one');
+$requestedFirewallId = (int)($_POST['target_firewall_id'] ?? $_GET['firewall_id'] ?? 0); ?>
+    <label class="distribution-scope-option">
+        <input
+            type="radio"
+            name="target_scope"
+            value="one"
+            <?= $targetScope === 'one' ? 'checked' : '' ?>
+        >
+        <span>
+            <strong>One OPNsense</strong>
+            <small>Distribute only to the selected firewall.</small>
+        </span>
+    </label>
+
+    <label class="distribution-firewall-select">
+        OPNsense
+        <select name="target_firewall_id" id="alias-target-firewall">
+            <option value="">Select firewall</option>
+            <?php foreach ($firewalls as $firewall): ?>
+                <option
+                    value="<?= (int)$firewall['id'] ?>"
+                    <?= $requestedFirewallId ===
+                        (int)$firewall['id'] ? 'selected' : '' ?>
+                >
+                    <?= h((string)$firewall['name']) ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+    </label>
+
+    <label class="distribution-scope-option">
+        <input
+            type="radio"
+            name="target_scope"
+            value="all"
+            <?= $targetScope === 'all' ? 'checked' : '' ?>
+        >
+        <span>
+            <strong>All OPNsense firewalls</strong>
+            <small>Distribute to every currently managed firewall.</small>
+        </span>
+    </label>
+</fieldset>
+
+<div class="actions">
+    <button type="submit" onclick="return confirmAliasDistribution()">
+        Distribute
+    </button>
+</div></form></section>
 <section class="card"><h2>Results</h2><?php if (!$results): ?><div class="empty">No distribution performed yet.</div><?php else: ?><div class="results"><?php foreach ($results as $result): ?><div class="result <?= $result['ok'] ? 'good' : 'bad' ?>"><strong><?= h($result['name']) ?></strong><br><?= h($result['message']) ?></div><?php endforeach; ?></div><?php endif; ?></section>
 </div>
 <script>
-document.getElementById('all')?.addEventListener('click',()=>document.querySelectorAll('input[name="targets[]"]').forEach(x=>x.checked=true));
+document.querySelectorAll('input[name="target_scope"]').forEach(
+    function(radio){
+        radio.addEventListener('change',function(){
+            const select=document.getElementById('alias-target-firewall');
+            select.disabled=
+                document.querySelector(
+                    'input[name="target_scope"]:checked'
+                )?.value==='all';
+        });
+    }
+);
+document.querySelector(
+    'input[name="target_scope"]:checked'
+)?.dispatchEvent(new Event('change'));
+
 function confirmAliasDistribution(){
     const mode=document.querySelector('select[name="mode"]')?.value||'create';
     const takeover=document.querySelector('input[name="take_over_existing"]')?.checked===true;

@@ -712,3 +712,61 @@
 .vpn-details-error{
     margin:14px;
 }
+
+/* Alias/category distribution target scope */
+.distribution-targets{
+    margin:16px 0;
+    padding:14px;
+    border:1px solid var(--border);
+    background:var(--soft);
+}
+.distribution-targets legend{
+    padding:0 6px;
+    font-weight:700;
+}
+.distribution-scope-option{
+    display:flex;
+    gap:9px;
+    align-items:flex-start;
+    margin:8px 0;
+    padding:10px;
+    background:var(--panel);
+    border:1px solid var(--border);
+}
+.distribution-scope-option input{
+    width:auto;
+    margin:3px 0 0;
+}
+.distribution-scope-option strong,
+.distribution-scope-option small{
+    display:block;
+}
+.distribution-scope-option small{
+    margin-top:3px;
+    color:var(--muted);
+}
+.distribution-firewall-select{
+    margin:10px 0 14px 30px!important;
+    max-width:520px;
+}
+.sync{
+    font-weight:700;
+}
+.sync.synchronized{
+    color:#2aa84a;
+}
+.sync.different,
+.sync.missing,
+.sync.category-missing,
+.sync.unknown{
+    color:#d58a00;
+}
+.sync.unreachable,
+.sync.error{
+    color:#d74747;
+}
+@media(max-width:700px){
+    .distribution-firewall-select{
+        margin-left:0!important;
+    }
+}

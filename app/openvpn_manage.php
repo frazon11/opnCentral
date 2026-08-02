@@ -66,111 +66,108 @@ require __DIR__ . '/inc/header.php';
     const errorBox = document.getElementById('ovpn-error');
     const refresh = document.getElementById('refresh');
 
-    const configSections = [
-        {
-            title: 'General',
-            fields: [
-                ['enabled', 'Enabled'],
-                ['role', 'Role'],
-                ['description', 'Description'],
-                ['vpnid', 'Instance ID'],
-                ['dev_type', 'Device type'],
-                ['verb', 'Verbosity level']
-            ]
-        },
-        {
-            title: 'Connection',
-            fields: [
-                ['proto', 'Protocol'],
-                ['port', 'Port'],
-                ['port-share', 'Port share'],
-                ['local', 'Bind address'],
-                ['remote', 'Remote host'],
-                ['topology', 'Topology'],
-                ['server', 'IPv4 tunnel network'],
-                ['server_ipv6', 'IPv6 tunnel network'],
-                ['nopool', 'Do not use address pool'],
-                ['bridge_gateway', 'Bridge gateway'],
-                ['bridge_pool', 'Bridge pool']
-            ]
-        },
-        {
-            title: 'Routing',
-            fields: [
-                ['route', 'Remote networks'],
-                ['push_route', 'Local networks'],
-                ['push_excluded_routes', 'Excluded pushed routes'],
-                ['redirect_gateway', 'Redirect gateway'],
-                ['route_metric', 'Route metric']
-            ]
-        },
-        {
-            title: 'Certificates and authentication',
-            fields: [
-                ['ca', 'Certificate authority'],
-                ['cert', 'Certificate'],
-                ['crl', 'Certificate revocation list'],
-                ['cert_depth', 'Certificate depth'],
-                ['remote_cert_tls', 'Verify remote certificate usage'],
-                ['verify_client_cert', 'Client certificate'],
-                ['use_ocsp', 'Use OCSP'],
-                ['authmode', 'Authentication servers'],
-                ['local_group', 'Local group'],
-                ['username', 'Username'],
-                ['password', 'Password'],
-                ['username_as_common_name', 'Use username as Common Name'],
-                ['strictusercn', 'Strict User/CN matching'],
-                ['verify-x509-name', 'Verify X.509 name']
-            ]
-        },
-        {
-            title: 'Cryptography',
-            fields: [
-                ['auth', 'Digest algorithm'],
-                ['data-ciphers', 'Data ciphers'],
-                ['data-ciphers-fallback', 'Fallback cipher'],
-                ['tls_key', 'TLS static key']
-            ]
-        },
-        {
-            title: 'Client settings',
-            fields: [
-                ['maxclients', 'Maximum clients'],
-                ['keepalive_interval', 'Keepalive interval'],
-                ['keepalive_timeout', 'Keepalive timeout'],
-                ['reneg-sec', 'Renegotiation interval'],
-                ['auth-gen-token', 'Authentication token lifetime'],
-                ['auth-gen-token-renewal', 'Token renewal interval'],
-                ['auth-gen-token-secret', 'Authentication token secret'],
-                ['provision_exclusive', 'Exclusive client provisioning'],
-                ['register_dns', 'Register DNS'],
-                ['dns_domain', 'DNS domain'],
-                ['dns_domain_search', 'DNS search domains'],
-                ['dns_servers', 'DNS servers'],
-                ['ntp_servers', 'NTP servers']
-            ]
-        },
-        {
-            title: 'Advanced',
-            fields: [
-                ['various_flags', 'OpenVPN flags'],
-                ['various_push_flags', 'Pushed flags'],
-                ['push_inactive', 'Inactive push timeout'],
-                ['tun_mtu', 'Tunnel MTU'],
-                ['fragment', 'Fragment size'],
-                ['mssfix', 'MSS fix'],
-                ['carp_depend_on', 'CARP dependency'],
-                ['compress_migrate', 'Compression migration'],
-                ['ifconfig-pool-persist', 'Persist address pool'],
-                ['http-proxy', 'HTTP proxy']
-            ]
-        }
+    const opnForm = [
+        {header:'General Settings'},
+        {key:'vpnid',label:'VPN ID',type:'text'},
+        {key:'role',label:'Role',type:'dropdown'},
+        {key:'description',label:'Description',type:'text'},
+        {key:'enabled',label:'Enabled',type:'checkbox'},
+        {key:'proto',label:'Protocol',type:'dropdown'},
+        {key:'port',label:'Port number',type:'text'},
+        {key:'local',label:'Bind address',type:'text'},
+        {key:'port-share',label:'Port share',type:'text',advanced:true,roles:['server']},
+        {key:'dev_type',label:'Type',type:'dropdown'},
+        {key:'verb',label:'Verbosity',type:'dropdown',advanced:true},
+        {key:'maxclients',label:'Concurrent connections',type:'text',advanced:true,roles:['server']},
+        {key:'keepalive_interval',label:'Keep alive interval',type:'text',advanced:true},
+        {key:'keepalive_timeout',label:'Keep alive timeout',type:'text',advanced:true},
+        {key:'server',label:'Server (IPv4)',type:'text',roles:['server'],devices:['tun','ovpn']},
+        {key:'server_ipv6',label:'Server (IPv6)',type:'text',roles:['server'],devices:['tun','ovpn']},
+        {key:'nopool',label:'No Pool',type:'checkbox',roles:['server'],devices:['tun','ovpn']},
+        {key:'bridge_gateway',label:'Bridge gateway',type:'text',roles:['server'],devices:['tap']},
+        {key:'bridge_pool',label:'Bridge DHCP pool',type:'text',roles:['server'],devices:['tap']},
+        {key:'topology',label:'Topology',type:'dropdown',roles:['server']},
+        {key:'remote',label:'Remote',type:'select_multiple',roles:['client']},
+        {key:'carp_depend_on',label:'Depend on (CARP)',type:'dropdown',roles:['client']},
+
+        {header:'Trust'},
+        {key:'cert',label:'Certificate',type:'dropdown',reference:'certificates'},
+        {key:'remote_cert_tls',label:'Verify Remote Certificate',type:'checkbox'},
+        {key:'ca',label:'Certificate Authority',type:'dropdown',advanced:true,reference:'cas'},
+        {key:'crl',label:'Certificate Revocation List',type:'dropdown',roles:['server']},
+        {key:'verify_client_cert',label:'Verify Client Certificate',type:'dropdown',roles:['server']},
+        {key:'use_ocsp',label:'Use OCSP (when available)',type:'checkbox',roles:['server']},
+        {key:'cert_depth',label:'Certificate Depth',type:'dropdown',roles:['server']},
+        {key:'tls_key',label:'TLS static key',type:'dropdown',reference:'static_keys'},
+        {key:'auth',label:'Auth',type:'dropdown',advanced:true},
+        {key:'data-ciphers',label:'Data Ciphers',type:'select_multiple',advanced:true},
+        {key:'data-ciphers-fallback',label:'Data Ciphers Fallback',type:'dropdown',advanced:true},
+
+        {header:'Authentication'},
+        {key:'authmode',label:'Authentication',type:'select_multiple',roles:['server'],reference:'providers'},
+        {key:'local_group',label:'Enforce local group',type:'dropdown',roles:['server']},
+        {key:'username_as_common_name',label:'Username as CN',type:'checkbox',advanced:true,roles:['server']},
+        {key:'strictusercn',label:'Strict User/CN Matching',type:'dropdown',roles:['server']},
+        {key:'username',label:'Username',type:'text',roles:['client']},
+        {key:'password',label:'Password',type:'password',roles:['client'],sensitive:true},
+        {key:'reneg-sec',label:'Renegotiate time',type:'text'},
+        {key:'auth-gen-token',label:'Auth Token Lifetime',type:'text',roles:['server']},
+        {key:'auth-gen-token-renewal',label:'Auth Token Renewal',type:'text',advanced:true,roles:['server']},
+        {key:'auth-gen-token-secret',label:'Auth Token secret',type:'textbox',advanced:true,roles:['server'],sensitive:true},
+        {key:'provision_exclusive',label:'Require Client Provisioning',type:'checkbox',advanced:true,roles:['server']},
+
+        {header:'Routing'},
+        {key:'push_route',label:'Local Network',type:'select_multiple'},
+        {key:'route',label:'Remote Network',type:'select_multiple'},
+        {key:'push_excluded_routes',label:'Excluded routes',type:'select_multiple',advanced:true},
+
+        {header:'Miscellaneous'},
+        {key:'various_flags',label:'Options',type:'select_multiple'},
+        {key:'various_push_flags',label:'Push Options',type:'select_multiple',roles:['server']},
+        {key:'push_inactive',label:'Push inactivity timeout',type:'text',advanced:true,roles:['server']},
+        {key:'redirect_gateway',label:'Redirect gateway',type:'select_multiple',roles:['server']},
+        {key:'route_metric',label:'Route-metric (client)',type:'text',advanced:true,roles:['server']},
+        {key:'register_dns',label:'Register DNS',type:'checkbox',roles:['server']},
+        {key:'dns_domain',label:'DNS Domain list',type:'select_multiple',roles:['server']},
+        {key:'dns_domain_search',label:'DNS Domain search list',type:'select_multiple',roles:['server']},
+        {key:'dns_servers',label:'DNS Servers',type:'select_multiple',roles:['server']},
+        {key:'ntp_servers',label:'NTP Servers',type:'select_multiple',roles:['server']},
+        {key:'tun_mtu',label:'TUN device MTU',type:'text',advanced:true},
+        {key:'fragment',label:'Fragment size',type:'text',advanced:true},
+        {key:'mssfix',label:'MSS fix',type:'checkbox',advanced:true},
+        {key:'compress_migrate',label:'Compression migrate',type:'checkbox',advanced:true,roles:['server']},
+        {key:'ifconfig-pool-persist',label:'Persist address pool',type:'checkbox',advanced:true,roles:['server']},
+        {key:'http-proxy',label:'HTTP Proxy',type:'text',roles:['client']},
+        {key:'verify-x509-name',label:'Verify X.509 name',type:'text',advanced:true}
     ];
 
-    const fieldLabels = new Map();
-    configSections.forEach(section => {
-        section.fields.forEach(([key, label]) => fieldLabels.set(key, label));
-    });
+    const optionLabels = {
+        role:{client:'Client',server:'Server'},
+        dev_type:{tun:'TUN',tap:'TAP',ovpn:'DCO'},
+        proto:{udp:'UDP',udp4:'UDP (IPv4)',udp6:'UDP (IPv6)',tcp:'TCP',tcp4:'TCP (IPv4)',tcp6:'TCP (IPv6)'},
+        topology:{net30:'net30',p2p:'p2p',subnet:'subnet'},
+        verify_client_cert:{none:'none',require:'require'},
+        cert_depth:{
+            '':'Do Not Check',
+            '1':'One (Client+Server)',
+            '2':'Two (Client+Intermediate+Server)',
+            '3':'Three (Client+2xIntermediate+Server)',
+            '4':'Four (Client+3xIntermediate+Server)',
+            '5':'Five (Client+4xIntermediate+Server)'
+        },
+        strictusercn:{'0':'No','1':'Yes','2':'Yes, case insensitive'},
+        auth:{'':'OpenVPN default',none:'None (No Authentication)'},
+        verb:{
+            '0':'0 (No output except fatal errors.)',
+            '1':'1 (Normal)','2':'2 (Normal)','3':'3 (Normal)','4':'4 (Normal)',
+            '5':'5 (log packets)','6':'6 (debug)','7':'7 (debug)',
+            '8':'8 (debug)','9':'9 (debug)','10':'10 (debug)','11':'11 (debug)'
+        }
+    };
+
+    const knownKeys = new Set(
+        opnForm.filter(item => item.key).map(item => item.key)
+    );
 
     function escapeHtml(value){
         const node = document.createElement('div');
@@ -340,48 +337,182 @@ require __DIR__ . '/inc/header.php';
         }).join('');
     }
 
-    function configSection(section, config){
-        const rows = section.fields
-            .filter(([key]) => Object.prototype.hasOwnProperty.call(config, key))
-            .map(([key, label]) => `
-                <div class="ovpn-config-field">
-                    <div class="ovpn-config-label">${escapeHtml(label)}</div>
-                    <div class="ovpn-config-value">${displayValue(config[key])}</div>
-                </div>
-            `).join('');
-
-        return rows
-            ? `<section class="ovpn-config-section">
-                <h4>${escapeHtml(section.title)}</h4>
-                <div class="ovpn-config-grid">${rows}</div>
-              </section>`
-            : '';
+    function referenceLabel(field, value, references){
+        const rows = references?.[field.reference] || [];
+        const match = rows.find(row => String(row.id) === String(value));
+        return match ? match.label : value;
     }
 
-    function unknownConfig(config){
-        const known = new Set(fieldLabels.keys());
+    function mappedValue(field, value, references){
+        if(field.sensitive && !empty(value)){
+            return '••••••••';
+        }
+
+        if(field.reference){
+            if(Array.isArray(value)){
+                return value.map(item =>
+                    referenceLabel(field, item, references)
+                );
+            }
+
+            const parts = String(value ?? '')
+                .split(/[\n,]+/)
+                .map(item => item.trim())
+                .filter(Boolean);
+
+            if(parts.length > 1){
+                return parts.map(item =>
+                    referenceLabel(field, item, references)
+                );
+            }
+
+            return referenceLabel(field, value, references);
+        }
+
+        const map = optionLabels[field.key];
+        if(map){
+            if(Array.isArray(value)){
+                return value.map(item => map[String(item)] ?? item);
+            }
+
+            const parts = String(value ?? '')
+                .split(/[\n,]+/)
+                .map(item => item.trim())
+                .filter(Boolean);
+
+            if(parts.length > 1){
+                return parts.map(item => map[item] ?? item);
+            }
+
+            return map[String(value)] ?? value;
+        }
+
+        return value;
+    }
+
+    function fieldVisible(field, config, advanced){
+        if(field.advanced && !advanced){
+            return false;
+        }
+
+        const role = String(config.role || 'server');
+        const device = String(config.dev_type || 'tun');
+
+        if(field.roles && !field.roles.includes(role)){
+            return false;
+        }
+
+        if(field.devices && !field.devices.includes(device)){
+            return false;
+        }
+
+        return true;
+    }
+
+    function renderFormRows(config, references, advanced){
+        let html = '';
+        let currentHeaderOpen = false;
+        let sectionHasRows = false;
+        let sectionBuffer = '';
+
+        function flushSection(){
+            if(!currentHeaderOpen){
+                return;
+            }
+
+            if(sectionHasRows){
+                html += sectionBuffer + '</div></section>';
+            }
+
+            currentHeaderOpen = false;
+            sectionHasRows = false;
+            sectionBuffer = '';
+        }
+
+        opnForm.forEach(item => {
+            if(item.header){
+                flushSection();
+                currentHeaderOpen = true;
+                sectionBuffer =
+                    '<section class="ovpn-opnsense-section">' +
+                    '<div class="ovpn-opnsense-section-title">' +
+                    escapeHtml(item.header) +
+                    '</div><div class="ovpn-opnsense-form">';
+                return;
+            }
+
+            if(!fieldVisible(item, config, advanced)){
+                return;
+            }
+
+            sectionHasRows = true;
+            const hasValue = Object.prototype.hasOwnProperty.call(
+                config,
+                item.key
+            );
+            const rawValue = hasValue ? config[item.key] : '';
+            const value = mappedValue(item, rawValue, references);
+            const isAdvanced = item.advanced
+                ? '<span class="ovpn-advanced-marker">advanced</span>'
+                : '';
+
+            sectionBuffer += `
+                <div class="ovpn-opnsense-row">
+                    <div class="ovpn-opnsense-label">
+                        ${escapeHtml(item.label)}
+                        ${isAdvanced}
+                    </div>
+                    <div class="ovpn-opnsense-control ${
+                        item.type === 'checkbox'
+                            ? 'ovpn-opnsense-checkbox'
+                            : ''
+                    }">
+                        ${
+                            item.type === 'checkbox'
+                                ? (
+                                    String(rawValue) === '1' ||
+                                    rawValue === true
+                                        ? '<span class="ovpn-checkbox-state on">✓</span><span>Enabled</span>'
+                                        : '<span class="ovpn-checkbox-state"> </span><span>Disabled</span>'
+                                )
+                                : displayValue(value)
+                        }
+                    </div>
+                </div>
+            `;
+        });
+
+        flushSection();
+        return html;
+    }
+
+    function unknownConfig(config, advanced){
+        if(!advanced){
+            return '';
+        }
+
         const keys = Object.keys(config)
-            .filter(key => !known.has(key))
+            .filter(key => !knownKeys.has(key))
             .sort((a, b) => a.localeCompare(b));
 
         if(!keys.length){
             return '';
         }
 
-        return `<section class="ovpn-config-section">
-            <h4>Additional options</h4>
-            <div class="ovpn-config-grid">
+        return `<section class="ovpn-opnsense-section">
+            <div class="ovpn-opnsense-section-title">Additional model fields</div>
+            <div class="ovpn-opnsense-form">
                 ${keys.map(key => `
-                    <div class="ovpn-config-field">
-                        <div class="ovpn-config-label">${escapeHtml(key)}</div>
-                        <div class="ovpn-config-value">${displayValue(config[key])}</div>
+                    <div class="ovpn-opnsense-row">
+                        <div class="ovpn-opnsense-label">${escapeHtml(key)}</div>
+                        <div class="ovpn-opnsense-control">${displayValue(config[key])}</div>
                     </div>
                 `).join('')}
             </div>
         </section>`;
     }
 
-    function instanceConfig(instance){
+    function instanceConfig(instance, references, instanceIndex){
         if(instance.config_error){
             return `<div class="alert error ovpn-config-error">
                 ${escapeHtml(instance.config_error)}
@@ -394,7 +525,8 @@ require __DIR__ . '/inc/header.php';
         }
 
         return `
-            <article class="ovpn-instance-config">
+            <article class="ovpn-instance-config"
+                     data-config-instance="${instanceIndex}">
                 <div class="ovpn-instance-config-head">
                     <div>
                         <h3>${escapeHtml(instance.description || 'Unnamed')}</h3>
@@ -403,51 +535,115 @@ require __DIR__ . '/inc/header.php';
                             · ${escapeHtml(instance.uuid)}
                         </span>
                     </div>
-                    ${statusBadge(instance.enabled)}
+                    <div class="ovpn-instance-config-tools">
+                        ${statusBadge(instance.enabled)}
+                        <button type="button"
+                            class="button secondary ovpn-advanced-toggle"
+                            aria-pressed="false">
+                            Advanced mode: Off
+                        </button>
+                    </div>
                 </div>
-                ${configSections.map(section =>
-                    configSection(section, config)
-                ).join('')}
-                ${unknownConfig(config)}
+                <div class="ovpn-opnsense-form-wrap"
+                     data-advanced="false">
+                    ${renderFormRows(config, references, false)}
+                </div>
             </article>
         `;
     }
 
-    function configMarkup(instances){
+    function configMarkup(instances, references){
         if(!instances.length){
             return '<div class="ovpn-config-empty">No OpenVPN instances found.</div>';
         }
 
-        return instances.map(instanceConfig).join('');
+        return instances.map((instance, index) =>
+            instanceConfig(instance, references, index)
+        ).join('');
+    }
+
+    function bindConfigAdvancedToggles(card, result){
+        card.querySelectorAll('.ovpn-advanced-toggle').forEach(button => {
+            button.addEventListener('click', function(){
+                const article = button.closest('.ovpn-instance-config');
+                const wrap = article.querySelector('.ovpn-opnsense-form-wrap');
+                const index = Number(article.dataset.configInstance);
+                const advanced = button.getAttribute('aria-pressed') !== 'true';
+
+                button.setAttribute(
+                    'aria-pressed',
+                    advanced ? 'true' : 'false'
+                );
+                button.textContent = advanced
+                    ? 'Advanced mode: On'
+                    : 'Advanced mode: Off';
+                wrap.dataset.advanced = advanced ? 'true' : 'false';
+                wrap.innerHTML =
+                    renderFormRows(
+                        result.instances[index].config || {},
+                        result.references || {},
+                        advanced
+                    ) +
+                    unknownConfig(
+                        result.instances[index].config || {},
+                        advanced
+                    );
+            });
+        });
     }
 
     async function loadFirewall(firewall){
         try{
-            const response = await fetch(
-                '/openvpn_manage_data.php?firewall_id=' +
-                encodeURIComponent(firewall.id),
-                {credentials: 'same-origin', cache: 'no-store'}
-            );
-            const data = await readJson(response);
+            const [dataResponse, optionsResponse] = await Promise.all([
+                fetch(
+                    '/openvpn_manage_data.php?firewall_id=' +
+                    encodeURIComponent(firewall.id),
+                    {credentials:'same-origin',cache:'no-store'}
+                ),
+                fetch(
+                    '/openvpn_roadwarrior_options.php?firewall_id=' +
+                    encodeURIComponent(firewall.id),
+                    {credentials:'same-origin',cache:'no-store'}
+                )
+            ]);
 
-            if(!response.ok || data.ok !== true){
+            const data = await readJson(dataResponse);
+            const options = await readJson(optionsResponse);
+
+            if(!dataResponse.ok || data.ok !== true){
                 throw new Error(data.error || 'Load failed.');
             }
 
             return {
-                ok: true,
+                ok:true,
                 firewall,
-                instances: Array.isArray(data.instances) ? data.instances : [],
-                sessions: Array.isArray(data.sessions) ? data.sessions : [],
-                sessions_error: data.sessions_error || null
+                instances:Array.isArray(data.instances)?data.instances:[],
+                sessions:Array.isArray(data.sessions)?data.sessions:[],
+                sessions_error:data.sessions_error||null,
+                references:
+                    optionsResponse.ok && options.ok === true
+                        ? {
+                            cas:Array.isArray(options.cas)?options.cas:[],
+                            certificates:Array.isArray(options.certificates)
+                                ? options.certificates
+                                : [],
+                            static_keys:Array.isArray(options.static_keys)
+                                ? options.static_keys
+                                : [],
+                            providers:Array.isArray(options.providers)
+                                ? options.providers
+                                : []
+                        }
+                        : {}
             };
         }catch(error){
             return {
-                ok: false,
+                ok:false,
                 firewall,
-                error: error.message,
-                instances: [],
-                sessions: []
+                error:error.message,
+                instances:[],
+                sessions:[],
+                references:{}
             };
         }
     }
@@ -600,7 +796,7 @@ require __DIR__ . '/inc/header.php';
                             </div>
                             ${
                                 result.ok
-                                    ? configMarkup(result.instances)
+                                    ? configMarkup(result.instances, result.references)
                                     : `<div class="alert error vpn-details-error">
                                         ${escapeHtml(result.error)}
                                       </div>`
@@ -648,6 +844,12 @@ require __DIR__ . '/inc/header.php';
 
         list.querySelectorAll('[data-action]').forEach(button => {
             button.addEventListener('click', () => runAction(button));
+        });
+
+        list.querySelectorAll('.vpn-summary-card').forEach((card, index) => {
+            if(results[index]?.ok){
+                bindConfigAdvancedToggles(card, results[index]);
+            }
         });
     }
 

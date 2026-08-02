@@ -876,3 +876,100 @@
         grid-template-columns:1fr;
     }
 }
+
+/* OPNsense OpenVPN dialogInstance read-only replica */
+.ovpn-instance-config{
+    border-radius:3px;
+}
+.ovpn-instance-config-tools{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+    justify-content:flex-end;
+}
+.ovpn-opnsense-section{
+    margin:0;
+    border-bottom:1px solid var(--border);
+}
+.ovpn-opnsense-section:last-child{
+    border-bottom:0;
+}
+.ovpn-opnsense-section-title{
+    padding:9px 14px;
+    background:var(--dark);
+    color:#fff;
+    font-weight:700;
+    font-size:.9rem;
+}
+.ovpn-opnsense-form{
+    background:var(--panel);
+}
+.ovpn-opnsense-row{
+    display:grid;
+    grid-template-columns:minmax(220px,32%) minmax(0,1fr);
+    min-height:44px;
+    border-bottom:1px solid var(--border);
+}
+.ovpn-opnsense-row:last-child{
+    border-bottom:0;
+}
+.ovpn-opnsense-label{
+    padding:11px 14px;
+    background:var(--table-head);
+    border-right:1px solid var(--border);
+    font-weight:650;
+}
+.ovpn-opnsense-control{
+    padding:9px 14px;
+    min-width:0;
+    overflow-wrap:anywhere;
+    background:var(--panel);
+}
+.ovpn-opnsense-checkbox{
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+.ovpn-checkbox-state{
+    display:inline-flex;
+    width:20px;
+    height:20px;
+    align-items:center;
+    justify-content:center;
+    border:1px solid var(--border);
+    border-radius:3px;
+    background:var(--input);
+    font-weight:800;
+}
+.ovpn-checkbox-state.on{
+    background:var(--blue);
+    color:#fff;
+    border-color:var(--blue);
+}
+.ovpn-advanced-marker{
+    display:inline-block;
+    margin-left:6px;
+    padding:1px 5px;
+    border-radius:3px;
+    background:var(--soft);
+    color:var(--muted);
+    font-size:.68rem;
+    font-weight:600;
+    vertical-align:middle;
+}
+.ovpn-opnsense-control .ovpn-config-values{
+    gap:4px;
+}
+@media(max-width:760px){
+    .ovpn-opnsense-row{
+        grid-template-columns:1fr;
+    }
+    .ovpn-opnsense-label{
+        border-right:0;
+        border-bottom:1px solid var(--border);
+    }
+    .ovpn-instance-config-tools{
+        justify-content:flex-start;
+    }
+}

@@ -1,6 +1,18 @@
 # Changelog
 
-## 0.6.2.7
+## 0.6.2.8
+
+- Replaced the manually grouped OpenVPN Config view with the actual OPNsense `dialogInstance.xml` field structure.
+- Matched OPNsense section order: General Settings, Trust, Authentication, Routing and Miscellaneous.
+- Matched OPNsense field order and labels.
+- Added Basic/Advanced mode behavior matching the OPNsense instance dialog.
+- Added server/client and TUN/TAP/DCO-dependent field visibility.
+- Added OPNsense-style read-only label/control rows.
+- Resolved CA, certificate, TLS static-key and authentication-provider references to display names.
+- Added display mappings for OPNsense option values such as protocol, device type, certificate depth and verbosity.
+- Kept secrets masked and retained the separate operational Details view.
+
+## 0.6.2.8
 
 - Added separate Details and Config controls for each OPNsense row in OpenVPN Manage.
 - Added complete read-only retrieval of every OpenVPN instance through `openvpn/instances/get/<uuid>`.
@@ -9,7 +21,7 @@
 - Masked passwords, authentication token secrets, private-key fields and secret material.
 - Preserved instance actions, sessions, one-firewall-per-row layout and existing backup behavior.
 
-## 0.6.2.7
+## 0.6.2.8
 
 - Added complete live alias inventory from every managed OPNsense.
 - Added complete live category inventory from every managed OPNsense.
@@ -23,7 +35,7 @@
 - Kept explicit Add to this OPNsense and Add to all OPNsense actions.
 - Kept takeover opt-in; unmanaged aliases are never claimed automatically.
 
-## 0.6.2.7
+## 0.6.2.8
 
 - Changed Alias Overview to one OPNsense firewall per compact row.
 - Changed Category Overview to one OPNsense firewall per compact row.
@@ -35,7 +47,7 @@
 - Preserved category create and replace behavior.
 - Preserved pre-change backups and synchronization checks.
 
-## 0.6.2.7
+## 0.6.2.8
 
 - Changed compact VPN management to one OPNsense firewall per row.
 - Grouped all managed WireGuard connections under their respective firewall.
@@ -44,7 +56,7 @@
 - Added per-firewall counts and status summaries.
 - Kept detailed connections, instances, sessions and actions expandable.
 
-## 0.6.2.7
+## 0.6.2.8
 
 - Redesigned Manage WireGuard with compact connection summaries.
 - Added expandable WireGuard connection details and controls.
@@ -54,7 +66,7 @@
 - Kept VPN details and action controls collapsed by default.
 - Preserved existing API, backup, refresh and action behavior.
 
-## 0.6.2.7
+## 0.6.2.8
 
 - Redesigned Services to use a dashboard-like compact default view.
 - Added one compact summary row per firewall.
@@ -64,12 +76,12 @@
 - Kept service details collapsed by default.
 - Preserved existing cache and refresh behavior.
 
-## 0.6.2.7
+## 0.6.2.8
 
-- Republished the consistent management-layout release as version 0.6.2.7.
+- Republished the consistent management-layout release as version 0.6.2.8.
 - No functional changes from version 0.6.2.0.
 
-## 0.6.2.7
+## 0.6.2.8
 
 - Standardized the layout of Manage WireGuard, Manage OpenVPN, Services and Agents.
 - Added one shared page-header and toolbar pattern.
@@ -78,7 +90,7 @@
 - Reorganized Agents into inventory, registration and installation sections.
 - Preserved existing functionality and API behavior.
 
-## 0.6.2.7
+## 0.6.2.8
 
 - Enabled VPN → OpenVPN → Manage.
 - Added per-firewall OpenVPN instance inventory.
@@ -88,23 +100,23 @@
 - Added OpenVPN service reconfiguration after instance state changes.
 - Added direct access to the Roadwarrior server wizard.
 
-## 0.6.2.7
+## 0.6.2.8
 
 - Restored the PayPal support link.
 - Moved PayPal directly below the Logout button in the sidebar.
 - Kept “Buy me a coffee” beside the application version.
 
-## 0.6.2.7
+## 0.6.2.8
 
 - Replaced the sidebar PayPal support link with “Buy me a coffee”.
 - Added the support URL `https://buymeacoffee.com/frazon11`.
 
-## 0.6.2.7
+## 0.6.2.8
 
-- Released the OpenVPN Roadwarrior server wizard as version 0.6.2.7.
+- Released the OpenVPN Roadwarrior server wizard as version 0.6.2.8.
 - No functional changes from the prepared 0.6.0.0 build.
 
-## 0.6.2.7
+## 0.6.2.8
 
 - Added Create OpenVPN Roadwarrior Server under VPN → OpenVPN.
 - Added target-firewall discovery for CAs, certificates, TLS static keys and authentication providers.

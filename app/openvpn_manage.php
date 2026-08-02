@@ -342,11 +342,60 @@ require __DIR__ . '/inc/header.php';
         return roleClasses.some(value => candidates.has(value));
     }
 
-    function renderFormRows(config, references, advanced){
+    function controlMarkup(field, rawValue, value){
+        if(field.type === 'checkbox'){
+            const checked =
+                rawValue === true ||
+                String(rawValue) === '1' ||
+                String(rawValue).toLowerCase() === 'true';
+
+            return `
+                <label class="opn-readonly-checkbox">
+                    <input type="checkbox" ${checked ? 'checked' : ''} disabled>
+                    <span></span>
+                </label>
+            `;
+        }
+
+        if(
+            field.type === 'dropdown' ||
+            field.type === 'select_multiple'
+        ){
+            return `
+                <div class="opn-readonly-select">
+                    <span>${displayValue(value)}</span>
+                    <span class="opn-select-arrow">▾</span>
+                </div>
+            `;
+        }
+
+        if(
+            field.type === 'textbox' ||
+            (
+                typeof value === 'string' &&
+                value.includes('\n')
+            )
+        ){
+            return `
+                <div class="opn-readonly-textarea">
+                    ${displayValue(value)}
+                </div>
+            `;
+        }
+
+        return `
+            <div class="opn-readonly-input">
+                ${displayValue(value)}
+            </div>
+        `;
+    }
+
+    function renderFormRows(config, references, advanced, fullHelp){
         let html = '';
         let currentHeaderOpen = false;
         let sectionHasRows = false;
         let sectionBuffer = '';
+        let sectionIndex = 0;
 
         function flushSection(){
             if(!currentHeaderOpen){
@@ -366,11 +415,18 @@ require __DIR__ . '/inc/header.php';
             if(item.header){
                 flushSection();
                 currentHeaderOpen = true;
-                sectionBuffer =
-                    '<section class="ovpn-opnsense-section">' +
-                    '<div class="ovpn-opnsense-section-title">' +
-                    escapeHtml(item.header) +
-                    '</div><div class="ovpn-opnsense-form">';
+                sectionIndex += 1;
+                sectionBuffer = `
+                    <section class="opn-config-section"
+                             data-section="${sectionIndex}">
+                        <button type="button"
+                                class="opn-config-section-toggle"
+                                aria-expanded="true">
+                            <span class="opn-section-chevron">⌄</span>
+                            <span>${escapeHtml(item.header)}</span>
+                        </button>
+                        <div class="opn-config-section-body">
+                `;
                 return;
             }
 
@@ -385,31 +441,24 @@ require __DIR__ . '/inc/header.php';
             );
             const rawValue = hasValue ? config[item.key] : '';
             const value = mappedValue(item, rawValue, references);
-            const isAdvanced = item.advanced
-                ? '<span class="ovpn-advanced-marker">advanced</span>'
+            const helpText = fullHelp
+                ? `<div class="opn-field-help">
+                    ${escapeHtml(
+                        item.help ||
+                        'This field is shown as defined by the OPNsense OpenVPN instance form.'
+                    )}
+                   </div>`
                 : '';
 
             sectionBuffer += `
-                <div class="ovpn-opnsense-row">
-                    <div class="ovpn-opnsense-label">
-                        ${escapeHtml(item.label)}
-                        ${isAdvanced}
+                <div class="opn-config-row">
+                    <div class="opn-config-label">
+                        <span class="opn-info-icon">i</span>
+                        <span>${escapeHtml(item.label)}</span>
                     </div>
-                    <div class="ovpn-opnsense-control ${
-                        item.type === 'checkbox'
-                            ? 'ovpn-opnsense-checkbox'
-                            : ''
-                    }">
-                        ${
-                            item.type === 'checkbox'
-                                ? (
-                                    String(rawValue) === '1' ||
-                                    rawValue === true
-                                        ? '<span class="ovpn-checkbox-state on">✓</span><span>Enabled</span>'
-                                        : '<span class="ovpn-checkbox-state"> </span><span>Disabled</span>'
-                                )
-                                : displayValue(value)
-                        }
+                    <div class="opn-config-control">
+                        ${controlMarkup(item, rawValue, value)}
+                        ${helpText}
                     </div>
                 </div>
             `;
@@ -458,28 +507,53 @@ require __DIR__ . '/inc/header.php';
         }
 
         return `
-            <article class="ovpn-instance-config"
+            <article class="opn-modal-shell"
                      data-config-instance="${instanceIndex}">
-                <div class="ovpn-instance-config-head">
-                    <div>
-                        <h3>${escapeHtml(instance.description || 'Unnamed')}</h3>
-                        <span class="muted">
-                            Instance ID ${escapeHtml(instance.vpnid || '—')}
-                            · ${escapeHtml(instance.uuid)}
+                <div class="opn-modal-titlebar">
+                    <h3>Edit Instance</h3>
+                    <button type="button"
+                            class="opn-modal-close"
+                            aria-label="Close">×</button>
+                </div>
+
+                <div class="opn-modal-toolbar">
+                    <label class="opn-switch-label">
+                        <span class="opn-switch">
+                            <input type="checkbox"
+                                   class="opn-advanced-checkbox">
+                            <span class="opn-switch-track"></span>
                         </span>
-                    </div>
-                    <div class="ovpn-instance-config-tools">
-                        ${statusBadge(instance.enabled)}
-                        <button type="button"
-                            class="button secondary ovpn-advanced-toggle"
-                            aria-pressed="false">
-                            Advanced mode: Off
-                        </button>
+                        <span>advanced mode</span>
+                    </label>
+
+                    <label class="opn-switch-label opn-full-help-label">
+                        <span>full help</span>
+                        <span class="opn-switch">
+                            <input type="checkbox"
+                                   class="opn-full-help-checkbox">
+                            <span class="opn-switch-track"></span>
+                        </span>
+                    </label>
+                </div>
+
+                <div class="opn-modal-content">
+                    <div class="ovpn-opnsense-form-wrap"
+                         data-advanced="false"
+                         data-full-help="false">
+                        ${renderFormRows(
+                            config,
+                            references,
+                            false,
+                            false
+                        )}
                     </div>
                 </div>
-                <div class="ovpn-opnsense-form-wrap"
-                     data-advanced="false">
-                    ${renderFormRows(config, references, false)}
+
+                <div class="opn-modal-footer">
+                    <button type="button"
+                            class="button secondary opn-modal-close-button">
+                        Close
+                    </button>
                 </div>
             </article>
         `;
@@ -495,32 +569,82 @@ require __DIR__ . '/inc/header.php';
         ).join('');
     }
 
-    function bindConfigAdvancedToggles(card, result){
-        card.querySelectorAll('.ovpn-advanced-toggle').forEach(button => {
+    function bindConfigControls(card, result){
+        card.querySelectorAll('.opn-modal-shell').forEach(article => {
+            const index = Number(article.dataset.configInstance);
+            const instance = result.instances[index];
+            const config = instance.config || {};
+            const wrap = article.querySelector('.ovpn-opnsense-form-wrap');
+            const advancedToggle = article.querySelector(
+                '.opn-advanced-checkbox'
+            );
+            const helpToggle = article.querySelector(
+                '.opn-full-help-checkbox'
+            );
+
+            function rerender(){
+                const advanced = advancedToggle.checked;
+                const fullHelp = helpToggle.checked;
+
+                wrap.dataset.advanced = advanced ? 'true' : 'false';
+                wrap.dataset.fullHelp = fullHelp ? 'true' : 'false';
+                wrap.innerHTML = renderFormRows(
+                    config,
+                    result.references || {},
+                    advanced,
+                    fullHelp
+                );
+
+                bindSectionToggles(article);
+            }
+
+            advancedToggle.addEventListener('change', rerender);
+            helpToggle.addEventListener('change', rerender);
+
+            article.querySelectorAll(
+                '.opn-modal-close, .opn-modal-close-button'
+            ).forEach(button => {
+                button.addEventListener('click', function(){
+                    const panel = article.closest('.ovpn-config-panel');
+                    const card = article.closest('.vpn-summary-card');
+                    const configButton = card.querySelector(
+                        '.ovpn-panel-toggle[data-panel="config"]'
+                    );
+
+                    panel.hidden = true;
+                    card.classList.remove('vpn-summary-expanded');
+                    configButton.setAttribute(
+                        'aria-expanded',
+                        'false'
+                    );
+                    configButton.textContent = 'Config';
+                });
+            });
+
+            bindSectionToggles(article);
+        });
+    }
+
+    function bindSectionToggles(container){
+        container.querySelectorAll(
+            '.opn-config-section-toggle'
+        ).forEach(button => {
             button.addEventListener('click', function(){
-                const article = button.closest('.ovpn-instance-config');
-                const wrap = article.querySelector('.ovpn-opnsense-form-wrap');
-                const index = Number(article.dataset.configInstance);
-                const advanced = button.getAttribute('aria-pressed') !== 'true';
+                const section = button.closest('.opn-config-section');
+                const body = section.querySelector(
+                    '.opn-config-section-body'
+                );
+                const expanded =
+                    button.getAttribute('aria-expanded') === 'true';
 
                 button.setAttribute(
-                    'aria-pressed',
-                    advanced ? 'true' : 'false'
+                    'aria-expanded',
+                    expanded ? 'false' : 'true'
                 );
-                button.textContent = advanced
-                    ? 'Advanced mode: On'
-                    : 'Advanced mode: Off';
-                wrap.dataset.advanced = advanced ? 'true' : 'false';
-                wrap.innerHTML =
-                    renderFormRows(
-                        result.instances[index].config || {},
-                        result.references || {},
-                        advanced
-                    ) +
-                    unknownConfig(
-                        result.instances[index].config || {},
-                        advanced
-                    );
+                body.hidden = expanded;
+                button.querySelector(
+                    '.opn-section-chevron'
+                ).textContent = expanded ? '›' : '⌄';
             });
         });
     }
@@ -743,16 +867,6 @@ require __DIR__ . '/inc/header.php';
 
                         <div class="vpn-details-panel ovpn-config-panel"
                              data-panel-name="config" hidden>
-                            <div class="vpn-details-header">
-                                <div>
-                                    <strong>OpenVPN instance configuration</strong>
-                                    <div class="muted">
-                                        Read-only OPNsense VPN → OpenVPN → Instances form on ${
-                                            escapeHtml(result.firewall.name)
-                                        }
-                                    </div>
-                                </div>
-                            </div>
                             ${
                                 result.ok
                                     ? configMarkup(result.instances, result.references)
@@ -807,7 +921,7 @@ require __DIR__ . '/inc/header.php';
 
         list.querySelectorAll('.vpn-summary-card').forEach((card, index) => {
             if(results[index]?.ok){
-                bindConfigAdvancedToggles(card, results[index]);
+                bindConfigControls(card, results[index]);
             }
         });
     }

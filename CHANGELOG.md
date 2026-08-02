@@ -1,11 +1,21 @@
 # Changelog
 
-## 0.6.2.1
+## 0.6.2.2
 
-- Republished the consistent management-layout release as version 0.6.2.1.
+- Redesigned Services to use a dashboard-like compact default view.
+- Added one compact summary row per firewall.
+- Added firewall status and active-service count summaries.
+- Added expandable service details per firewall.
+- Added service name, technical name and running status in the expanded view.
+- Kept service details collapsed by default.
+- Preserved existing cache and refresh behavior.
+
+## 0.6.2.2
+
+- Republished the consistent management-layout release as version 0.6.2.2.
 - No functional changes from version 0.6.2.0.
 
-## 0.6.2.1
+## 0.6.2.2
 
 - Standardized the layout of Manage WireGuard, Manage OpenVPN, Services and Agents.
 - Added one shared page-header and toolbar pattern.
@@ -14,7 +24,7 @@
 - Reorganized Agents into inventory, registration and installation sections.
 - Preserved existing functionality and API behavior.
 
-## 0.6.2.1
+## 0.6.2.2
 
 - Enabled VPN → OpenVPN → Manage.
 - Added per-firewall OpenVPN instance inventory.
@@ -24,23 +34,23 @@
 - Added OpenVPN service reconfiguration after instance state changes.
 - Added direct access to the Roadwarrior server wizard.
 
-## 0.6.2.1
+## 0.6.2.2
 
 - Restored the PayPal support link.
 - Moved PayPal directly below the Logout button in the sidebar.
 - Kept “Buy me a coffee” beside the application version.
 
-## 0.6.2.1
+## 0.6.2.2
 
 - Replaced the sidebar PayPal support link with “Buy me a coffee”.
 - Added the support URL `https://buymeacoffee.com/frazon11`.
 
-## 0.6.2.1
+## 0.6.2.2
 
-- Released the OpenVPN Roadwarrior server wizard as version 0.6.2.1.
+- Released the OpenVPN Roadwarrior server wizard as version 0.6.2.2.
 - No functional changes from the prepared 0.6.0.0 build.
 
-## 0.6.2.1
+## 0.6.2.2
 
 - Added Create OpenVPN Roadwarrior Server under VPN → OpenVPN.
 - Added target-firewall discovery for CAs, certificates, TLS static keys and authentication providers.

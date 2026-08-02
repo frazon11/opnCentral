@@ -463,3 +463,108 @@
         flex-direction:column;
     }
 }
+
+/* Compact Services overview */
+.service-summary-list{
+    display:grid;
+    gap:10px;
+}
+.service-summary-card{
+    padding:0;
+    overflow:hidden;
+}
+.service-summary-main{
+    display:grid;
+    grid-template-columns:minmax(260px,1.6fr) minmax(130px,.7fr) minmax(170px,.8fr) auto;
+    gap:16px;
+    align-items:center;
+    padding:12px 14px;
+}
+.service-summary-identity{
+    min-width:0;
+}
+.service-summary-identity h2{
+    margin:0 0 3px;
+    font-size:1.05rem;
+}
+.service-summary-identity a{
+    display:block;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+.service-summary-metric{
+    display:grid;
+    gap:5px;
+    align-content:center;
+}
+.service-summary-label{
+    color:var(--muted);
+    font-size:.76rem;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.035em;
+}
+.service-summary-actions{
+    display:flex;
+    justify-content:flex-end;
+}
+.service-details-panel{
+    border-top:1px solid var(--border);
+    background:var(--soft);
+}
+.service-details-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:12px 14px;
+    border-bottom:1px solid var(--border);
+}
+.service-details-table-wrap{
+    overflow:auto;
+    background:var(--panel);
+}
+.service-details-table{
+    margin:0;
+}
+.service-details-empty{
+    padding:14px;
+    color:var(--muted);
+}
+.service-details-error{
+    margin:14px;
+}
+.service-summary-expanded{
+    box-shadow:0 2px 7px var(--shadow);
+}
+@media(max-width:1000px){
+    .service-summary-main{
+        grid-template-columns:minmax(220px,1fr) minmax(130px,.6fr) auto;
+    }
+    .service-summary-main .service-summary-metric:nth-of-type(3){
+        grid-column:2;
+    }
+    .service-summary-actions{
+        grid-column:3;
+        grid-row:1 / span 2;
+    }
+}
+@media(max-width:700px){
+    .service-summary-main{
+        grid-template-columns:1fr;
+        align-items:stretch;
+    }
+    .service-summary-main .service-summary-metric:nth-of-type(3),
+    .service-summary-actions{
+        grid-column:auto;
+        grid-row:auto;
+    }
+    .service-summary-actions{
+        justify-content:flex-start;
+    }
+    .service-details-header{
+        align-items:flex-start;
+        flex-direction:column;
+    }
+}

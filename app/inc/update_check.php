@@ -2,7 +2,11 @@
 
 declare(strict_types=1);
 
+<<<<<<< HEAD
 const OPNCENTRAL_VERSION = '0.6.10.0';
+=======
+const OPNCENTRAL_VERSION = '0.6.10.2';
+>>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
 const OPNCENTRAL_GITHUB_REPOSITORY = 'frazon11/opnCentral';
 const OPNCENTRAL_UPDATE_INTERVAL = 86400;
 

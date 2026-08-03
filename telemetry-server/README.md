@@ -17,7 +17,19 @@ Apache access logging is disabled in the supplied image to avoid retaining clien
 
 ## Deployment
 
-1. Copy `.env-example` to `.env`.
+1. Create `.env` from the supplied template:
+
+   Linux/macOS:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+   Synology/File Station or Windows:
+
+   - Copy the visible `env.example` file.
+   - Rename the copy to `.env`.
+   - Dotfiles may be hidden in File Station; `env.example` contains the same settings as `.env.example`.
 2. Set a strong `DASHBOARD_PASSWORD`.
 3. Set `TELEMETRY_WRITE_TOKEN` to a long random value.
 4. Run:

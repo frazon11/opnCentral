@@ -1,6 +1,10 @@
 # OpenVPN Roadwarrior server wizard
 
+<<<<<<< HEAD
 opnCentral 0.6.10.0 adds a first wizard for creating a modern OPNsense OpenVPN
+=======
+opnCentral 0.6.10.2 adds a first wizard for creating a modern OPNsense OpenVPN
+>>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
 server instance.
 
 ## What it creates

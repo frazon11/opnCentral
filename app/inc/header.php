@@ -33,12 +33,21 @@ function nav_active(array $paths): string {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>opnCentral</title>
+<<<<<<< HEAD
 <link rel="icon" href="/assets/favicon.ico?v=06100" sizes="any">
 <link rel="icon" type="image/svg+xml" href="/assets/opncentral-icon.svg?v=06100">
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png?v=06100">
 <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png?v=06100">
 <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png?v=06100">
 <link rel="manifest" href="/assets/site.webmanifest?v=06100">
+=======
+<link rel="icon" href="/assets/favicon.ico?v=06102" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/assets/opncentral-icon.svg?v=06102">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png?v=06102">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png?v=06102">
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png?v=06102">
+<link rel="manifest" href="/assets/site.webmanifest?v=06102">
+>>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
 <meta name="theme-color" content="#26313a" id="browser-theme-color">
 <script>
 (function(){
@@ -47,7 +56,11 @@ function nav_active(array $paths): string {
     document.documentElement.dataset.theme=theme;
 })();
 </script>
+<<<<<<< HEAD
 <link rel="stylesheet" href="/assets/style.css?v=06100">
+=======
+<link rel="stylesheet" href="/assets/style.css?v=06102">
+>>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
 </head>
 <body class="<?= logged_in() ? 'app-shell' : 'login-shell' ?><?= logged_in() && !configuration_unlocked() ? ' configuration-locked' : ' configuration-unlocked' ?>">
 <?php if (logged_in()): ?>
@@ -57,7 +70,11 @@ function nav_active(array $paths): string {
         <div>
             <strong><?= h(app_name()) ?></strong>
             <div class="sidebar-meta">
+<<<<<<< HEAD
                 <span>v0.6.10.0</span><span>·</span>
+=======
+                <span>v0.6.10.2</span><span>·</span>
+>>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
                 <a
                     href="https://buymeacoffee.com/frazon11"
                     target="_blank"
@@ -297,6 +314,11 @@ window.opnCentralPresentationNames = <?= json_encode(
     let mappings = loadMappings();
     let observer = null;
     let applying = false;
+<<<<<<< HEAD
+=======
+    const originalTextValues = new WeakMap();
+    const originalAttributeValues = new WeakMap();
+>>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
 
     function loadMappings(){
         try{
@@ -524,6 +546,7 @@ window.opnCentralPresentationNames = <?= json_encode(
             return;
         }
 
+<<<<<<< HEAD
         if(!node.datasetOriginalPresentationText){
             node.datasetOriginalPresentationText = node.nodeValue;
         }
@@ -546,12 +569,49 @@ window.opnCentralPresentationNames = <?= json_encode(
             'aria-label',
             'placeholder'
         ];
+=======
+        if(!originalTextValues.has(node)){
+            originalTextValues.set(node, node.nodeValue || '');
+        }
+
+        const original = originalTextValues.get(node) || '';
+        const replacement = replaceVisibleText(original);
+
+        if(node.nodeValue !== replacement){
+            node.nodeValue = replacement;
+        }
+    }
+
+    function restoreTextNode(node){
+        if(!originalTextValues.has(node)){
+            return;
+        }
+
+        const original = originalTextValues.get(node) || '';
+
+        if(node.nodeValue !== original){
+            node.nodeValue = original;
+        }
+
+        originalTextValues.delete(node);
+    }
+
+    function transformElementAttributes(element){
+        const attributes = ['title','aria-label','placeholder'];
+        let originals = originalAttributeValues.get(element);
+
+        if(!originals){
+            originals = {};
+            originalAttributeValues.set(element, originals);
+        }
+>>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
 
         attributes.forEach(function(attribute){
             if(!element.hasAttribute(attribute)){
                 return;
             }
 
+<<<<<<< HEAD
             const key = 'presentationOriginal' +
                 attribute.replace(/(^|-)([a-z])/g, function(_, dash, chr){
                     return chr.toUpperCase();
@@ -559,16 +619,25 @@ window.opnCentralPresentationNames = <?= json_encode(
 
             if(!element.dataset[key]){
                 element.dataset[key] = element.getAttribute(attribute);
+=======
+            if(!Object.prototype.hasOwnProperty.call(originals, attribute)){
+                originals[attribute] = element.getAttribute(attribute);
+>>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
             }
 
             element.setAttribute(
                 attribute,
+<<<<<<< HEAD
                 replaceVisibleText(element.dataset[key])
+=======
+                replaceVisibleText(originals[attribute] || '')
+>>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
             );
         });
     }
 
     function restoreElementAttributes(element){
+<<<<<<< HEAD
         const keys = {
             presentationOriginalTitle: 'title',
             presentationOriginalAriaLabel: 'aria-label',
@@ -584,6 +653,26 @@ window.opnCentralPresentationNames = <?= json_encode(
                 delete element.dataset[key];
             }
         });
+=======
+        const originals = originalAttributeValues.get(element);
+
+        if(!originals){
+            return;
+        }
+
+        Object.entries(originals).forEach(function(entry){
+            const attribute = entry[0];
+            const value = entry[1];
+
+            if(value === null){
+                element.removeAttribute(attribute);
+            }else{
+                element.setAttribute(attribute, value);
+            }
+        });
+
+        originalAttributeValues.delete(element);
+>>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
     }
 
     function walk(root, transform){
@@ -664,8 +753,12 @@ window.opnCentralPresentationNames = <?= json_encode(
 
         observer.observe(document.body, {
             childList:true,
+<<<<<<< HEAD
             subtree:true,
             characterData:true
+=======
+            subtree:true
+>>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
         });
     }
 

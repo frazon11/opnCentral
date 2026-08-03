@@ -144,7 +144,11 @@ require __DIR__ . '/inc/header.php';
     </section>
 </div>
 
+<<<<<<< HEAD
 <script src="/assets/inventory-overview.js?v=06100"></script>
+=======
+<script src="/assets/inventory-overview.js?v=06102"></script>
+>>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
 <script>
 window.opnCentralInventoryOverview({
     type: 'categories',

@@ -1218,3 +1218,84 @@
         margin-left:0;
     }
 }
+
+/* Global remote-configuration lock */
+.configuration-lock-state{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:5px 9px;
+    border-radius:999px;
+    font-size:.82rem;
+    font-weight:700;
+}
+.configuration-lock-state.is-locked{
+    background:#e8ebee;
+    color:#4c5560;
+}
+.configuration-lock-state.is-unlocked{
+    background:#d9f0df;
+    color:#236a35;
+}
+.configuration-locked .remote-change-control,
+.remote-change-control[data-configuration-locked="1"]{
+    opacity:.42!important;
+    filter:grayscale(1);
+    cursor:not-allowed!important;
+    pointer-events:auto;
+}
+.configuration-locked button.remote-change-control,
+.configuration-locked input.remote-change-control{
+    background:#9aa0a6!important;
+    border-color:#9aa0a6!important;
+    color:#e9eaec!important;
+}
+.configuration-unlock-dialog[hidden]{
+    display:none;
+}
+.configuration-unlock-dialog{
+    position:fixed;
+    inset:0;
+    z-index:10000;
+    display:grid;
+    place-items:center;
+    padding:20px;
+}
+.configuration-unlock-backdrop{
+    position:absolute;
+    inset:0;
+    background:rgba(0,0,0,.62);
+}
+.configuration-unlock-card{
+    position:relative;
+    width:min(440px,100%);
+    padding:22px;
+    border:1px solid var(--border);
+    border-radius:8px;
+    background:var(--panel);
+    box-shadow:0 18px 60px rgba(0,0,0,.42);
+}
+.configuration-unlock-card h2{
+    margin:0 0 10px;
+}
+.configuration-unlock-card label{
+    display:block;
+    margin:16px 0 6px;
+    font-weight:700;
+}
+.configuration-unlock-card input{
+    width:100%;
+    box-sizing:border-box;
+}
+.configuration-unlock-card .actions{
+    justify-content:flex-end;
+    margin-top:18px;
+}
+@media(max-width:700px){
+    .topbar-right{
+        gap:5px;
+    }
+    .configuration-lock-state{
+        display:none;
+    }
+}

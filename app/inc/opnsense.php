@@ -17,6 +17,52 @@ function firewall_by_id(int $id): array
     return $firewall;
 }
 
+function opn_request_is_read_only(
+    string $path,
+    string $method
+): bool {
+    if (strtoupper($method) === 'GET') {
+        return true;
+    }
+
+    $path = strtolower(trim($path, '/'));
+
+    $readOnlyPatterns = [
+        '#(^|/)search(?:_|/|$)#',
+        '#(^|/)status(?:/|$)#',
+        '#(^|/)get(?:/|$)#',
+        '#(^|/)list(?:_|/|$)#',
+        '#(^|/)providers(?:/|$)#',
+        '#(^|/)sessions?(?:/|$)#',
+        '#(^|/)details?(?:/|$)#',
+        '#(^|/)check(?:/|$)#',
+    ];
+
+    foreach ($readOnlyPatterns as $pattern) {
+        if (preg_match($pattern, $path) === 1) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function require_opn_request_permission(
+    string $path,
+    string $method
+): void {
+    if (
+        configuration_unlocked() ||
+        opn_request_is_read_only($path, $method)
+    ) {
+        return;
+    }
+
+    throw new RuntimeException(
+        'opnCentral is locked. Remote configuration changes are disabled.'
+    );
+}
+
 function opn_curl_handle(
     array $firewall,
     string $path,
@@ -24,6 +70,8 @@ function opn_curl_handle(
     ?array $payload = null,
     int $timeout = 20
 ): CurlHandle {
+    require_opn_request_permission($path, $method);
+
     $handle = curl_init(
         rtrim((string) $firewall['base_url'], '/') .
         '/api/' .

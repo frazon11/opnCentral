@@ -1,6 +1,6 @@
 # OpenVPN Roadwarrior server wizard
 
-opnCentral 0.6.3.1 adds a first wizard for creating a modern OPNsense OpenVPN
+opnCentral 0.6.4.0 adds a first wizard for creating a modern OPNsense OpenVPN
 server instance.
 
 ## What it creates

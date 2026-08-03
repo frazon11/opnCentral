@@ -15,6 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require_csrf();
 
     try {
+        require_configuration_unlocked(false);
         $name = trim((string) ($_POST['name'] ?? ''));
         $type = trim((string) ($_POST['type'] ?? 'host'));
         $lines = central_alias_lines((string) ($_POST['content'] ?? ''));

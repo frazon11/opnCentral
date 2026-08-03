@@ -92,6 +92,8 @@ try {
         throw new RuntimeException('Unsupported action.');
     }
 
+    require_configuration_unlocked();
+
     /*
      * Refuse an update/upgrade command unless the current checked
      * firmware status explicitly offers that exact action.

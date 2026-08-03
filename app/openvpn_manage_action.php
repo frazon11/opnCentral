@@ -5,6 +5,7 @@ require_once __DIR__.'/inc/config.php';
 require_once __DIR__.'/inc/opnsense.php';
 require_once __DIR__.'/inc/backups.php';
 require_login();require_csrf();
+require_configuration_unlocked();
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
 try{

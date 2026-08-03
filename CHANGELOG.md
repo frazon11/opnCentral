@@ -1,6 +1,21 @@
 # Changelog
 
-## 0.6.3.1
+## 0.6.4.0
+
+- Added a global read-only lock for all managed OPNsense connections.
+- opnCentral starts locked for every new login session.
+- Added Unlock and Lock controls to the top bar.
+- Added password-protected session unlock using the configured password `ThankYou`.
+- Disabled and greyed remote configuration controls while locked.
+- Added server-side enforcement so direct endpoint calls cannot bypass the UI lock.
+- Allowed read-only searches, status calls, inventories, configuration views and backups while locked.
+- Protected WireGuard changes and tunnel creation.
+- Protected OpenVPN instance actions and Roadwarrior creation.
+- Protected alias and category distribution.
+- Protected plug-in changes and firmware update/upgrade commands.
+- Unlock state is limited to the current PHP login session and is cleared by Lock or logout.
+
+## 0.6.4.0
 
 - Fixed OPNsense dropdown values being displayed as raw JSON objects.
 - Added generic parsing for OPNsense model option objects with `selected` flags.
@@ -9,7 +24,7 @@
 - Added normalization for object and array values returned by the OPNsense model API.
 - Applied the same normalization to read-only checkbox controls.
 
-## 0.6.3.1
+## 0.6.4.0
 
 - Rebuilt OpenVPN Config as an OPNsense-style Edit Instance dialog.
 - Added the dark modal title bar, toolbar, collapsible section headers, alternating rows and fixed footer.
@@ -20,7 +35,7 @@
 - Replaced Save with Close because the opnCentral Config view remains read-only.
 - Continued deriving field structure from the bundled OPNsense dialogInstance definition.
 
-## 0.6.3.1
+## 0.6.4.0
 
 - Removed the remaining hard-coded OpenVPN form schema from the browser code.
 - Bundled the OPNsense OpenVPN `dialogInstance.xml` structural definition.
@@ -29,7 +44,7 @@
 - Preserved OPNsense Basic/Advanced behavior, reference-name resolution and secret masking.
 - Kept operational Details and Config as separate per-firewall views.
 
-## 0.6.3.1
+## 0.6.4.0
 
 - Replaced the manually grouped OpenVPN Config view with the actual OPNsense `dialogInstance.xml` field structure.
 - Matched OPNsense section order: General Settings, Trust, Authentication, Routing and Miscellaneous.
@@ -41,7 +56,7 @@
 - Added display mappings for OPNsense option values such as protocol, device type, certificate depth and verbosity.
 - Kept secrets masked and retained the separate operational Details view.
 
-## 0.6.3.1
+## 0.6.4.0
 
 - Added separate Details and Config controls for each OPNsense row in OpenVPN Manage.
 - Added complete read-only retrieval of every OpenVPN instance through `openvpn/instances/get/<uuid>`.
@@ -50,7 +65,7 @@
 - Masked passwords, authentication token secrets, private-key fields and secret material.
 - Preserved instance actions, sessions, one-firewall-per-row layout and existing backup behavior.
 
-## 0.6.3.1
+## 0.6.4.0
 
 - Added complete live alias inventory from every managed OPNsense.
 - Added complete live category inventory from every managed OPNsense.
@@ -64,7 +79,7 @@
 - Kept explicit Add to this OPNsense and Add to all OPNsense actions.
 - Kept takeover opt-in; unmanaged aliases are never claimed automatically.
 
-## 0.6.3.1
+## 0.6.4.0
 
 - Changed Alias Overview to one OPNsense firewall per compact row.
 - Changed Category Overview to one OPNsense firewall per compact row.
@@ -76,7 +91,7 @@
 - Preserved category create and replace behavior.
 - Preserved pre-change backups and synchronization checks.
 
-## 0.6.3.1
+## 0.6.4.0
 
 - Changed compact VPN management to one OPNsense firewall per row.
 - Grouped all managed WireGuard connections under their respective firewall.
@@ -85,7 +100,7 @@
 - Added per-firewall counts and status summaries.
 - Kept detailed connections, instances, sessions and actions expandable.
 
-## 0.6.3.1
+## 0.6.4.0
 
 - Redesigned Manage WireGuard with compact connection summaries.
 - Added expandable WireGuard connection details and controls.
@@ -95,7 +110,7 @@
 - Kept VPN details and action controls collapsed by default.
 - Preserved existing API, backup, refresh and action behavior.
 
-## 0.6.3.1
+## 0.6.4.0
 
 - Redesigned Services to use a dashboard-like compact default view.
 - Added one compact summary row per firewall.
@@ -105,12 +120,12 @@
 - Kept service details collapsed by default.
 - Preserved existing cache and refresh behavior.
 
-## 0.6.3.1
+## 0.6.4.0
 
-- Republished the consistent management-layout release as version 0.6.3.1.
+- Republished the consistent management-layout release as version 0.6.4.0.
 - No functional changes from version 0.6.2.0.
 
-## 0.6.3.1
+## 0.6.4.0
 
 - Standardized the layout of Manage WireGuard, Manage OpenVPN, Services and Agents.
 - Added one shared page-header and toolbar pattern.
@@ -119,7 +134,7 @@
 - Reorganized Agents into inventory, registration and installation sections.
 - Preserved existing functionality and API behavior.
 
-## 0.6.3.1
+## 0.6.4.0
 
 - Enabled VPN → OpenVPN → Manage.
 - Added per-firewall OpenVPN instance inventory.
@@ -129,23 +144,23 @@
 - Added OpenVPN service reconfiguration after instance state changes.
 - Added direct access to the Roadwarrior server wizard.
 
-## 0.6.3.1
+## 0.6.4.0
 
 - Restored the PayPal support link.
 - Moved PayPal directly below the Logout button in the sidebar.
 - Kept “Buy me a coffee” beside the application version.
 
-## 0.6.3.1
+## 0.6.4.0
 
 - Replaced the sidebar PayPal support link with “Buy me a coffee”.
 - Added the support URL `https://buymeacoffee.com/frazon11`.
 
-## 0.6.3.1
+## 0.6.4.0
 
-- Released the OpenVPN Roadwarrior server wizard as version 0.6.3.1.
+- Released the OpenVPN Roadwarrior server wizard as version 0.6.4.0.
 - No functional changes from the prepared 0.6.0.0 build.
 
-## 0.6.3.1
+## 0.6.4.0
 
 - Added Create OpenVPN Roadwarrior Server under VPN → OpenVPN.
 - Added target-firewall discovery for CAs, certificates, TLS static keys and authentication providers.

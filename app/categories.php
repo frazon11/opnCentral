@@ -15,6 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require_csrf();
 
     try {
+        require_configuration_unlocked(false);
         $name = trim((string) ($_POST['name'] ?? ''));
         $color = central_category_normalize_color((string) ($_POST['color'] ?? ''));
         $automatic = isset($_POST['automatic']) ? 1 : 0;

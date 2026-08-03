@@ -95,6 +95,63 @@ function csrf_token(): string { start_session_secure(); if(empty($_SESSION['csrf
 function require_csrf(): void { start_session_secure();$v=(string)($_POST['csrf']??'');if(!hash_equals((string)($_SESSION['csrf']??''),$v)){http_response_code(400);exit('Invalid CSRF token');}}
 function logged_in(): bool { start_session_secure(); return ($_SESSION['auth']??false)===true; }
 function require_login(): void { if(!logged_in()){header('Location: /login.php');exit;}}
+
+function configuration_unlocked(): bool
+{
+    start_session_secure();
+
+    return ($_SESSION['configuration_unlocked'] ?? false) === true;
+}
+
+function unlock_configuration(string $password): bool
+{
+    start_session_secure();
+
+    if (!hash_equals('ThankYou', $password)) {
+        return false;
+    }
+
+    session_regenerate_id(true);
+    $_SESSION['configuration_unlocked'] = true;
+    $_SESSION['configuration_unlocked_at'] = time();
+
+    return true;
+}
+
+function lock_configuration(): void
+{
+    start_session_secure();
+    unset(
+        $_SESSION['configuration_unlocked'],
+        $_SESSION['configuration_unlocked_at']
+    );
+}
+
+function require_configuration_unlocked(bool $json = true): void
+{
+    if (configuration_unlocked()) {
+        return;
+    }
+
+    if ($json) {
+        http_response_code(423);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(
+            [
+                'ok' => false,
+                'error' =>
+                    'opnCentral is locked. Unlock configuration changes first.',
+                'locked' => true,
+            ],
+            JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
+        );
+        exit;
+    }
+
+    throw new RuntimeException(
+        'opnCentral is locked. Unlock configuration changes first.'
+    );
+}
 function h(string $v): string { return htmlspecialchars($v,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');}
 function normalize_url(string $u): string {$u=rtrim(trim($u),'/');if(!preg_match('#^https?://#i',$u))$u='https://'.$u;if(filter_var($u,FILTER_VALIDATE_URL)===false)throw new InvalidArgumentException('Invalid URL.');return $u;}
 

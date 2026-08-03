@@ -198,6 +198,13 @@ require __DIR__ . '/inc/header.php';
     <div class="page-title-actions">
         <a
             class="button secondary"
+            href="/firewall_advanced.php?firewall_id=<?= (int) $firewall['id'] ?>"
+        >
+            Firewall → Settings → Advanced
+        </a>
+
+        <a
+            class="button secondary"
             href="/plugins.php?firewall_id=<?= (int) $firewall['id'] ?>"
         >
             Plugins

@@ -18,22 +18,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Verify Docker Hub secrets
-        shell: bash
-        env:
-          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-        run: |
-          test -n "$DOCKERHUB_USERNAME" || {
-            echo "::error::DOCKERHUB_USERNAME is missing"
-            exit 1
-          }
-
-          test -n "$DOCKERHUB_TOKEN" || {
-            echo "::error::DOCKERHUB_TOKEN is missing"
-            exit 1
-          }
-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
@@ -69,20 +53,9 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-      - name: Update Docker Hub overview
-        continue-on-error: true
-        uses: peter-evans/dockerhub-description@e98e4d1628a5f3be2be7c231e50981aee98723ae
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-          repository: frazon11/opncentral
-          readme-filepath: ./README.md
-          short-description: Central WebUI for managing multiple OPNsense firewalls

@@ -1,4 +1,26 @@
 <?php
+$presentationFirewallNames = [];
+
+if (logged_in()) {
+    try {
+        $presentationFirewallNames = array_values(
+            array_filter(
+                array_map(
+                    static fn(array $row): string =>
+                        trim((string) ($row['name'] ?? '')),
+                    db()->query(
+                        'SELECT name FROM firewalls ORDER BY id'
+                    )->fetchAll()
+                ),
+                static fn(string $name): bool => $name !== ''
+            )
+        );
+    } catch (Throwable $exception) {
+        $presentationFirewallNames = [];
+    }
+}
+?>
+<?php
 require_once __DIR__ . '/config.php';
 start_session_secure();
 $currentPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
@@ -13,12 +35,12 @@ function nav_active(array $paths): string {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>opnCentral</title>
-<link rel="icon" href="/assets/favicon.ico?v=0680" sizes="any">
-<link rel="icon" type="image/svg+xml" href="/assets/opncentral-icon.svg?v=0680">
-<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png?v=0680">
-<link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png?v=0680">
-<link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png?v=0680">
-<link rel="manifest" href="/assets/site.webmanifest?v=0680">
+<link rel="icon" href="/assets/favicon.ico?v=0690" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/assets/opncentral-icon.svg?v=0690">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png?v=0690">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png?v=0690">
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png?v=0690">
+<link rel="manifest" href="/assets/site.webmanifest?v=0690">
 <meta name="theme-color" content="#26313a" id="browser-theme-color">
 <script>
 (function(){
@@ -27,7 +49,7 @@ function nav_active(array $paths): string {
     document.documentElement.dataset.theme=theme;
 })();
 </script>
-<link rel="stylesheet" href="/assets/style.css?v=0680">
+<link rel="stylesheet" href="/assets/style.css?v=0690">
 </head>
 <body class="<?= logged_in() ? 'app-shell' : 'login-shell' ?><?= logged_in() && !configuration_unlocked() ? ' configuration-locked' : ' configuration-unlocked' ?>">
 <?php if (logged_in()): ?>
@@ -37,7 +59,7 @@ function nav_active(array $paths): string {
         <div>
             <strong><?= h(app_name()) ?></strong>
             <div class="sidebar-meta">
-                <span>v0.6.8.0</span><span>·</span>
+                <span>v0.6.9.0</span><span>·</span>
                 <a
                     href="https://buymeacoffee.com/frazon11"
                     target="_blank"
@@ -147,6 +169,25 @@ function nav_active(array $paths): string {
         </div>
     </div>
     <div class="topbar-right">
+        <div class="presentation-mode-stack">
+            <button
+                type="button"
+                id="presentation-mode-button"
+                class="button secondary"
+                aria-pressed="false"
+                title="Replace visible names, addresses and domains with presentation-safe values"
+            >
+                Presentation
+            </button>
+            <span
+                id="presentation-mode-state"
+                class="presentation-mode-state"
+                hidden
+            >
+                Presentation mode active
+            </span>
+        </div>
+
         <div class="configuration-lock-stack">
             <button
                 type="button"
@@ -216,6 +257,483 @@ function nav_active(array $paths): string {
 <header class="login-header"><img src="/assets/opncentral-icon.svg" alt="" class="sidebar-logo"><strong><?= h(app_name()) ?></strong></header>
 <main class="content login-content">
 <?php endif; ?>
+<script>
+window.opnCentralPresentationNames = <?= json_encode(
+    $presentationFirewallNames,
+    JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
+) ?>;
+</script>
+<script>
+(function(){
+    'use strict';
+
+    const storageKey = 'opncentral-presentation-mode';
+    const mappingKey = 'opncentral-presentation-mapping-v1';
+    const button = document.getElementById('presentation-mode-button');
+    const state = document.getElementById('presentation-mode-state');
+
+    const fantasyNames = [
+        'Dragonhold',
+        'Moonspire',
+        'Silverkeep',
+        'Ravenwatch',
+        'Stormhaven',
+        'Emberfall',
+        'Frostgate',
+        'Ironvale',
+        'Starforge',
+        'Shadowfen',
+        'Oakshield',
+        'Crystalreach',
+        'Thunderpeak',
+        'Wolfden',
+        'Suncrest',
+        'Nightfall',
+        'Goldenmoor',
+        'Mistwatch',
+        'Phoenixrest',
+        'Winterhold'
+    ];
+
+    let enabled = localStorage.getItem(storageKey) === '1';
+    let mappings = loadMappings();
+    let observer = null;
+    let applying = false;
+
+    function loadMappings(){
+        try{
+            const parsed = JSON.parse(
+                sessionStorage.getItem(mappingKey) || '{}'
+            );
+
+            return parsed && typeof parsed === 'object'
+                ? parsed
+                : {};
+        }catch(error){
+            return {};
+        }
+    }
+
+    function saveMappings(){
+        sessionStorage.setItem(
+            mappingKey,
+            JSON.stringify(mappings)
+        );
+    }
+
+    function hashString(value){
+        let hash = 2166136261;
+
+        for(let index = 0; index < value.length; index++){
+            hash ^= value.charCodeAt(index);
+            hash = Math.imul(hash, 16777619);
+        }
+
+        return hash >>> 0;
+    }
+
+    function stableNumber(value, minimum, maximum){
+        const span = maximum - minimum + 1;
+        return minimum + (hashString(value) % span);
+    }
+
+    function mapped(category, original, producer){
+        const key = category + ':' + original;
+
+        if(!Object.prototype.hasOwnProperty.call(mappings, key)){
+            mappings[key] = producer();
+            saveMappings();
+        }
+
+        return mappings[key];
+    }
+
+    function fantasyName(original){
+        return mapped('name', original, function(){
+            const base = fantasyNames[
+                hashString(original) % fantasyNames.length
+            ];
+
+            const duplicates = Object.values(mappings).filter(
+                value => value === base ||
+                    String(value).startsWith(base + ' ')
+            ).length;
+
+            return duplicates === 0
+                ? base
+                : base + ' ' + (duplicates + 1);
+        });
+    }
+
+    function anonymizeIpv4(address){
+        return mapped('ipv4', address, function(){
+            const parts = address.split('.').map(Number);
+
+            if(parts.length !== 4){
+                return '192.0.2.' + stableNumber(address, 1, 254);
+            }
+
+            const first = parts[0];
+
+            if(first === 10){
+                return [
+                    10,
+                    stableNumber(address + ':b', 1, 254),
+                    stableNumber(address + ':c', 1, 254),
+                    stableNumber(address + ':d', 1, 254)
+                ].join('.');
+            }
+
+            if(first === 172 && parts[1] >= 16 && parts[1] <= 31){
+                return [
+                    172,
+                    stableNumber(address + ':b', 16, 31),
+                    stableNumber(address + ':c', 1, 254),
+                    stableNumber(address + ':d', 1, 254)
+                ].join('.');
+            }
+
+            if(first === 192 && parts[1] === 168){
+                return [
+                    192,
+                    168,
+                    stableNumber(address + ':c', 1, 254),
+                    stableNumber(address + ':d', 1, 254)
+                ].join('.');
+            }
+
+            return [
+                192,
+                0,
+                2,
+                stableNumber(address, 1, 254)
+            ].join('.');
+        });
+    }
+
+    function anonymizeIpv6(address){
+        return mapped('ipv6', address, function(){
+            const a = stableNumber(address + ':a', 1, 65535)
+                .toString(16);
+            const b = stableNumber(address + ':b', 1, 65535)
+                .toString(16);
+            const c = stableNumber(address + ':c', 1, 65535)
+                .toString(16);
+
+            return '2001:db8:' + a + ':' + b + '::' + c;
+        });
+    }
+
+    function anonymizeEmail(email){
+        return mapped('email', email, function(){
+            return 'user' +
+                stableNumber(email, 1, 999) +
+                '@example.invalid';
+        });
+    }
+
+    function anonymizeHost(host){
+        return mapped('host', host, function(){
+            const lower = host.toLowerCase();
+
+            if(lower === 'localhost'){
+                return 'demo-host.local';
+            }
+
+            const suffix = lower.endsWith('.local')
+                ? '.demo.local'
+                : '.example.invalid';
+
+            return 'host-' +
+                stableNumber(host, 1, 999) +
+                suffix;
+        });
+    }
+
+    function replaceVisibleText(input){
+        let output = String(input);
+
+        const names = Array.isArray(
+            window.opnCentralPresentationNames
+        ) ? window.opnCentralPresentationNames : [];
+
+        names
+            .slice()
+            .sort((a, b) => b.length - a.length)
+            .forEach(function(name){
+                if(!name){
+                    return;
+                }
+
+                output = output.split(name).join(
+                    fantasyName(name)
+                );
+            });
+
+        output = output.replace(
+            /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi,
+            anonymizeEmail
+        );
+
+        output = output.replace(
+            /\b(?:\d{1,3}\.){3}\d{1,3}\b/g,
+            anonymizeIpv4
+        );
+
+        output = output.replace(
+            /\b(?:[A-F0-9]{1,4}:){2,7}[A-F0-9]{0,4}\b/gi,
+            anonymizeIpv6
+        );
+
+        output = output.replace(
+            /\b(?:https?:\/\/)?(?:[a-z0-9-]+\.)+[a-z]{2,}(?::\d+)?\b/gi,
+            function(match){
+                const protocolMatch = match.match(/^https?:\/\//i);
+                const protocol = protocolMatch
+                    ? protocolMatch[0]
+                    : '';
+                const withoutProtocol = match.slice(protocol.length);
+                const portMatch = withoutProtocol.match(/:\d+$/);
+                const port = portMatch ? portMatch[0] : '';
+                const host = port
+                    ? withoutProtocol.slice(0, -port.length)
+                    : withoutProtocol;
+
+                return protocol + anonymizeHost(host) + port;
+            }
+        );
+
+        return output;
+    }
+
+    function shouldSkip(node){
+        const parent = node.parentElement;
+
+        if(!parent){
+            return true;
+        }
+
+        return Boolean(parent.closest(
+            'script,style,noscript,template,' +
+            '[data-presentation-exempt="true"],' +
+            '.presentation-mode-stack,' +
+            '.configuration-unlock-dialog'
+        ));
+    }
+
+    function transformTextNode(node){
+        if(shouldSkip(node)){
+            return;
+        }
+
+        if(!node.datasetOriginalPresentationText){
+            node.datasetOriginalPresentationText = node.nodeValue;
+        }
+
+        node.nodeValue = replaceVisibleText(
+            node.datasetOriginalPresentationText
+        );
+    }
+
+    function restoreTextNode(node){
+        if(node.datasetOriginalPresentationText !== undefined){
+            node.nodeValue = node.datasetOriginalPresentationText;
+            delete node.datasetOriginalPresentationText;
+        }
+    }
+
+    function transformElementAttributes(element){
+        const attributes = [
+            'title',
+            'aria-label',
+            'placeholder'
+        ];
+
+        attributes.forEach(function(attribute){
+            if(!element.hasAttribute(attribute)){
+                return;
+            }
+
+            const key = 'presentationOriginal' +
+                attribute.replace(/(^|-)([a-z])/g, function(_, dash, chr){
+                    return chr.toUpperCase();
+                });
+
+            if(!element.dataset[key]){
+                element.dataset[key] = element.getAttribute(attribute);
+            }
+
+            element.setAttribute(
+                attribute,
+                replaceVisibleText(element.dataset[key])
+            );
+        });
+    }
+
+    function restoreElementAttributes(element){
+        const keys = {
+            presentationOriginalTitle: 'title',
+            presentationOriginalAriaLabel: 'aria-label',
+            presentationOriginalPlaceholder: 'placeholder'
+        };
+
+        Object.entries(keys).forEach(function(entry){
+            const key = entry[0];
+            const attribute = entry[1];
+
+            if(element.dataset[key] !== undefined){
+                element.setAttribute(attribute, element.dataset[key]);
+                delete element.dataset[key];
+            }
+        });
+    }
+
+    function walk(root, transform){
+        if(root.nodeType === Node.TEXT_NODE){
+            transform
+                ? transformTextNode(root)
+                : restoreTextNode(root);
+            return;
+        }
+
+        if(root.nodeType !== Node.ELEMENT_NODE &&
+           root.nodeType !== Node.DOCUMENT_NODE &&
+           root.nodeType !== Node.DOCUMENT_FRAGMENT_NODE){
+            return;
+        }
+
+        if(root.nodeType === Node.ELEMENT_NODE){
+            if(root.closest(
+                '[data-presentation-exempt="true"],' +
+                '.presentation-mode-stack'
+            )){
+                return;
+            }
+
+            transform
+                ? transformElementAttributes(root)
+                : restoreElementAttributes(root);
+        }
+
+        const walker = document.createTreeWalker(
+            root,
+            NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT
+        );
+
+        let current;
+        while((current = walker.nextNode())){
+            if(current.nodeType === Node.TEXT_NODE){
+                transform
+                    ? transformTextNode(current)
+                    : restoreTextNode(current);
+            }else{
+                transform
+                    ? transformElementAttributes(current)
+                    : restoreElementAttributes(current);
+            }
+        }
+    }
+
+    function startObserver(){
+        if(observer){
+            return;
+        }
+
+        observer = new MutationObserver(function(mutations){
+            if(!enabled || applying){
+                return;
+            }
+
+            applying = true;
+
+            try{
+                mutations.forEach(function(mutation){
+                    mutation.addedNodes.forEach(function(node){
+                        walk(node, true);
+                    });
+
+                    if(
+                        mutation.type === 'characterData' &&
+                        mutation.target.nodeType === Node.TEXT_NODE
+                    ){
+                        transformTextNode(mutation.target);
+                    }
+                });
+            }finally{
+                applying = false;
+            }
+        });
+
+        observer.observe(document.body, {
+            childList:true,
+            subtree:true,
+            characterData:true
+        });
+    }
+
+    function stopObserver(){
+        if(observer){
+            observer.disconnect();
+            observer = null;
+        }
+    }
+
+    function updateUi(){
+        document.body.classList.toggle(
+            'presentation-mode',
+            enabled
+        );
+
+        if(button){
+            button.classList.toggle('warning', enabled);
+            button.classList.toggle('secondary', !enabled);
+            button.setAttribute(
+                'aria-pressed',
+                enabled ? 'true' : 'false'
+            );
+            button.textContent = enabled
+                ? 'Exit presentation'
+                : 'Presentation';
+        }
+
+        if(state){
+            state.hidden = !enabled;
+        }
+    }
+
+    function apply(){
+        applying = true;
+
+        try{
+            if(enabled){
+                walk(document.body, true);
+                startObserver();
+            }else{
+                stopObserver();
+                walk(document.body, false);
+            }
+
+            updateUi();
+        }finally{
+            applying = false;
+        }
+    }
+
+    button?.addEventListener('click', function(){
+        enabled = !enabled;
+        localStorage.setItem(storageKey, enabled ? '1' : '0');
+        apply();
+    });
+
+    if(document.readyState === 'loading'){
+        document.addEventListener('DOMContentLoaded', apply, {
+            once:true
+        });
+    }else{
+        apply();
+    }
+})();
+</script>
 <script>
 window.opnCentralSetTheme=function(theme){
     const selected=theme==='dark'?'dark':'light';

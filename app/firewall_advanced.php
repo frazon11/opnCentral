@@ -7,6 +7,8 @@ require_once __DIR__ . '/inc/opnsense.php';
 
 require_login();
 
+$firewalls = db()->query('SELECT id,name,base_url FROM firewalls ORDER BY name')->fetchAll();
+
 $id = (int) ($_GET['firewall_id'] ?? $_GET['id'] ?? 0);
 $firewall = firewall_by_id($id);
 $error = '';
@@ -631,6 +633,34 @@ require __DIR__ . '/inc/header.php';
     </div>
 </div>
 
+<div class="settings-page-grid">
+    <aside class="card settings-tree">
+        <div class="settings-tree-title">Settings</div>
+        <span class="tree-group">Firewall</span>
+        <a class="tree-child tree-grandchild active"
+           href="/firewall_advanced.php?firewall_id=<?= (int) $firewall['id'] ?>">
+            Advanced
+        </a>
+        <span class="tree-group">System</span>
+        <a class="tree-child tree-grandchild"
+           href="/system_administration.php?firewall_id=<?= (int) $firewall['id'] ?>">
+            Administration
+        </a>
+    </aside>
+    <main>
+        <form method="get" class="card" style="margin-bottom:14px">
+            <label for="firewall_id">OPNsense</label>
+            <select id="firewall_id" name="firewall_id"
+                    onchange="this.form.submit()">
+                <?php foreach ($firewalls as $item): ?>
+                    <option value="<?= (int) $item['id'] ?>"
+                        <?= $id === (int) $item['id'] ? 'selected' : '' ?>>
+                        <?= h((string) $item['name']) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </form>
+
 <?php if ($error !== ''): ?>
     <div class="alert error"><?= h($error) ?></div>
 <?php else: ?>
@@ -686,4 +716,6 @@ require __DIR__ . '/inc/header.php';
     </section>
 <?php endif; ?>
 
+    </main>
+</div>
 <?php require __DIR__ . '/inc/footer.php'; ?>

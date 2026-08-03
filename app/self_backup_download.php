@@ -9,6 +9,17 @@ require_once __DIR__ . '/inc/self_backup.php';
 
 require_login();
 
+if (!configuration_unlocked()) {
+    http_response_code(423);
+    header('Content-Type: text/plain; charset=utf-8');
+    header('Cache-Control: no-store');
+    exit(
+        'opnCentral is locked. Unlock configuration changes before ' .
+        'downloading backups.'
+    );
+}
+
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     exit('POST required.');

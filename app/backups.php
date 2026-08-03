@@ -37,7 +37,10 @@ require __DIR__ . '/inc/header.php';
                         <td><?= h((string)$row['reason']) ?></td>
                         <td><span class="badge <?= $row['status']==='ok'?'good':'bad' ?>"><?= h((string)$row['status']) ?></span></td>
                         <td><?= $row['status']==='ok' ? h(number_format(((int)$row['byte_size'])/1024,1).' KB') : h((string)$row['error']) ?></td>
-                        <td><?php if ($row['status']==='ok'): ?><a class="button secondary" href="/backup_download.php?id=<?= (int)$row['id'] ?>">Download</a><?php endif; ?></td>
+                        <td><?php if ($row['status']==='ok'): ?><a
+    class="button secondary remote-change-control backup-download-control"
+    href="/backup_download.php?id=<?= (int)$row['id'] ?>"
+>Download</a><?php endif; ?></td>
                     </tr>
                 <?php endforeach; ?>
                 </tbody>
@@ -62,7 +65,7 @@ require __DIR__ . '/inc/header.php';
      if(!response.ok||data.ok!==true) throw new Error(data.error||'Backup failed.');
      results.innerHTML='<h3>'+data.successful+' of '+data.total+' backups completed</h3>'+
        data.results.map(r=>'<div class="backup-result '+(r.ok?'ok':'bad')+'"><strong>'+escapeHtml(r.firewall)+'</strong> '+(r.ok?'Completed':'Failed: '+escapeHtml(r.error))+'</div>').join('')+
-       (data.batch?'<p><a class="button" href="/backup_zip_download.php?batch='+encodeURIComponent(data.batch)+'">Download all as ZIP</a></p>':'');
+       (data.batch?'<p><a class="button remote-change-control backup-download-control" href="/backup_zip_download.php?batch='+encodeURIComponent(data.batch)+'">Download all as ZIP</a></p>':'');
      results.classList.remove('hidden');
      message.textContent='Backup all completed.'; message.classList.remove('hidden');
    }catch(e){error.textContent=e.message;error.classList.remove('hidden');}

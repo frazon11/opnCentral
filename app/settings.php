@@ -157,7 +157,7 @@ require __DIR__ . '/inc/header.php';
                         with a different key.
                     </p>
 
-                    <button type="submit">Download backup now</button>
+                    <button type="submit" class="remote-change-control backup-download-control">Download backup now</button>
                 </form>
             </div>
 

@@ -3,6 +3,17 @@ declare(strict_types=1);
 require_once __DIR__ . '/inc/config.php';
 require_login();
 
+if (!configuration_unlocked()) {
+    http_response_code(423);
+    header('Content-Type: text/plain; charset=utf-8');
+    header('Cache-Control: no-store');
+    exit(
+        'opnCentral is locked. Unlock configuration changes before ' .
+        'downloading backups.'
+    );
+}
+
+
 $id = (int) ($_GET['id'] ?? 0);
 $statement = db()->prepare('SELECT * FROM backups WHERE id=? AND status="ok"');
 $statement->execute([$id]);

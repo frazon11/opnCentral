@@ -1300,22 +1300,38 @@
     }
 }
 
-/* Support link beside configuration lock */
-.configuration-support-link{
-    white-space:nowrap;
+
+/* Support link physically below configuration lock */
+.configuration-lock-stack{
+    display:flex;
+    flex-direction:column;
+    align-items:stretch;
+    justify-content:center;
+    gap:3px;
 }
-@media(max-width:850px){
-    .configuration-support-link{
-        padding-inline:9px;
-    }
+.configuration-lock-stack #configuration-lock-button{
+    min-width:96px;
+}
+.configuration-lock-stack .configuration-support-link{
+    display:block;
+    width:100%;
+    box-sizing:border-box;
+    text-align:center;
+    white-space:nowrap;
+    font-size:.75rem;
+    line-height:1.15;
+    color:var(--muted);
+    text-decoration:none;
+}
+.configuration-lock-stack .configuration-support-link:hover{
+    color:var(--text);
+    text-decoration:underline;
 }
 @media(max-width:620px){
-    .configuration-support-link{
-        font-size:0;
-        min-width:38px;
+    .configuration-lock-stack #configuration-lock-button{
+        min-width:76px;
     }
-    .configuration-support-link::before{
-        content:"♥";
-        font-size:1rem;
+    .configuration-lock-stack .configuration-support-link{
+        font-size:.68rem;
     }
 }

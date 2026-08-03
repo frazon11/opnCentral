@@ -1335,3 +1335,31 @@
         font-size:.68rem;
     }
 }
+
+/* Configuration status below opnCentral header */
+.topbar-heading{
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    justify-content:center;
+    min-width:0;
+    line-height:1.1;
+}
+.topbar-heading .topbar-title{
+    line-height:1.15;
+}
+.topbar-heading .configuration-lock-state{
+    margin-top:2px;
+    padding:0;
+    border-radius:0;
+    background:transparent;
+    font-size:.72rem;
+    font-weight:650;
+    cursor:help;
+}
+.topbar-heading .configuration-lock-state.is-locked{
+    color:var(--muted);
+}
+.topbar-heading .configuration-lock-state.is-unlocked{
+    color:#2b8a45;
+}

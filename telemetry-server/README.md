@@ -1,84 +1,45 @@
-# opnCentral
+# opnCentral Telemetry
 
-Self-hosted central management for multiple OPNsense firewalls.
+A small optional receiving service for anonymous opnCentral active-installation statistics.
 
-## Main features
+## Data stored
 
-- central firewall status and firmware information
-- encrypted OPNsense API credential storage
-- configuration backup history and one-click backups
-- automatic backups before managed changes
-- central aliases and categories
-- managed WireGuard pair overview
-- experimental WireGuard site-to-site tunnel wizard
-- email notifications
-- light and dark themes
-- English, German, French and Dutch interface
-- opnCentral self-backup and restore
-- optional anonymous active-installation statistics
-- AMD64 and ARM64 Docker images
+- SHA-256 anonymous installation hash
+- first and last seen timestamps
+- opnCentral version
+- CPU architecture
+- platform (`docker`)
+- number of accepted checks
 
-## Quick start
+The application does not store firewall names, addresses, credentials, networks, VPN data, usernames, email addresses, or APP_KEY.
 
-```bash
-cp .env.example .env
-```
+Apache access logging is disabled in the supplied image to avoid retaining client IP addresses. Reverse proxies placed in front of this container may still log IP addresses; disable or anonymise those logs separately.
 
-Set a strong administrator password and generate `APP_KEY`:
+## Deployment
+
+1. Copy `.env-example` to `.env`.
+2. Set a strong `DASHBOARD_PASSWORD`.
+3. Set `TELEMETRY_WRITE_TOKEN` to a long random value.
+4. Run:
 
 ```bash
-openssl rand -hex 32
+docker compose up -d --build
 ```
 
-Then start:
-
-```bash
-docker compose pull
-docker compose up -d
-```
-
-Default web port:
+5. Publish the service through an HTTPS reverse proxy.
+6. Set the opnCentral environment:
 
 ```text
-http://DOCKER-HOST:8788
+TELEMETRY_URL=https://telemetry.example.com/api.php
+TELEMETRY_WRITE_TOKEN=the-same-long-random-value
 ```
 
-Detailed instructions:
+7. Recreate opnCentral, then enable **Settings → Anonymous installation statistics**.
 
-- [Installation](docs/installation.md)
-- [Configuration](docs/configuration.md)
-- [Backup and restore](docs/backup-restore.md)
-- [Managed WireGuard](docs/wireguard.md)
-- [Anonymous telemetry](docs/telemetry.md)
-- [Troubleshooting](docs/troubleshooting.md)
-- [Changelog](CHANGELOG.md)
-
-## Persistent data
+Dashboard:
 
 ```text
-/var/www/data
-/var/www/backups
+https://telemetry.example.com/
 ```
 
-Preserve the exact `APP_KEY`; otherwise encrypted OPNsense API credentials cannot be restored.
-
-## Container images
-
-```text
-ghcr.io/frazon11/opncentral
-docker.io/frazon11/opncentral
-```
-
-Release tags publish:
-
-- exact version, such as `0.4.6.1`
-- minor version, such as `0.4`
-- `latest`
-
-## Support
-
-Project support: `paypal.me/FrazoN11`
-
-## License
-
-MIT
+The browser prompts for `DASHBOARD_USER` and `DASHBOARD_PASSWORD`.

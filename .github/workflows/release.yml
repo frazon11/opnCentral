@@ -1,18 +1,20 @@
-name: Create GitHub release
-
-on:
-  push:
-    tags:
-      - "v*.*.*"
-
-permissions:
-  contents: write
-
-jobs:
-  release:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Create release
-        uses: softprops/action-gh-release@v2
+      - name: Build and publish
+        uses: docker/build-push-action@v6
         with:
-          generate_release_notes: true
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Update Docker Hub overview
+        uses: peter-evans/dockerhub-description@e98e4d1628a5f3be2be7c231e50981aee98723ae
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          repository: frazon11/opncentral
+          readme-filepath: ./README.md
+          short-description: >
+            Central WebUI for managing multiple OPNsense firewalls

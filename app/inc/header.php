@@ -13,12 +13,12 @@ function nav_active(array $paths): string {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>opnCentral</title>
-<link rel="icon" href="/assets/favicon.ico?v=0641" sizes="any">
-<link rel="icon" type="image/svg+xml" href="/assets/opncentral-icon.svg?v=0641">
-<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png?v=0641">
-<link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png?v=0641">
-<link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png?v=0641">
-<link rel="manifest" href="/assets/site.webmanifest?v=0641">
+<link rel="icon" href="/assets/favicon.ico?v=0642" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/assets/opncentral-icon.svg?v=0642">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png?v=0642">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png?v=0642">
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png?v=0642">
+<link rel="manifest" href="/assets/site.webmanifest?v=0642">
 <meta name="theme-color" content="#26313a" id="browser-theme-color">
 <script>
 (function(){
@@ -27,7 +27,7 @@ function nav_active(array $paths): string {
     document.documentElement.dataset.theme=theme;
 })();
 </script>
-<link rel="stylesheet" href="/assets/style.css?v=0641">
+<link rel="stylesheet" href="/assets/style.css?v=0642">
 </head>
 <body class="<?= logged_in() ? 'app-shell' : 'login-shell' ?><?= logged_in() && !configuration_unlocked() ? ' configuration-locked' : ' configuration-unlocked' ?>">
 <?php if (logged_in()): ?>
@@ -37,7 +37,7 @@ function nav_active(array $paths): string {
         <div>
             <strong><?= h(app_name()) ?></strong>
             <div class="sidebar-meta">
-                <span>v0.6.4.1</span><span>·</span>
+                <span>v0.6.4.2</span><span>·</span>
                 <a
                     href="https://buymeacoffee.com/frazon11"
                     target="_blank"
@@ -100,15 +100,6 @@ function nav_active(array $paths): string {
             ⇥ <?= h(t('menu.logout')) ?>
         </a>
 
-        <a
-            class="sidebar-paypal"
-            href="https://www.paypal.com/paypalme/FrazoN11"
-            target="_blank"
-            rel="noopener noreferrer"
-            title="Support via PayPal"
-        >
-            ♥ PayPal
-        </a>
     </div>
 </aside>
 <div class="page-shell">
@@ -123,6 +114,16 @@ function nav_active(array $paths): string {
                 ? 'Configuration unlocked'
                 : 'Read-only mode' ?>
         </span>
+        <a
+            id="configuration-support-link"
+            class="button secondary configuration-support-link"
+            href="https://www.paypal.com/paypalme/FrazoN11"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Support opnCentral via PayPal"
+        >
+            ♥ Support me
+        </a>
         <button
             type="button"
             id="configuration-lock-button"
@@ -130,6 +131,7 @@ function nav_active(array $paths): string {
                 ? 'warning'
                 : 'secondary' ?>"
             data-unlocked="<?= configuration_unlocked() ? '1' : '0' ?>"
+            data-support-url="https://www.paypal.com/paypalme/FrazoN11"
         >
             <?= configuration_unlocked() ? 'Lock' : 'Unlock' ?>
         </button>
@@ -346,6 +348,16 @@ lockButton?.addEventListener('click', async function(){
         }
 
         return;
+    }
+
+    const supportUrl = lockButton.dataset.supportUrl;
+
+    if(supportUrl){
+        window.open(
+            supportUrl,
+            '_blank',
+            'noopener,noreferrer'
+        );
     }
 
     unlockError?.classList.add('hidden');

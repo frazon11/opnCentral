@@ -167,7 +167,7 @@ require __DIR__ . '/inc/header.php';
     </section>
 </div>
 
-<script src="/assets/inventory-overview.js?v=0641"></script>
+<script src="/assets/inventory-overview.js?v=0642"></script>
 <script>
 window.opnCentralInventoryOverview({
     type: 'aliases',

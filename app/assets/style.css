@@ -1299,3 +1299,23 @@
         display:none;
     }
 }
+
+/* Support link beside configuration lock */
+.configuration-support-link{
+    white-space:nowrap;
+}
+@media(max-width:850px){
+    .configuration-support-link{
+        padding-inline:9px;
+    }
+}
+@media(max-width:620px){
+    .configuration-support-link{
+        font-size:0;
+        min-width:38px;
+    }
+    .configuration-support-link::before{
+        content:"♥";
+        font-size:1rem;
+    }
+}

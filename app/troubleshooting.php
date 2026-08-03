@@ -179,7 +179,8 @@ require __DIR__ . '/inc/header.php';
         <h1>Troubleshooting</h1>
         <p>
             Compare all configuration settings from two managed OPNsense
-            firewalls.
+            firewalls. Aliases and categories are matched by name instead
+            of their internal IDs or list positions.
         </p>
     </div>
 </div>

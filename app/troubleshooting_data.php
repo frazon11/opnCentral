@@ -54,6 +54,48 @@ function troubleshooting_mask(string $path, string $value): string
         : $value;
 }
 
+function troubleshooting_path_identity_value(
+    SimpleXMLElement $node
+): ?string {
+    foreach (['name', 'descr', 'description'] as $field) {
+        if (!isset($node->{$field})) {
+            continue;
+        }
+
+        $value = trim((string) $node->{$field});
+
+        if ($value !== '') {
+            return $value;
+        }
+    }
+
+    return null;
+}
+
+function troubleshooting_name_identity_allowed(
+    string $parentPath,
+    string $childName
+): bool {
+    $context = strtolower($parentPath . '/' . $childName);
+
+    return
+        str_contains($context, '/aliases') ||
+        str_contains($context, '/alias') ||
+        str_contains($context, '/categories') ||
+        str_contains($context, '/category');
+}
+
+function troubleshooting_identity_token(string $value): string
+{
+    $value = preg_replace('/\s+/', ' ', trim($value)) ?? trim($value);
+
+    return str_replace(
+        ['\\', '[', ']', '/', '='],
+        ['\\\\', '\\[', '\\]', '\\/', '\\='],
+        $value
+    );
+}
+
 function troubleshooting_flatten(
     SimpleXMLElement $node,
     string $path = ''
@@ -96,12 +138,43 @@ function troubleshooting_flatten(
     }
 
     $indexes = [];
+    $identityOccurrences = [];
+
     foreach ($children as $child) {
         $childName = troubleshooting_node_name($child);
         $indexes[$childName] = ($indexes[$childName] ?? 0) + 1;
-        $suffix = $nameCounts[$childName] > 1
-            ? '[' . $indexes[$childName] . ']'
-            : '';
+        $suffix = '';
+
+        if ($nameCounts[$childName] > 1) {
+            $identity = troubleshooting_path_identity_value($child);
+
+            if (
+                $identity !== null &&
+                troubleshooting_name_identity_allowed(
+                    $base,
+                    $childName
+                )
+            ) {
+                $identityKey =
+                    strtolower($childName . ':' . $identity);
+                $identityOccurrences[$identityKey] =
+                    ($identityOccurrences[$identityKey] ?? 0) + 1;
+
+                $suffix =
+                    '[name=' .
+                    troubleshooting_identity_token($identity) .
+                    ']';
+
+                if ($identityOccurrences[$identityKey] > 1) {
+                    $suffix .=
+                        '[duplicate=' .
+                        $identityOccurrences[$identityKey] .
+                        ']';
+                }
+            } else {
+                $suffix = '[' . $indexes[$childName] . ']';
+            }
+        }
 
         $childRows = troubleshooting_flatten(
             $child,

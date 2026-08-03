@@ -33,12 +33,12 @@ function nav_active(array $paths): string {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>opnCentral</title>
-<link rel="icon" href="/assets/favicon.ico?v=0691" sizes="any">
-<link rel="icon" type="image/svg+xml" href="/assets/opncentral-icon.svg?v=0691">
-<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png?v=0691">
-<link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png?v=0691">
-<link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png?v=0691">
-<link rel="manifest" href="/assets/site.webmanifest?v=0691">
+<link rel="icon" href="/assets/favicon.ico?v=06100" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/assets/opncentral-icon.svg?v=06100">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png?v=06100">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png?v=06100">
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png?v=06100">
+<link rel="manifest" href="/assets/site.webmanifest?v=06100">
 <meta name="theme-color" content="#26313a" id="browser-theme-color">
 <script>
 (function(){
@@ -47,7 +47,7 @@ function nav_active(array $paths): string {
     document.documentElement.dataset.theme=theme;
 })();
 </script>
-<link rel="stylesheet" href="/assets/style.css?v=0691">
+<link rel="stylesheet" href="/assets/style.css?v=06100">
 </head>
 <body class="<?= logged_in() ? 'app-shell' : 'login-shell' ?><?= logged_in() && !configuration_unlocked() ? ' configuration-locked' : ' configuration-unlocked' ?>">
 <?php if (logged_in()): ?>
@@ -57,7 +57,7 @@ function nav_active(array $paths): string {
         <div>
             <strong><?= h(app_name()) ?></strong>
             <div class="sidebar-meta">
-                <span>v0.6.9.1</span><span>·</span>
+                <span>v0.6.10.0</span><span>·</span>
                 <a
                     href="https://buymeacoffee.com/frazon11"
                     target="_blank"

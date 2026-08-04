@@ -1,11 +1,5 @@
 # Changelog
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-## 0.6.10.0
-=======
-## 0.6.10.2
-=======
 ## 0.6.11.0
 
 - Changed the default OPNsense management category to `managed by opnCentral`.
@@ -17,37 +11,23 @@
 - Pinned the supplied compose file to `ghcr.io/frazon11/opncentral:0.6.11.0`.
 
 ## 0.6.11.0
->>>>>>> e131f83 (Release v0.6.11.0 add configurable managed category)
 
 - Fixed the telemetry-server environment template naming.
 - Replaced the non-standard `.env-example` file with `.env.example`.
 - Added a visible `env.example` copy for Synology File Station and other file managers that hide dotfiles.
 - Updated telemetry deployment instructions with Linux, Windows and Synology steps.
 - Ensured the template includes every variable used by the telemetry Docker Compose file.
-<<<<<<< HEAD
-- Pinned the supplied main compose file to `ghcr.io/frazon11/opncentral:0.6.10.2`.
-
-## 0.6.10.2
-=======
 - Pinned the supplied main compose file to `ghcr.io/frazon11/opncentral:0.6.11.0`.
 
 ## 0.6.11.0
->>>>>>> e131f83 (Release v0.6.11.0 add configurable managed category)
 
 - Fixed Presentation mode browser runtime errors.
 - Replaced invalid text-node `dataset` access with `WeakMap` storage.
 - Removed character-data observer recursion that could make the WebUI unresponsive.
 - Preserved alias and category comparison by name.
-<<<<<<< HEAD
-- Pinned compose to `ghcr.io/frazon11/opncentral:0.6.10.2`.
-
-## 0.6.10.2
->>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
-=======
 - Pinned compose to `ghcr.io/frazon11/opncentral:0.6.11.0`.
 
 ## 0.6.11.0
->>>>>>> e131f83 (Release v0.6.11.0 add configurable managed category)
 
 - Changed Troubleshooting comparisons for aliases and categories to match objects by name.
 - Internal OPNsense IDs and list positions no longer determine which alias or category is paired.
@@ -55,36 +35,16 @@
 - Duplicate names are preserved and explicitly marked with a duplicate occurrence suffix.
 - Other repeated configuration objects continue to use their original positional comparison.
 - Added an explanatory note to the Troubleshooting page.
-<<<<<<< HEAD
-<<<<<<< HEAD
-- Pinned the supplied compose file to `ghcr.io/frazon11/opncentral:0.6.10.0`.
-
-## 0.6.10.0
-=======
-- Pinned the supplied compose file to `ghcr.io/frazon11/opncentral:0.6.10.2`.
-
-## 0.6.10.2
->>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
-=======
 - Pinned the supplied compose file to `ghcr.io/frazon11/opncentral:0.6.11.0`.
 
 ## 0.6.11.0
->>>>>>> e131f83 (Release v0.6.11.0 add configurable managed category)
 
 - Fixed the Presentation mode startup failure.
 - Loads `config.php` and the session before calling `logged_in()` or accessing the database.
 - Restores normal WebUI loading.
 - Preserves Presentation mode functionality.
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-## 0.6.10.0
-=======
-## 0.6.10.2
->>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
-=======
 ## 0.6.11.0
->>>>>>> e131f83 (Release v0.6.11.0 add configurable managed category)
 
 - Added a global Presentation mode in the top bar.
 - Replaces managed firewall names with stable fantasy names.
@@ -97,15 +57,7 @@
 - Added an active-mode status and a presentation watermark.
 - Restores original visible values immediately when Presentation mode is disabled.
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-## 0.6.10.0
-=======
-## 0.6.10.2
->>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
-=======
 ## 0.6.11.0
->>>>>>> e131f83 (Release v0.6.11.0 add configurable managed category)
 
 - Converted firewall settings into a reusable menu structure under Firewalls.
 - Added Settings → Firewall → Advanced.
@@ -117,47 +69,19 @@
 - Preserves read-only access while opnCentral is locked.
 - Keeps raw configuration XML in a collapsed diagnostic section.
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-## 0.6.10.0
-=======
-## 0.6.10.2
->>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
-=======
 ## 0.6.11.0
->>>>>>> e131f83 (Release v0.6.11.0 add configurable managed category)
 
 - Re-released the Troubleshooting configuration comparison.
 - Fixed Docker metadata generation for opnCentral's four-part version format.
 - Replaced invalid `type=semver` rules with `type=match`.
-<<<<<<< HEAD
-<<<<<<< HEAD
-- Docker images are now published as `0.6.10.0`, `latest`, and `sha-<commit>`.
-=======
-- Docker images are now published as `0.6.10.2`, `latest`, and `sha-<commit>`.
->>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
-=======
 - Docker images are now published as `0.6.11.0`, `latest`, and `sha-<commit>`.
->>>>>>> e131f83 (Release v0.6.11.0 add configurable managed category)
 - Updated checkout and all Docker actions to Node 24 compatible major versions.
 - Added explicit Dockerfile and application-directory validation before building.
 - Added generated-tag logging to the workflow.
 - Disabled Docker build cache for this corrective release.
-<<<<<<< HEAD
-<<<<<<< HEAD
-- Pinned the supplied compose file to `ghcr.io/frazon11/opncentral:0.6.10.0`.
-
-## 0.6.10.0
-=======
-- Pinned the supplied compose file to `ghcr.io/frazon11/opncentral:0.6.10.2`.
-
-## 0.6.10.2
->>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
-=======
 - Pinned the supplied compose file to `ghcr.io/frazon11/opncentral:0.6.11.0`.
 
 ## 0.6.11.0
->>>>>>> e131f83 (Release v0.6.11.0 add configurable managed category)
 
 - Added `Troubleshooting` under the Actions menu.
 - Added a two-firewall OPNsense configuration comparison page.
@@ -170,15 +94,7 @@
 - Masks password, secret, private-key, API-key, token and PSK values.
 - The comparison is read-only and remains available while opnCentral is locked.
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-## 0.6.10.0
-=======
-## 0.6.10.2
->>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
-=======
 ## 0.6.11.0
->>>>>>> e131f83 (Release v0.6.11.0 add configurable managed category)
 
 - Added a per-firewall `Firewall → Settings → Advanced` page.
 - Added an Advanced Settings button to every managed OPNsense firewall detail page.
@@ -189,15 +105,7 @@
 - Keeps the complete configuration XML in a collapsed diagnostic section.
 - The page is read-only and remains available while opnCentral is locked.
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-## 0.6.10.0
-=======
-## 0.6.10.2
->>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
-=======
 ## 0.6.11.0
->>>>>>> e131f83 (Release v0.6.11.0 add configurable managed category)
 
 - Fixed the lock status so it is visually anchored directly below the opnCentral title.
 - Overrode older lock-status positioning styles that could move the status back to the top-right controls.
@@ -205,30 +113,14 @@
 - The locked tooltip now reads `Click Unlock to enable write features`.
 - Added keyboard focus support for the tooltip.
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-## 0.6.10.0
-=======
-## 0.6.10.2
->>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
-=======
 ## 0.6.11.0
->>>>>>> e131f83 (Release v0.6.11.0 add configurable managed category)
 
 - Moved the `Read-only mode` / `Configuration unlocked` status below the opnCentral header title.
 - Removed the status badge from the top-right Unlock control area.
 - Added a tooltip to the locked status: `Click Unlock to enable write features`.
 - Kept Unlock/Lock and `Support me` in the top-right control stack.
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-## 0.6.10.0
-=======
-## 0.6.10.2
->>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
-=======
 ## 0.6.11.0
->>>>>>> e131f83 (Release v0.6.11.0 add configurable managed category)
 
 - Rebuilt the firewall details page in the same OPNsense-inspired design used by the OpenVPN instance configuration view.
 - Replaced visible raw System JSON with structured OPNsense-style label/value rows.
@@ -237,29 +129,13 @@
 - Restyled Plugins and VPN status into matching dark OPNsense panels.
 - Preserved all existing status loading, firmware actions, VPN controls and raw diagnostic data.
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-## 0.6.10.0
-=======
-## 0.6.10.2
->>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
-=======
 ## 0.6.11.0
->>>>>>> e131f83 (Release v0.6.11.0 add configurable managed category)
 
 - Corrected the top-bar structure so `Support me` is physically nested below Unlock/Lock.
 - Unlock/Lock and the PayPal link now use one vertical control stack.
 - Preserved the behavior where clicking Unlock also opens the PayPal page.
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-## 0.6.10.0
-=======
-## 0.6.10.2
->>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
-=======
 ## 0.6.11.0
->>>>>>> e131f83 (Release v0.6.11.0 add configurable managed category)
 
 - Moved the PayPal support link from the sidebar footer to the top bar beside the configuration Unlock/Lock button.
 - Renamed the top-bar link to `Support me`.
@@ -267,15 +143,7 @@
 - Clicking Lock does not open the PayPal page.
 - Added responsive top-bar support-link styling.
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-## 0.6.10.0
-=======
-## 0.6.10.2
->>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
-=======
 ## 0.6.11.0
->>>>>>> e131f83 (Release v0.6.11.0 add configurable managed category)
 
 - Added backup downloads to the password-protected locked operations.
 - Greyed and disabled stored OPNsense backup download links while locked.
@@ -284,15 +152,7 @@
 - Added server-side HTTP 423 enforcement to all backup download endpoints.
 - Backup history remains readable and manual backup creation remains available.
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-## 0.6.10.0
-=======
-## 0.6.10.2
->>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
-=======
 ## 0.6.11.0
->>>>>>> e131f83 (Release v0.6.11.0 add configurable managed category)
 
 - Added a global read-only lock for all managed OPNsense connections.
 - opnCentral starts locked for every new login session.
@@ -307,15 +167,7 @@
 - Protected plug-in changes and firmware update/upgrade commands.
 - Unlock state is limited to the current PHP login session and is cleared by Lock or logout.
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-## 0.6.10.0
-=======
-## 0.6.10.2
->>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
-=======
 ## 0.6.11.0
->>>>>>> e131f83 (Release v0.6.11.0 add configurable managed category)
 
 - Fixed OPNsense dropdown values being displayed as raw JSON objects.
 - Added generic parsing for OPNsense model option objects with `selected` flags.
@@ -324,15 +176,7 @@
 - Added normalization for object and array values returned by the OPNsense model API.
 - Applied the same normalization to read-only checkbox controls.
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-## 0.6.10.0
-=======
-## 0.6.10.2
->>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
-=======
 ## 0.6.11.0
->>>>>>> e131f83 (Release v0.6.11.0 add configurable managed category)
 
 - Rebuilt OpenVPN Config as an OPNsense-style Edit Instance dialog.
 - Added the dark modal title bar, toolbar, collapsible section headers, alternating rows and fixed footer.
@@ -343,15 +187,7 @@
 - Replaced Save with Close because the opnCentral Config view remains read-only.
 - Continued deriving field structure from the bundled OPNsense dialogInstance definition.
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-## 0.6.10.0
-=======
-## 0.6.10.2
->>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
-=======
 ## 0.6.11.0
->>>>>>> e131f83 (Release v0.6.11.0 add configurable managed category)
 
 - Removed the remaining hard-coded OpenVPN form schema from the browser code.
 - Bundled the OPNsense OpenVPN `dialogInstance.xml` structural definition.
@@ -360,15 +196,7 @@
 - Preserved OPNsense Basic/Advanced behavior, reference-name resolution and secret masking.
 - Kept operational Details and Config as separate per-firewall views.
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-## 0.6.10.0
-=======
-## 0.6.10.2
->>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
-=======
 ## 0.6.11.0
->>>>>>> e131f83 (Release v0.6.11.0 add configurable managed category)
 
 - Replaced the manually grouped OpenVPN Config view with the actual OPNsense `dialogInstance.xml` field structure.
 - Matched OPNsense section order: General Settings, Trust, Authentication, Routing and Miscellaneous.
@@ -380,15 +208,7 @@
 - Added display mappings for OPNsense option values such as protocol, device type, certificate depth and verbosity.
 - Kept secrets masked and retained the separate operational Details view.
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-## 0.6.10.0
-=======
-## 0.6.10.2
->>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
-=======
 ## 0.6.11.0
->>>>>>> e131f83 (Release v0.6.11.0 add configurable managed category)
 
 - Added separate Details and Config controls for each OPNsense row in OpenVPN Manage.
 - Added complete read-only retrieval of every OpenVPN instance through `openvpn/instances/get/<uuid>`.
@@ -397,15 +217,7 @@
 - Masked passwords, authentication token secrets, private-key fields and secret material.
 - Preserved instance actions, sessions, one-firewall-per-row layout and existing backup behavior.
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-## 0.6.10.0
-=======
-## 0.6.10.2
->>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
-=======
 ## 0.6.11.0
->>>>>>> e131f83 (Release v0.6.11.0 add configurable managed category)
 
 - Added complete live alias inventory from every managed OPNsense.
 - Added complete live category inventory from every managed OPNsense.
@@ -419,15 +231,7 @@
 - Kept explicit Add to this OPNsense and Add to all OPNsense actions.
 - Kept takeover opt-in; unmanaged aliases are never claimed automatically.
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-## 0.6.10.0
-=======
-## 0.6.10.2
->>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
-=======
 ## 0.6.11.0
->>>>>>> e131f83 (Release v0.6.11.0 add configurable managed category)
 
 - Changed Alias Overview to one OPNsense firewall per compact row.
 - Changed Category Overview to one OPNsense firewall per compact row.
@@ -439,15 +243,7 @@
 - Preserved category create and replace behavior.
 - Preserved pre-change backups and synchronization checks.
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-## 0.6.10.0
-=======
-## 0.6.10.2
->>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
-=======
 ## 0.6.11.0
->>>>>>> e131f83 (Release v0.6.11.0 add configurable managed category)
 
 - Changed compact VPN management to one OPNsense firewall per row.
 - Grouped all managed WireGuard connections under their respective firewall.
@@ -456,15 +252,7 @@
 - Added per-firewall counts and status summaries.
 - Kept detailed connections, instances, sessions and actions expandable.
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-## 0.6.10.0
-=======
-## 0.6.10.2
->>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
-=======
 ## 0.6.11.0
->>>>>>> e131f83 (Release v0.6.11.0 add configurable managed category)
 
 - Redesigned Manage WireGuard with compact connection summaries.
 - Added expandable WireGuard connection details and controls.
@@ -474,15 +262,7 @@
 - Kept VPN details and action controls collapsed by default.
 - Preserved existing API, backup, refresh and action behavior.
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-## 0.6.10.0
-=======
-## 0.6.10.2
->>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
-=======
 ## 0.6.11.0
->>>>>>> e131f83 (Release v0.6.11.0 add configurable managed category)
 
 - Redesigned Services to use a dashboard-like compact default view.
 - Added one compact summary row per firewall.
@@ -492,29 +272,12 @@
 - Kept service details collapsed by default.
 - Preserved existing cache and refresh behavior.
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-## 0.6.10.0
-=======
 ## 0.6.11.0
->>>>>>> e131f83 (Release v0.6.11.0 add configurable managed category)
 
 - Republished the consistent management-layout release as version 0.6.11.0.
 - No functional changes from version 0.6.2.0.
 
-<<<<<<< HEAD
-## 0.6.10.0
-=======
-## 0.6.10.2
-
-- Republished the consistent management-layout release as version 0.6.10.2.
-- No functional changes from version 0.6.2.0.
-
-## 0.6.10.2
->>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
-=======
 ## 0.6.11.0
->>>>>>> e131f83 (Release v0.6.11.0 add configurable managed category)
 
 - Standardized the layout of Manage WireGuard, Manage OpenVPN, Services and Agents.
 - Added one shared page-header and toolbar pattern.
@@ -523,15 +286,7 @@
 - Reorganized Agents into inventory, registration and installation sections.
 - Preserved existing functionality and API behavior.
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-## 0.6.10.0
-=======
-## 0.6.10.2
->>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
-=======
 ## 0.6.11.0
->>>>>>> e131f83 (Release v0.6.11.0 add configurable managed category)
 
 - Enabled VPN → OpenVPN → Manage.
 - Added per-firewall OpenVPN instance inventory.
@@ -541,56 +296,23 @@
 - Added OpenVPN service reconfiguration after instance state changes.
 - Added direct access to the Roadwarrior server wizard.
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-## 0.6.10.0
-=======
-## 0.6.10.2
->>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
-=======
 ## 0.6.11.0
->>>>>>> e131f83 (Release v0.6.11.0 add configurable managed category)
 
 - Restored the PayPal support link.
 - Moved PayPal directly below the Logout button in the sidebar.
 - Kept “Buy me a coffee” beside the application version.
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-## 0.6.10.0
-=======
-## 0.6.10.2
->>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
-=======
 ## 0.6.11.0
->>>>>>> e131f83 (Release v0.6.11.0 add configurable managed category)
 
 - Replaced the sidebar PayPal support link with “Buy me a coffee”.
 - Added the support URL `https://buymeacoffee.com/frazon11`.
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-## 0.6.10.0
-=======
 ## 0.6.11.0
->>>>>>> e131f83 (Release v0.6.11.0 add configurable managed category)
 
 - Released the OpenVPN Roadwarrior server wizard as version 0.6.11.0.
 - No functional changes from the prepared 0.6.0.0 build.
 
-<<<<<<< HEAD
-## 0.6.10.0
-=======
-## 0.6.10.2
-
-- Released the OpenVPN Roadwarrior server wizard as version 0.6.10.2.
-- No functional changes from the prepared 0.6.0.0 build.
-
-## 0.6.10.2
->>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
-=======
 ## 0.6.11.0
->>>>>>> e131f83 (Release v0.6.11.0 add configurable managed category)
 
 - Added Create OpenVPN Roadwarrior Server under VPN → OpenVPN.
 - Added target-firewall discovery for CAs, certificates, TLS static keys and authentication providers.

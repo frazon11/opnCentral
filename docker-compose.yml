@@ -1,14 +1,6 @@
 services:
   opncentral:
-<<<<<<< HEAD
-<<<<<<< HEAD
-    image: ghcr.io/frazon11/opncentral:0.6.10.0
-=======
-    image: ghcr.io/frazon11/opncentral:0.6.10.2
->>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
-=======
     image: ghcr.io/frazon11/opncentral:0.6.11.0
->>>>>>> e131f83 (Release v0.6.11.0 add configurable managed category)
     container_name: OpnCentral
     restart: unless-stopped
 

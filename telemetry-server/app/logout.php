@@ -1,1 +1,0 @@
-<?php require_once __DIR__.'/inc/config.php';start_session_secure();$_SESSION=[];session_destroy();header('Location: /login.php');

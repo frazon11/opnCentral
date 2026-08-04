@@ -34,6 +34,7 @@ function nav_active(array $paths): string {
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>opnCentral</title>
 <<<<<<< HEAD
+<<<<<<< HEAD
 <link rel="icon" href="/assets/favicon.ico?v=06100" sizes="any">
 <link rel="icon" type="image/svg+xml" href="/assets/opncentral-icon.svg?v=06100">
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png?v=06100">
@@ -48,6 +49,14 @@ function nav_active(array $paths): string {
 <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png?v=06102">
 <link rel="manifest" href="/assets/site.webmanifest?v=06102">
 >>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
+=======
+<link rel="icon" href="/assets/favicon.ico?v=06110" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/assets/opncentral-icon.svg?v=06110">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png?v=06110">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png?v=06110">
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png?v=06110">
+<link rel="manifest" href="/assets/site.webmanifest?v=06110">
+>>>>>>> e131f83 (Release v0.6.11.0 add configurable managed category)
 <meta name="theme-color" content="#26313a" id="browser-theme-color">
 <script>
 (function(){
@@ -57,10 +66,14 @@ function nav_active(array $paths): string {
 })();
 </script>
 <<<<<<< HEAD
+<<<<<<< HEAD
 <link rel="stylesheet" href="/assets/style.css?v=06100">
 =======
 <link rel="stylesheet" href="/assets/style.css?v=06102">
 >>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
+=======
+<link rel="stylesheet" href="/assets/style.css?v=06110">
+>>>>>>> e131f83 (Release v0.6.11.0 add configurable managed category)
 </head>
 <body class="<?= logged_in() ? 'app-shell' : 'login-shell' ?><?= logged_in() && !configuration_unlocked() ? ' configuration-locked' : ' configuration-unlocked' ?>">
 <?php if (logged_in()): ?>
@@ -71,10 +84,14 @@ function nav_active(array $paths): string {
             <strong><?= h(app_name()) ?></strong>
             <div class="sidebar-meta">
 <<<<<<< HEAD
+<<<<<<< HEAD
                 <span>v0.6.10.0</span><span>·</span>
 =======
                 <span>v0.6.10.2</span><span>·</span>
 >>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
+=======
+                <span>v0.6.11.0</span><span>·</span>
+>>>>>>> e131f83 (Release v0.6.11.0 add configurable managed category)
                 <a
                     href="https://buymeacoffee.com/frazon11"
                     target="_blank"
@@ -315,10 +332,15 @@ window.opnCentralPresentationNames = <?= json_encode(
     let observer = null;
     let applying = false;
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     const originalTextValues = new WeakMap();
     const originalAttributeValues = new WeakMap();
 >>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
+=======
+    const originalTextValues = new WeakMap();
+    const originalAttributeValues = new WeakMap();
+>>>>>>> e131f83 (Release v0.6.11.0 add configurable managed category)
 
     function loadMappings(){
         try{
@@ -547,23 +569,39 @@ window.opnCentralPresentationNames = <?= json_encode(
         }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         if(!node.datasetOriginalPresentationText){
             node.datasetOriginalPresentationText = node.nodeValue;
+=======
+        if(!originalTextValues.has(node)){
+            originalTextValues.set(node, node.nodeValue || '');
+>>>>>>> e131f83 (Release v0.6.11.0 add configurable managed category)
         }
 
-        node.nodeValue = replaceVisibleText(
-            node.datasetOriginalPresentationText
-        );
+        const original = originalTextValues.get(node) || '';
+        const replacement = replaceVisibleText(original);
+
+        if(node.nodeValue !== replacement){
+            node.nodeValue = replacement;
+        }
     }
 
     function restoreTextNode(node){
-        if(node.datasetOriginalPresentationText !== undefined){
-            node.nodeValue = node.datasetOriginalPresentationText;
-            delete node.datasetOriginalPresentationText;
+        if(!originalTextValues.has(node)){
+            return;
         }
+
+        const original = originalTextValues.get(node) || '';
+
+        if(node.nodeValue !== original){
+            node.nodeValue = original;
+        }
+
+        originalTextValues.delete(node);
     }
 
     function transformElementAttributes(element){
+<<<<<<< HEAD
         const attributes = [
             'title',
             'aria-label',
@@ -597,6 +635,8 @@ window.opnCentralPresentationNames = <?= json_encode(
     }
 
     function transformElementAttributes(element){
+=======
+>>>>>>> e131f83 (Release v0.6.11.0 add configurable managed category)
         const attributes = ['title','aria-label','placeholder'];
         let originals = originalAttributeValues.get(element);
 
@@ -604,13 +644,17 @@ window.opnCentralPresentationNames = <?= json_encode(
             originals = {};
             originalAttributeValues.set(element, originals);
         }
+<<<<<<< HEAD
 >>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
+=======
+>>>>>>> e131f83 (Release v0.6.11.0 add configurable managed category)
 
         attributes.forEach(function(attribute){
             if(!element.hasAttribute(attribute)){
                 return;
             }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
             const key = 'presentationOriginal' +
                 attribute.replace(/(^|-)([a-z])/g, function(_, dash, chr){
@@ -623,36 +667,54 @@ window.opnCentralPresentationNames = <?= json_encode(
             if(!Object.prototype.hasOwnProperty.call(originals, attribute)){
                 originals[attribute] = element.getAttribute(attribute);
 >>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
+=======
+            if(!Object.prototype.hasOwnProperty.call(originals, attribute)){
+                originals[attribute] = element.getAttribute(attribute);
+>>>>>>> e131f83 (Release v0.6.11.0 add configurable managed category)
             }
 
             element.setAttribute(
                 attribute,
 <<<<<<< HEAD
+<<<<<<< HEAD
                 replaceVisibleText(element.dataset[key])
 =======
                 replaceVisibleText(originals[attribute] || '')
 >>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
+=======
+                replaceVisibleText(originals[attribute] || '')
+>>>>>>> e131f83 (Release v0.6.11.0 add configurable managed category)
             );
         });
     }
 
     function restoreElementAttributes(element){
 <<<<<<< HEAD
+<<<<<<< HEAD
         const keys = {
             presentationOriginalTitle: 'title',
             presentationOriginalAriaLabel: 'aria-label',
             presentationOriginalPlaceholder: 'placeholder'
         };
+=======
+        const originals = originalAttributeValues.get(element);
+>>>>>>> e131f83 (Release v0.6.11.0 add configurable managed category)
 
-        Object.entries(keys).forEach(function(entry){
-            const key = entry[0];
-            const attribute = entry[1];
+        if(!originals){
+            return;
+        }
 
-            if(element.dataset[key] !== undefined){
-                element.setAttribute(attribute, element.dataset[key]);
-                delete element.dataset[key];
+        Object.entries(originals).forEach(function(entry){
+            const attribute = entry[0];
+            const value = entry[1];
+
+            if(value === null){
+                element.removeAttribute(attribute);
+            }else{
+                element.setAttribute(attribute, value);
             }
         });
+<<<<<<< HEAD
 =======
         const originals = originalAttributeValues.get(element);
 
@@ -673,6 +735,10 @@ window.opnCentralPresentationNames = <?= json_encode(
 
         originalAttributeValues.delete(element);
 >>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
+=======
+
+        originalAttributeValues.delete(element);
+>>>>>>> e131f83 (Release v0.6.11.0 add configurable managed category)
     }
 
     function walk(root, transform){
@@ -754,11 +820,15 @@ window.opnCentralPresentationNames = <?= json_encode(
         observer.observe(document.body, {
             childList:true,
 <<<<<<< HEAD
+<<<<<<< HEAD
             subtree:true,
             characterData:true
 =======
             subtree:true
 >>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
+=======
+            subtree:true
+>>>>>>> e131f83 (Release v0.6.11.0 add configurable managed category)
         });
     }
 

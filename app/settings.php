@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/inc/config.php';
+require_once __DIR__ . '/inc/managed_category.php';
 require_login();
 require __DIR__ . '/inc/header.php';
 ?>
@@ -48,6 +49,69 @@ require __DIR__ . '/inc/header.php';
     </section>
 
 
+
+
+    <section class="card wide" id="managed-category-settings">
+        <h2>OPNsense managed category</h2>
+        <p class="muted">
+            Before opnCentral changes anything on an OPNsense firewall, it
+            verifies that this persistent category exists and creates it when
+            missing. Managed aliases are assigned to this category.
+        </p>
+
+        <?php if (isset($_GET['managed_category_saved'])): ?>
+            <div class="alert goodbox">
+                Managed category settings saved.
+            </div>
+        <?php endif; ?>
+
+        <?php if (!empty($_GET['managed_category_error'])): ?>
+            <div class="alert error">
+                <?= h((string) $_GET['managed_category_error']) ?>
+            </div>
+        <?php endif; ?>
+
+        <form method="post" action="/managed_category_settings_action.php">
+            <input
+                type="hidden"
+                name="csrf"
+                value="<?= h(csrf_token()) ?>"
+            >
+
+            <label>
+                Category name
+                <input
+                    type="text"
+                    name="managed_category_name"
+                    maxlength="255"
+                    required
+                    value="<?= h(managed_category_name()) ?>"
+                >
+            </label>
+
+            <label>
+                Category color
+                <input
+                    type="text"
+                    name="managed_category_color"
+                    maxlength="7"
+                    required
+                    value="<?= h(managed_category_color()) ?>"
+                    placeholder="F0AD4E"
+                >
+            </label>
+
+            <p class="muted">
+                Default: <strong>managed by opnCentral</strong>. Changing the
+                name affects future checks and assignments; existing categories
+                are not renamed automatically.
+            </p>
+
+            <button type="submit" class="remote-change-control">
+                Save managed category
+            </button>
+        </form>
+    </section>
 
     <section class="card wide" id="update-settings-card">
         <div class="card-head">

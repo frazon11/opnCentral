@@ -10,6 +10,7 @@ require_once __DIR__ . '/inc/config.php';
 require_once __DIR__ . '/inc/opnsense.php';
 require_once __DIR__ . '/inc/alias_central.php';
 require_once __DIR__ . '/inc/category_central.php';
+require_once __DIR__ . '/inc/managed_category.php';
 
 require_login();
 central_alias_init();
@@ -62,7 +63,7 @@ function inventory_category_uuid(array $value): ?string
 
         if (
             is_string($name) &&
-            strcasecmp($name, 'opnCentral') === 0 &&
+            strcasecmp($name, managed_category_name()) === 0 &&
             is_string($uuid) &&
             trim($uuid) !== ''
         ) {
@@ -72,7 +73,7 @@ function inventory_category_uuid(array $value): ?string
         foreach ($node as $key => $child) {
             if (
                 is_string($child) &&
-                strcasecmp($child, 'opnCentral') === 0 &&
+                strcasecmp($child, managed_category_name()) === 0 &&
                 is_string($key) &&
                 trim($key) !== ''
             ) {
@@ -297,8 +298,8 @@ try {
                     'managed' => $managedByMarker,
                     'known_definition' => $definition !== null,
                     'management_reason' => $managedByMarker
-                        ? 'Assigned to the opnCentral category'
-                        : 'Not assigned to the opnCentral category',
+                        ? 'Assigned to the managed category: ' . managed_category_name()
+                        : 'Not assigned to the managed category: ' . managed_category_name(),
                     'last_status' => (string) (
                         $target['last_status'] ??
                         ($managedByMarker ? 'unknown' : 'unmanaged')

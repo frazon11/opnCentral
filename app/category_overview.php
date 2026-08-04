@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/inc/config.php';
+require_once __DIR__ . '/inc/managed_category.php';
 require_once __DIR__ . '/inc/opnsense.php';
 require_once __DIR__ . '/inc/category_central.php';
 
@@ -145,10 +146,14 @@ require __DIR__ . '/inc/header.php';
 </div>
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 <script src="/assets/inventory-overview.js?v=06100"></script>
 =======
 <script src="/assets/inventory-overview.js?v=06102"></script>
 >>>>>>> 6e34e52 (Release v0.6.10.2 fix telemetry environment template)
+=======
+<script src="/assets/inventory-overview.js?v=06110"></script>
+>>>>>>> e131f83 (Release v0.6.11.0 add configurable managed category)
 <script>
 window.opnCentralInventoryOverview({
     type: 'categories',

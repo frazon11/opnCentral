@@ -3,6 +3,7 @@ require_once __DIR__ . '/inc/config.php';
 require_once __DIR__ . '/inc/opnsense.php';
 require_once __DIR__ . '/inc/backups.php';
 require_once __DIR__ . '/inc/category_central.php';
+require_once __DIR__ . '/inc/managed_category.php';
 require_once __DIR__ . '/inc/distribution_targets.php';
 require_login();
 central_category_init();
@@ -142,10 +143,10 @@ require __DIR__ . '/inc/header.php';
 <input type="hidden" name="csrf" value="<?= h(csrf_token()) ?>">
 
 <label for="name"><?= h(t('categories.name')) ?></label>
-<input id="name" name="name" type="text" required maxlength="255" value="<?= h((string)($_POST['name'] ?? 'opnCentral')) ?>">
+<input id="name" name="name" type="text" required maxlength="255" value="<?= h((string)($_POST['name'] ?? managed_category_name())) ?>">
 
 <label for="color"><?= h(t('categories.color')) ?></label>
-<input id="color" name="color" type="text" value="<?= h((string)($_POST['color'] ?? '#f0ad4e')) ?>" placeholder="#f0ad4e">
+<input id="color" name="color" type="text" value="<?= h((string)($_POST['color'] ?? managed_category_color())) ?>" placeholder="#f0ad4e">
 <div class="help"><?= h(t('categories.color_help')) ?></div>
 
 <label for="mode"><?= h(t('categories.exists')) ?></label>

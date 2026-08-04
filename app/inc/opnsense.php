@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/managed_category.php';
 
 function firewall_by_id(int $id): array
 {
@@ -63,6 +64,134 @@ function require_opn_request_permission(
     );
 }
 
+function opn_raw_request(
+    array $firewall,
+    string $path,
+    string $method = 'GET',
+    ?array $payload = null,
+    int $timeout = 20
+): array {
+    $handle = curl_init(
+        rtrim((string) $firewall['base_url'], '/') .
+        '/api/' .
+        ltrim($path, '/')
+    );
+
+    if (!$handle instanceof CurlHandle) {
+        throw new RuntimeException('Could not initialize cURL.');
+    }
+
+    $headers = ['Accept: application/json'];
+    $options = [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_USERPWD =>
+            decrypt_value((string) $firewall['api_key_enc']) .
+            ':' .
+            decrypt_value((string) $firewall['api_secret_enc']),
+        CURLOPT_HTTPAUTH => CURLAUTH_BASIC,
+        CURLOPT_CONNECTTIMEOUT => min(10, max(1, $timeout)),
+        CURLOPT_TIMEOUT => $timeout,
+        CURLOPT_FOLLOWLOCATION => false,
+        CURLOPT_SSL_VERIFYPEER => (bool) $firewall['verify_tls'],
+        CURLOPT_SSL_VERIFYHOST =>
+            (bool) $firewall['verify_tls'] ? 2 : 0,
+    ];
+
+    if (strtoupper($method) === 'POST') {
+        $options[CURLOPT_POST] = true;
+        $options[CURLOPT_POSTFIELDS] = json_encode(
+            $payload ?? new stdClass(),
+            JSON_THROW_ON_ERROR
+        );
+        $headers[] = 'Content-Type: application/json';
+    }
+
+    $options[CURLOPT_HTTPHEADER] = $headers;
+    curl_setopt_array($handle, $options);
+
+    $body = curl_exec($handle);
+
+    return opn_decode_response($handle, $body);
+}
+
+function opn_ensure_managed_category(array $firewall): void
+{
+    static $ensured = [];
+    static $running = false;
+
+    $firewallId = (int) ($firewall['id'] ?? 0);
+    $cacheKey = $firewallId > 0
+        ? (string) $firewallId
+        : (string) ($firewall['base_url'] ?? '');
+
+    if ($running || isset($ensured[$cacheKey])) {
+        return;
+    }
+
+    $running = true;
+
+    try {
+        $name = managed_category_name();
+        $search = opn_raw_request(
+            $firewall,
+            'firewall/category/search_item',
+            'POST',
+            [
+                'current' => 1,
+                'rowCount' => 500,
+                'searchPhrase' => $name,
+            ],
+            20
+        );
+
+        foreach (($search['rows'] ?? []) as $row) {
+            if (
+                is_array($row) &&
+                strcasecmp(
+                    trim((string) ($row['name'] ?? '')),
+                    $name
+                ) === 0
+            ) {
+                $ensured[$cacheKey] = true;
+                return;
+            }
+        }
+
+        $response = opn_raw_request(
+            $firewall,
+            'firewall/category/add_item',
+            'POST',
+            [
+                'category' => [
+                    'name' => $name,
+                    'color' => managed_category_color(),
+                    'auto' => '0',
+                ],
+            ],
+            20
+        );
+
+        if (
+            isset($response['result']) &&
+            !in_array(
+                (string) $response['result'],
+                ['saved', 'ok'],
+                true
+            ) &&
+            !isset($response['uuid'])
+        ) {
+            throw new RuntimeException(
+                'OPNsense rejected managed category creation: ' .
+                json_encode($response)
+            );
+        }
+
+        $ensured[$cacheKey] = true;
+    } finally {
+        $running = false;
+    }
+}
+
 function opn_curl_handle(
     array $firewall,
     string $path,
@@ -71,6 +200,10 @@ function opn_curl_handle(
     int $timeout = 20
 ): CurlHandle {
     require_opn_request_permission($path, $method);
+
+    if (!opn_request_is_read_only($path, $method)) {
+        opn_ensure_managed_category($firewall);
+    }
 
     $handle = curl_init(
         rtrim((string) $firewall['base_url'], '/') .

@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/managed_category.php';
+
 function central_alias_init(): void
 {
     db()->exec(
@@ -57,12 +59,12 @@ function central_alias_category_uuid(array $firewall): ?string
             $name = $value['name'] ?? $value['label'] ?? null;
             $uuid = $value['uuid'] ?? $value['id'] ?? null;
 
-            if (is_string($name) && strcasecmp($name, 'opnCentral') === 0 && is_string($uuid)) {
+            if (is_string($name) && strcasecmp($name, managed_category_name()) === 0 && is_string($uuid)) {
                 return $uuid;
             }
 
             foreach ($value as $childKey => $childValue) {
-                if (is_string($childValue) && strcasecmp($childValue, 'opnCentral') === 0 && is_string($childKey)) {
+                if (is_string($childValue) && strcasecmp($childValue, managed_category_name()) === 0 && is_string($childKey)) {
                     return $childKey;
                 }
 

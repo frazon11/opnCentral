@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="/assets/ids-bulk-actions.css?v=06118">
 <script src="/assets/ids-menu.js?v=06118"></script>
 <script src="/assets/sidebar-opnsense.js?v=06118"></script>
+<script src="/assets/ids-write-label.js?v=06118"></script>
 <script src="/assets/ids-bulk-actions.js?v=06118"></script>
 <script>
 (function(){

@@ -9,11 +9,12 @@
 <script src="/assets/sidebar-opnsense.js?v=06118"></script>
 <script src="/assets/ids-write-label.js?v=06118"></script>
 <script src="/assets/ids-bulk-actions.js?v=06119"></script>
+<script src="/assets/ids-ruleset-filter.js?v=061112"></script>
 <script>
 (function(){
     const version = document.querySelector('.sidebar-meta span:first-child');
     if(version){
-        version.textContent = 'v0.6.11.10';
+        version.textContent = 'v0.6.11.12';
     }
 })();
 </script>

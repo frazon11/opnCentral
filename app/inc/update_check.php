@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-const OPNCENTRAL_VERSION = '0.6.11.6';
+const OPNCENTRAL_VERSION = '0.6.11.8';
 const OPNCENTRAL_GITHUB_REPOSITORY = 'frazon11/opnCentral';
 const OPNCENTRAL_UPDATE_INTERVAL = 86400;
 
@@ -28,21 +28,14 @@ function update_check_defaults(): array
     ];
 }
 
-function update_check_load(): array
+function update_check_normalize_version(string $version): string
 {
-    $defaults = update_check_defaults();
-    $path = update_check_path();
+    $version = trim($version);
+    return preg_replace('/^[vV]/', '', $version) ?? $version;
+}
 
-    if (!is_file($path)) {
-        return $defaults;
-    }
-
-    $decoded = json_decode((string) file_get_contents($path), true);
-    $state = is_array($decoded)
-        ? array_replace($defaults, $decoded)
-        : $defaults;
-
-    // Never trust a cached comparison result from an older opnCentral version.
+function update_check_compare(array $state): array
+{
     $latest = update_check_normalize_version(
         (string) ($state['latest_version'] ?? '')
     );
@@ -64,6 +57,23 @@ function update_check_load(): array
     return $state;
 }
 
+function update_check_load(): array
+{
+    $defaults = update_check_defaults();
+    $path = update_check_path();
+
+    if (!is_file($path)) {
+        return $defaults;
+    }
+
+    $decoded = json_decode((string) file_get_contents($path), true);
+    $state = is_array($decoded)
+        ? array_replace($defaults, $decoded)
+        : $defaults;
+
+    return update_check_compare($state);
+}
+
 function update_check_save(array $state): void
 {
     if (!is_dir(DATA_DIR) && !mkdir(DATA_DIR, 0770, true) && !is_dir(DATA_DIR)) {
@@ -72,7 +82,10 @@ function update_check_save(array $state): void
 
     $json = json_encode(
         array_replace(update_check_defaults(), $state),
-        JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR
+        JSON_PRETTY_PRINT |
+        JSON_UNESCAPED_SLASHES |
+        JSON_UNESCAPED_UNICODE |
+        JSON_THROW_ON_ERROR
     );
 
     if (file_put_contents(update_check_path(), $json, LOCK_EX) === false) {
@@ -80,33 +93,20 @@ function update_check_save(array $state): void
     }
 }
 
-function update_check_normalize_version(string $version): string
-{
-    $version = trim($version);
-    return preg_replace('/^[vV]/', '', $version) ?? $version;
-}
-
 function update_check_is_stale(array $state): bool
 {
     $lastSuccess = trim((string) ($state['last_checked'] ?? ''));
     if ($lastSuccess !== '') {
-        $successTimestamp = strtotime($lastSuccess);
-        if (
-            $successTimestamp !== false &&
-            (time() - $successTimestamp) < OPNCENTRAL_UPDATE_INTERVAL
-        ) {
+        $timestamp = strtotime($lastSuccess);
+        if ($timestamp !== false && (time() - $timestamp) < OPNCENTRAL_UPDATE_INTERVAL) {
             return false;
         }
     }
 
-    // Failed checks may retry after 15 minutes instead of being suppressed for 24 hours.
     $lastAttempt = trim((string) ($state['last_attempt'] ?? ''));
     if ($lastAttempt !== '') {
-        $attemptTimestamp = strtotime($lastAttempt);
-        if (
-            $attemptTimestamp !== false &&
-            (time() - $attemptTimestamp) < 900
-        ) {
+        $timestamp = strtotime($lastAttempt);
+        if ($timestamp !== false && (time() - $timestamp) < 900) {
             return false;
         }
     }
@@ -123,23 +123,7 @@ function update_check_run(bool $force = false): array
     }
 
     if (!$force && !update_check_is_stale($state)) {
-        $latest = update_check_normalize_version(
-            (string) ($state['latest_version'] ?? '')
-        );
-        if ($latest === '') {
-            $state['comparison'] = 'unknown';
-            $state['update_available'] = false;
-        } elseif (version_compare($latest, OPNCENTRAL_VERSION, '>')) {
-            $state['comparison'] = 'behind';
-            $state['update_available'] = true;
-        } elseif (version_compare($latest, OPNCENTRAL_VERSION, '<')) {
-            $state['comparison'] = 'ahead';
-            $state['update_available'] = false;
-        } else {
-            $state['comparison'] = 'equal';
-            $state['update_available'] = false;
-        }
-        return $state;
+        return update_check_compare($state);
     }
 
     $url = 'https://api.github.com/repos/' .
@@ -158,7 +142,7 @@ function update_check_run(bool $force = false): array
         CURLOPT_TIMEOUT => 20,
         CURLOPT_HTTPHEADER => [
             'Accept: application/vnd.github+json',
-            'X-GitHub-Api-Version: 2026-03-10',
+            'X-GitHub-Api-Version: 2022-11-28',
             'User-Agent: opnCentral/' . OPNCENTRAL_VERSION,
         ],
     ]);
@@ -171,15 +155,7 @@ function update_check_run(bool $force = false): array
     $state['last_attempt'] = gmdate('c');
 
     if ($body === false || $curlError !== '') {
-        $errorText = $curlError ?: 'unknown error';
-        if (
-            stripos($errorText, 'resolv') !== false ||
-            stripos($errorText, 'name') !== false ||
-            stripos($errorText, 'host') !== false
-        ) {
-            $errorText .= ' Check the Docker container DNS configuration and verify that api.github.com resolves from inside the container.';
-        }
-        $state['error'] = 'GitHub request failed: ' . $errorText;
+        $state['error'] = 'GitHub request failed: ' . ($curlError ?: 'unknown error');
         update_check_save($state);
         return $state;
     }
@@ -215,17 +191,8 @@ function update_check_run(bool $force = false): array
         FILTER_VALIDATE_URL
     ) ?: null;
     $state['published_at'] = trim((string) ($release['published_at'] ?? '')) ?: null;
-    if (version_compare($latest, OPNCENTRAL_VERSION, '>')) {
-        $state['comparison'] = 'behind';
-        $state['update_available'] = true;
-    } elseif (version_compare($latest, OPNCENTRAL_VERSION, '<')) {
-        $state['comparison'] = 'ahead';
-        $state['update_available'] = false;
-    } else {
-        $state['comparison'] = 'equal';
-        $state['update_available'] = false;
-    }
     $state['error'] = null;
+    $state = update_check_compare($state);
 
     update_check_save($state);
     return $state;

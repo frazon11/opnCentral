@@ -1,8 +1,8 @@
 FROM php:8.5-apache-trixie
 
-LABEL org.opencontainers.image.title="opnCentral"
+LABEL org.opencontainers.image.title="opnSentral"
 LABEL org.opencontainers.image.description="Central manager for multiple OPNsense firewalls"
-LABEL org.opencontainers.image.source="https://github.com/frazon11/opnCentral"
+LABEL org.opencontainers.image.source="https://github.com/frazon11/opnSentral"
 LABEL org.opencontainers.image.licenses="MIT"
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -29,7 +29,7 @@ RUN set -eux; \
         'post_max_size=1024M' \
         'max_execution_time=600' \
         'max_input_time=600' \
-        > /usr/local/etc/php/conf.d/opncentral-uploads.ini; \
+        > /usr/local/etc/php/conf.d/opnsentral-uploads.ini; \
     a2enmod rewrite headers; \
     apt-mark manual ca-certificates curl libcurl4t64 libsqlite3-0 libzip5; \
     apt-get purge -y --auto-remove libcurl4-openssl-dev libsqlite3-dev libzip-dev; \

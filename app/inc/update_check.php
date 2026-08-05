@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-const OPNCENTRAL_VERSION = '0.6.11.9';
+const OPNCENTRAL_VERSION = '0.6.11.10';
 const OPNCENTRAL_GITHUB_REPOSITORY = 'frazon11/opnCentral';
 const OPNCENTRAL_UPDATE_INTERVAL = 86400;
 

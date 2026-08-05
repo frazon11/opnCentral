@@ -1,7 +1,7 @@
 services:
-  opnsentral:
-    image: ghcr.io/frazon11/opnsentral:0.6.11.14
-    container_name: OpnSentral
+  opncentral:
+    image: ghcr.io/frazon11/opncentral:0.6.11.13
+    container_name: OpnCentral
     restart: unless-stopped
 
     ports:
@@ -9,7 +9,7 @@ services:
 
     environment:
       TZ: Europe/Brussels
-      APP_NAME: opnSentral
+      APP_NAME: OpnCentral
       APP_KEY: DEIN_64_STELLIGER_HEX_SCHLUESSEL
       ADMIN_USER: admin
       ADMIN_PASSWORD: DEIN_PASSWORT

@@ -1,82 +1,22 @@
-# opnSentral
+# opnCentral
 
-Self-hosted central management for multiple OPNsense firewalls.
+> **This project has moved to [opnSentral](https://github.com/frazon11/opnSentral).**
+>
+> This repository is retained for existing installations, release history and compatibility. New development, issues and releases continue under **opnSentral**.
 
-## Main features
+## New project
 
-- central firewall status and firmware information
-- encrypted OPNsense API credential storage
-- configuration backup history and one-click backups
-- automatic backups before managed changes
-- central aliases and categories
-- managed WireGuard pair overview
-- experimental WireGuard site-to-site tunnel wizard
-- email notifications
-- light and dark themes
-- English, German, French and Dutch interface
-- opnSentral self-backup and restore
-- optional anonymous active-installation statistics
-- AMD64 and ARM64 Docker images
+- GitHub: `https://github.com/frazon11/opnSentral`
+- GHCR: `ghcr.io/frazon11/opnsentral`
+- Docker Hub: `docker.io/frazon11/opnsentral`
 
-## Quick start
+Existing opnCentral installations can continue using their current image and persistent data. Migration instructions will be maintained in the new repository.
 
-```bash
-cp .env.example .env
-```
+## Legacy project
 
-Set a strong administrator password and generate `APP_KEY`:
+opnCentral is a self-hosted central management interface for multiple OPNsense firewalls.
 
-```bash
-openssl rand -hex 32
-```
-
-Then start:
-
-```bash
-docker compose pull
-docker compose up -d
-```
-
-Default web port:
-
-```text
-http://DOCKER-HOST:8788
-```
-
-Detailed instructions:
-
-- [Installation](docs/installation.md)
-- [Configuration](docs/configuration.md)
-- [Backup and restore](docs/backup-restore.md)
-- [Managed WireGuard](docs/wireguard.md)
-- [Anonymous telemetry](docs/telemetry.md)
-- [Troubleshooting](docs/troubleshooting.md)
-- [Changelog](CHANGELOG.md)
-
-## Persistent data
-
-```text
-/var/www/data
-/var/www/backups
-```
-
-Preserve the exact `APP_KEY`; otherwise encrypted OPNsense API credentials cannot be restored.
-
-## Container images
-
-```text
-ghcr.io/frazon11/opnsentral
-docker.io/frazon11/opnsentral
-```
-
-Release tags publish:
-
-- exact version, such as `0.6.11.14`
-- `latest`
-
-## Support
-
-Project support: `paypal.me/FrazoN11`
+The existing documentation, source history and releases remain available in this repository.
 
 ## License
 

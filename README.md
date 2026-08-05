@@ -1,4 +1,4 @@
-# opnCentral
+# opnSentral
 
 Self-hosted central management for multiple OPNsense firewalls.
 
@@ -14,7 +14,7 @@ Self-hosted central management for multiple OPNsense firewalls.
 - email notifications
 - light and dark themes
 - English, German, French and Dutch interface
-- opnCentral self-backup and restore
+- opnSentral self-backup and restore
 - optional anonymous active-installation statistics
 - AMD64 and ARM64 Docker images
 
@@ -65,14 +65,13 @@ Preserve the exact `APP_KEY`; otherwise encrypted OPNsense API credentials canno
 ## Container images
 
 ```text
-ghcr.io/frazon11/opncentral
-docker.io/frazon11/opncentral
+ghcr.io/frazon11/opnsentral
+docker.io/frazon11/opnsentral
 ```
 
 Release tags publish:
 
-- exact version, such as `0.4.6.1`
-- minor version, such as `0.4`
+- exact version, such as `0.6.11.14`
 - `latest`
 
 ## Support

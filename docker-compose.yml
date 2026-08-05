@@ -1,6 +1,6 @@
 services:
   opncentral:
-    image: ghcr.io/frazon11/opncentral:0.6.11.11
+    image: ghcr.io/frazon11/opncentral:0.6.11.12
     container_name: OpnCentral
     restart: unless-stopped
 

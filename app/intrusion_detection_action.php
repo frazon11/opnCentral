@@ -48,10 +48,8 @@ try {
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
         throw new RuntimeException('POST required.');
     }
-    verify_csrf((string) ($_POST['csrf'] ?? ''));
-    if (!configuration_unlocked()) {
-        throw new RuntimeException('Unlock configuration changes first.');
-    }
+    require_csrf();
+    require_configuration_unlocked();
 
     $action = trim((string) ($_POST['action'] ?? ''));
     $firewallIds = array_values(array_unique(array_filter(
@@ -81,18 +79,10 @@ try {
                 }
 
                 if ($mode !== 'keep') {
-                    $modeChanged = ids_set_recursive(
-                        $settings,
-                        ['capture_mode','capturemode'],
-                        $mode
-                    );
+                    $modeChanged = ids_set_recursive($settings, ['capture_mode','capturemode'], $mode);
                     if (!$modeChanged) {
                         $legacy = $mode === 'pcap' ? '0' : '1';
-                        $modeChanged = ids_set_recursive(
-                            $settings,
-                            ['ips_mode','ipsmode'],
-                            $legacy
-                        );
+                        $modeChanged = ids_set_recursive($settings, ['ips_mode','ipsmode'], $legacy);
                     }
                     if (!$modeChanged) {
                         throw new RuntimeException('No supported IDS/IPS capture-mode field was found.');
@@ -117,15 +107,51 @@ try {
                 opn_raw_request(
                     $firewall,
                     'ids/settings/toggle_ruleset/' . rawurlencode($filenames) . '/' . $enabled,
-                    'POST',
-                    [],
-                    30
+                    'POST', [], 30
                 );
                 opn_raw_request($firewall, 'ids/service/reload_rules', 'POST', [], 45);
                 $entry['message'] = count($rulesets) . ' ruleset(s) updated and reloaded.';
             } elseif ($action === 'update_rules') {
                 opn_raw_request($firewall, 'ids/service/update_rules/1', 'POST', [], 180);
                 $entry['message'] = 'Rules downloaded and reloaded.';
+            } elseif ($action === 'deploy_policy') {
+                $description = trim((string) ($_POST['description'] ?? ''));
+                if ($description === '') {
+                    throw new RuntimeException('Policy description is required.');
+                }
+                $priority = max(0, (int) ($_POST['priority'] ?? 0));
+                $policyAction = strtolower(trim((string) ($_POST['action_value'] ?? 'alert')));
+                if (!in_array($policyAction, ['alert','drop','reject','pass'], true)) {
+                    throw new RuntimeException('Unsupported policy action.');
+                }
+                $rulesets = array_values(array_unique(array_filter(array_map(
+                    static fn(string $value): string => trim($value),
+                    explode(',', (string) ($_POST['rulesets'] ?? ''))
+                ))));
+                $uuid = trim((string) ($_POST['policy_uuid'] ?? ''));
+                $payload = [
+                    'policy' => [
+                        'enabled' => ids_bool($_POST['enabled'] ?? '1'),
+                        'priority' => (string) $priority,
+                        'action' => $policyAction,
+                        'new_action' => $policyAction,
+                        'rulesets' => implode(',', $rulesets),
+                        'description' => $description,
+                    ],
+                ];
+                if ($uuid === '') {
+                    $response = opn_raw_request($firewall, 'ids/settings/add_policy', 'POST', $payload, 30);
+                    $createdUuid = trim((string) ($response['uuid'] ?? ''));
+                    $entry['message'] = 'Policy created' . ($createdUuid !== '' ? ' (' . $createdUuid . ')' : '') . ' and applied.';
+                } else {
+                    opn_raw_request(
+                        $firewall,
+                        'ids/settings/set_policy/' . rawurlencode($uuid),
+                        'POST', $payload, 30
+                    );
+                    $entry['message'] = 'Policy updated and applied.';
+                }
+                opn_raw_request($firewall, 'ids/service/reconfigure', 'POST', [], 60);
             } else {
                 throw new RuntimeException('Unknown IDS action.');
             }

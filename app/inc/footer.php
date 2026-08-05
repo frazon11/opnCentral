@@ -4,8 +4,10 @@
 <link rel="stylesheet" href="/assets/topbar-controls.css?v=06115">
 <link rel="stylesheet" href="/assets/sidebar-opnsense.css?v=06116">
 <link rel="stylesheet" href="/assets/sidebar-submenus.css?v=06117">
+<link rel="stylesheet" href="/assets/ids-bulk-actions.css?v=06118">
 <script src="/assets/ids-menu.js?v=06118"></script>
 <script src="/assets/sidebar-opnsense.js?v=06118"></script>
+<script src="/assets/ids-bulk-actions.js?v=06118"></script>
 <script>
 (function(){
     const version = document.querySelector('.sidebar-meta span:first-child');
